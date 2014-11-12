@@ -26,3 +26,17 @@ PImage.encodePNG(img1, fs.createWriteStream('out.png'), function(err) {
 });
 ```
 
+
+
+On the roadmap
+===============
+
+
+* drawing text from truetype files. Have to figure out a pure JS font rasterizer
+* bezier curves, stroked and filled
+* alpha compositing
+* PNG loading for compositing
+* Jpeg input/output
+
+
+
