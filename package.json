@@ -1,0 +1,10 @@
+{
+  "name": "pureimage",
+  "version": "0.0.1",
+  "scripts": {
+    "test": "node tests/simple_tests.js"
+  },
+  "dependencies": {
+    "pngjs": "^0.4.0"
+  }
+}
