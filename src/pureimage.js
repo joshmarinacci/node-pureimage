@@ -242,18 +242,14 @@ function Bitmap4BBPContext(bitmap) {
         var fsize = this._settings.font.size;
         var glyphs = font.font.stringToGlyphs(text);
         var advance = 0;
-        var yMin = 0;
-        var yMax = 0;
         glyphs.forEach(function(g) {
             advance += g.advanceWidth;
-            yMin = Math.min(g.yMin,yMin);
-            yMax = Math.max(g.yMax,yMax);
         });
 
         return {
             width: advance/font.font.unitsPerEm*fsize,
-            emHeightAscent:yMax/font.font.unitsPerEm*fsize,
-            emHeightDescent:yMin/font.font.unitsPerEm*fsize,
+            emHeightAscent: font.font.ascender/font.font.unitsPerEm*fsize,
+            emHeightDescent: font.font.descender/font.font.unitsPerEm*fsize,
         };
     }
 }

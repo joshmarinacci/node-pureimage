@@ -9,18 +9,30 @@ fnt.load(function() {
     ctx.setFont('Source Sans Pro',120);
     ctx.fillText("Greetings",50,150);
     ctx.fillText("Earthling",50,360);
-    var metrics = ctx.measureText("Greetins");
+    var metrics = ctx.measureText("Greetings");
     console.log("metrics = ", metrics);
 
-    ctx.beginPath();
-    ctx.moveTo(0,150-metrics.emHeightAscent);
-    ctx.lineTo(500,150-metrics.emHeightAscent);
-    ctx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(0,150-metrics.emHeightDescent);
-    ctx.lineTo(500,150-metrics.emHeightDescent);
-    ctx.stroke();
+    function hline(y) {
+        ctx.setFillStyleRGBA(0,255,0, 1);
+        ctx.beginPath();
+        ctx.moveTo(0,  y);
+        ctx.lineTo(799,y);
+        ctx.stroke();
+    }
+    function vline(x) {
+        ctx.setFillStyleRGBA(0,255,0, 1);
+        ctx.beginPath();
+        ctx.moveTo(x,  0);
+        ctx.lineTo(x, 399);
+        ctx.stroke();
+    }
+
+    vline(50+0);
+    vline(50+metrics.width);
+    hline(150-metrics.emHeightAscent);
+    hline(150-metrics.emHeightDescent);
+
 
     PImage.encodePNG(img, fs.createWriteStream("out2.png"), function(){
         console.log("done");
