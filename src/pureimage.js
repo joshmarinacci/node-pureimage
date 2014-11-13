@@ -22,14 +22,10 @@ function Bitmap4BBPContext(bitmap) {
         return (this._bitmap.width * y + x)*4;
     }
     this.getPixeli32 = function(x,y) {
-        console.log('reading at ',x,y);
-        var int = this._bitmap._buffer.readUInt32BE(this._index(x,y));
-        console.log("the int is ", int);
-        return int;
+        return this._bitmap._buffer.readUInt32BE(this._index(x,y));
     }
     //rgb are bytes (0->255), a is 0->1 (an opacity percentage)
     this.setPixelRGBA = function(x,y, r,g,b,a) {
-        console.log('setting at ', this._index(x,y), ' color = ',r, g, b, a);
         this._bitmap._buffer[this._index(x,y)+0] = r;
         this._bitmap._buffer[this._index(x,y)+1] = g;
         this._bitmap._buffer[this._index(x,y)+2] = b;
