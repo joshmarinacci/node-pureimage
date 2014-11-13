@@ -2,6 +2,8 @@ var opentype = require('../vendor/opentype.js');
 var fs = require('fs');
 var PNG = require('pngjs').PNG;
 
+function p(s) {  console.log(s);  }
+
 function Bitmap4BBP(w,h) {
     this.width = w;
     this.height = h;
@@ -217,22 +219,22 @@ function Bitmap4BBPContext(bitmap) {
         this._settings.font.size = size;
     }
 
+
     this.fillText = function(text, x, y) {
         var self = this;
         var ctx = self;
-        this.beginPath();
         var font = _fonts[self._settings.font.family];
         var path = font.font.getPath(text, x, y, self._settings.font.size);
+        ctx.beginPath();
         path.commands.forEach(function(cmd) {
             switch(cmd.type) {
                 case 'M': ctx.moveTo(cmd.x,cmd.y); break;
                 //case 'Q': ctx.quadraticCurveTo(cmd.x,cmd.y,cmd.x1,cmd.y1); break;
                 case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
                 case 'L': ctx.lineTo(cmd.x,cmd.y); break;
-                case 'Z': ctx.closePath(); break;
+                case 'Z': ctx.closePath(); ctx.fill(); ctx.beginPath(); break;
             }
         });
-        ctx.fill();
     }
 }
 
