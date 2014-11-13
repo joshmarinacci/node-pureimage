@@ -1,4 +1,4 @@
-node-pureimage
+PureImage
 ==============
 
 PureImage is a pure JavaScript implementation of an image drawing and encoding
@@ -35,6 +35,8 @@ We avoid special cases and optimizations to keep the code simple and maintainabl
 It should run everywhere and be highly portable. But it will not be fast. If you
 need speed go use Canvas.js.
 
+PureImage uses only pure JS dependencies.  [OpenType](https://github.com/nodebox/opentype.js/)
+for font parsing and [PngJS](https://github.com/niegowski/node-pngjs) for PNG export.
 
 
 
@@ -81,16 +83,8 @@ On the roadmap
 Thanks!
 ===============
 
-Thanks to Nodebox / EMRG for opentype.js
+Thanks to Nodebox / EMRG for [opentype.js](https://github.com/nodebox/opentype.js/)
 
-    https://github.com/nodebox/opentype.js/
+Thanks to Rosetta Code for [Bresenham's in JS](http://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#JavaScript)
 
-Thanks to Rosetta Code for Bresenham's in JS
-
-    http://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#JavaScript
-
-Thanks to Kuba Niegowski for PngJS
-
-    https://github.com/niegowski/node-pngjs
-
-Thanks
+Thanks to Kuba Niegowski for [PngJS](https://github.com/niegowski/node-pngjs)
