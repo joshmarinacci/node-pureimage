@@ -2,7 +2,14 @@ var opentype = require('opentype.js');
 var fs = require('fs');
 var PNG = require('pngjs').PNG;
 var trans = require('./transform');
+var uint32 = require('./uint32');
 
+var NAMED_COLORS = {
+    'blue':0x0000FFff,
+    'red':0xFF0000ff,
+    'green':0x00FF00ff,
+}
+var DEFAULT_FONT_FAMILY = 'Source Sans Pro';
 
 function p(s) {  console.log(s);  }
 
@@ -30,10 +37,18 @@ function Bitmap4BBPContext(bitmap) {
             size: 14,
         }
     }
+    this._fillColor = 0xFFFFFFFF;
+    this._strokeColor = 0x000000FF;
 
     this._index = function(x,y) {
         var pt = this.transform.transformPoint(x,y);
         return (this._bitmap.width * Math.floor(pt.y) + Math.floor(pt.x))*4;
+    }
+    this.save = function() {
+        this.transform.save();
+    }
+    this.restore = function() {
+        this.transform.restore();
     }
     this.translate = function(x,y) {
         this.transform.translate(x,y);
@@ -53,6 +68,26 @@ function Bitmap4BBPContext(bitmap) {
         this._fillColor = r<<24 | g<<16 | b<<8 | Math.floor(255*a);
     }
 
+    this.setFillStyle = function(str) {
+        this._fillColor = colorStringToUint32(str);
+    }
+    this.setStrokeStyle = function(str) {
+        this._strokeColor = colorStringToUint32(str);
+    }
+    function colorStringToUint32(str) {
+        if(str.indexOf('#')==0) {
+            var int = uint32.toUint32(parseInt(str.substring(1),16));
+            int = uint32.shiftLeft(int,8);
+            int = uint32.or(int,0xff);
+            return int;
+        }
+        if(NAMED_COLORS[str]) {
+            return NAMED_COLORS[str];
+        }
+        console.log("UNKNOWN style format",str);
+        return 0xFF0000;
+    }
+
     this.fillRect = function(x,y,w,h) {
         for(var j=y; j<y+h; j++) {
             for(var i=x; i<x+w; i++) {
@@ -70,6 +105,13 @@ function Bitmap4BBPContext(bitmap) {
         if(y >= this._bitmap.height) return;
         this._bitmap._buffer.writeUInt32BE(this._fillColor, this._index(Math.floor(x),Math.floor(y)));
     }
+    this.strokePixel = function(x,y) {
+        if(x<0) return;
+        if(y<0) return;
+        if(x >= this._bitmap.width) return;
+        if(y >= this._bitmap.height) return;
+        this._bitmap._buffer.writeUInt32BE(this._strokeColor, this._index(Math.floor(x),Math.floor(y)));
+    }
 
     this.drawImage = function(img2, x,y) {
         for(var j=0; j<img2.height; j++) {
@@ -83,6 +125,16 @@ function Bitmap4BBPContext(bitmap) {
                 this._bitmap._buffer.writeUInt32BE(img2._buffer.readUInt32BE(ns),nd);
             }
         }
+    }
+
+    this.strokeRect = function(x,y,w,h) {
+        this.beginPath();
+        this.moveTo(x,y);
+        this.lineTo(x+w,y);
+        this.lineTo(x+w,y+h);
+        this.lineTo(x,y+h);
+        this.closePath();
+        this.stroke();
     }
 
     this.beginPath = function() {
@@ -210,7 +262,7 @@ function Bitmap4BBPContext(bitmap) {
         var err = (dx>dy ? dx : -dy)/2;
 
         while (true) {
-            image.fillPixel(x0,y0);
+            image.strokePixel(x0,y0);
             if (x0 === x1 && y0 === y1) break;
             var e2 = err;
             if (e2 > -dx) { err -= dy; x0 += sx; }
@@ -223,6 +275,10 @@ function Bitmap4BBPContext(bitmap) {
 
     this.setFont = function(family, size) {
         this._settings.font.family = family;
+        if(!_fonts[family]) {
+            console.log("WARNING. MISSING FONT FAMILY",family);
+            this._settings.font.family = DEFAULT_FONT_FAMILY;
+        }
         this._settings.font.size = size;
     }
 
@@ -247,7 +303,6 @@ function Bitmap4BBPContext(bitmap) {
     this.measureText = function(text) {
         var font = _fonts[this._settings.font.family];
         var fsize = this._settings.font.size;
-        console.log(font);
         var glyphs = font.font.stringToGlyphs(text);
         var advance = 0;
         glyphs.forEach(function(g) {

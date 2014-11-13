@@ -93,6 +93,20 @@ var green = 0x00ff00ff;
 
 }
 
+
+{
+
+    var uint32 = require('../src/uint32');
+    var int = uint32.toUint32(0xff0000);
+    console.log('int = ', uint32.toHex(int));
+    var int2 = uint32.shiftLeft(int,8);
+    var int3 = uint32.or(int2,0xff);
+    console.log(uint32.toHex(int3));
+
+
+
+}
+
 function eq(a,b) {
     if(a != b) throw new Error(a.toString(16) + " is not equal to " + b.toString(16));
 }
