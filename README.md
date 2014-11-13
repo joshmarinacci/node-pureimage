@@ -88,3 +88,14 @@ Thanks to Nodebox / EMRG for [opentype.js](https://github.com/nodebox/opentype.j
 Thanks to Rosetta Code for [Bresenham's in JS](http://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#JavaScript)
 
 Thanks to Kuba Niegowski for [PngJS](https://github.com/niegowski/node-pngjs)
+
+
+
+Notes
+==========
+
+* move font stuff to pure image,
+* make a registerFont,
+* setFont(name,size,weight,style,variant),
+* and drawString function,
+* and measureText

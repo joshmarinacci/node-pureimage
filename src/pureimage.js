@@ -1,3 +1,4 @@
+var opentype = require('../vendor/opentype.js');
 var fs = require('fs');
 var PNG = require('pngjs').PNG;
 
@@ -18,6 +19,13 @@ function Bitmap4BBP(w,h) {
 
 function Bitmap4BBPContext(bitmap) {
     this._bitmap = bitmap;
+    this._settings = {
+        font: {
+            family:'serif',
+            size: 14,
+        }
+    }
+
     this._index = function(x,y) {
         return (this._bitmap.width * y + x)*4;
     }
@@ -34,7 +42,6 @@ function Bitmap4BBPContext(bitmap) {
 
     this.setFillStyleRGBA = function(r,g,b,a) {
         this._fillColor = r<<24 | g<<16 | b<<8 | Math.floor(255*a);
-        console.log("fill color = ", this._fillColor.toString(16));
     }
 
     this.fillRect = function(x,y,w,h) {
@@ -48,6 +55,10 @@ function Bitmap4BBPContext(bitmap) {
     }
 
     this.fillPixel = function(x,y) {
+        if(x<0) return;
+        if(y<0) return;
+        if(x >= this._bitmap.width) return;
+        if(y >= this._bitmap.height) return;
         this._bitmap._buffer.writeUInt32BE(this._fillColor, this._index(x,y));
     }
 
@@ -70,7 +81,12 @@ function Bitmap4BBPContext(bitmap) {
     }
 
     this.moveTo = function(x,y) {
+        this.pathmtx = x;
+        this.pathmty = y;
         this.path.push(['m',x,y]);
+    }
+    this.closePath = function() {
+        this.lineTo(this.pathmtx,this.pathmty);
     }
     this.lineTo = function(x,y) {
         this.path.push(['l',x,y]);
@@ -123,6 +139,33 @@ function Bitmap4BBPContext(bitmap) {
             if (e2 < dy) { err += dx; y0 += sy; }
         }
     }
+
+
+    // ================  Fonts and Text Drawing
+
+    this.setFont = function(family, size) {
+        this._settings.font.family = family;
+        this._settings.font.size = size;
+    }
+
+    this.fillText = function(text, x, y) {
+        var self = this;
+        var ctx = self;
+        this.beginPath();
+        var font = _fonts[self._settings.font.family];
+        console.log("looking at size", self._settings.font.size);
+        var path = font.font.getPath(text, x, y, self._settings.font.size);
+        path.commands.forEach(function(cmd) {
+            switch(cmd.type) {
+                case 'M': ctx.moveTo(cmd.x,cmd.y); break;
+                //case 'Q': ctx.quadraticCurveTo(cmd.x,cmd.y,cmd.x1,cmd.y1); break;
+                case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
+                case 'L': ctx.lineTo(cmd.x,cmd.y); break;
+                case 'Z': ctx.closePath(); break;
+            }
+        });
+        ctx.fill();
+    }
 }
 
 exports.make = function(w,h) {
@@ -148,4 +191,36 @@ exports.encodePNG = function(bitmap, outstream, cb) {
         console.log("ended");
         cb();
     });
+}
+
+
+var _fonts = {
+
+}
+
+exports.registerFont = function(binary, family, weight, style, variant) {
+    _fonts[family] = {
+        binary: binary,
+        family: family,
+        weight: weight,
+        style: style,
+        variant: variant,
+        loaded: false,
+        font: null,
+        load: function(cb) {
+            if(this.loaded) {
+                if(cb)cb();
+                return;
+            }
+            console.log("loading ", binary);
+            var self = this;
+            opentype.load(binary, function (err, font) {
+                if (err) throw new Error('Could not load font: ' + err);
+                self.loaded = true;
+                self.font = font;
+                if(cb)cb();
+            });
+        }
+    };
+    return _fonts[family];
 }
