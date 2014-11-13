@@ -10,7 +10,7 @@ function Bitmap4BBP(w,h) {
             this._buffer.writeUInt32BE(0x000000FF, (j*this.width+i)*4);
         }
     }
-    
+
     this.getContext = function(type) {
         return new Bitmap4BBPContext(this);
     }
@@ -35,12 +35,12 @@ function Bitmap4BBPContext(bitmap) {
         this._bitmap._buffer[this._index(x,y)+2] = b;
         this._bitmap._buffer[this._index(x,y)+3] = Math.floor(255*a);
     }
-    
+
     this.setFillStyleRGBA = function(r,g,b,a) {
         this._fillColor = r<<24 | g<<16 | b<<8 | Math.floor(255*a);
         console.log("fill color = ", this._fillColor.toString(16));
     }
-    
+
     this.fillRect = function(x,y,w,h) {
         for(var j=y; j<y+h; j++) {
             for(var i=x; i<x+w; i++) {
@@ -50,11 +50,11 @@ function Bitmap4BBPContext(bitmap) {
             }
         }
     }
-    
+
     this.fillPixel = function(x,y) {
         this._bitmap._buffer.writeUInt32BE(this._fillColor, this._index(x,y));
     }
-    
+
     this.drawImage = function(img2, x,y) {
         for(var j=0; j<img2.height; j++) {
             for(var i=0; i<img2.width; i++) {
@@ -66,6 +66,65 @@ function Bitmap4BBPContext(bitmap) {
                 var nd = this._index(i+x,j+y);
                 this._bitmap._buffer.writeUInt32BE(img2._buffer.readUInt32BE(ns),nd);
             }
+        }
+    }
+
+    this.beginPath = function() {
+        this.path = [];
+    }
+
+    this.moveTo = function(x,y) {
+        this.path.push(['m',x,y]);
+    }
+    this.lineTo = function(x,y) {
+        this.path.push(['l',x,y]);
+    }
+    this.quadraticCurveTo = function(cp1x, cp1y, x, y) {
+        this.path.push(['q',cp1x,cp1y,x,y]);
+    }
+    this.bezierCurveTo = function(cp1x, cp1y, cp2x, cp2y, x, y) {
+        this.path.push(['b',cp1x,cp1y,cp2x,cp2y,x,y]);
+    }
+
+    this.fill = function() {
+        var cx = 0;
+        var cy = 0;
+        var self = this;
+        this.path.forEach(function(cmd){
+            if(cmd[0] == 'm') {
+                cx = cmd[1];
+                cy = cmd[2];
+            }
+            if(cmd[0] == 'l') {
+                fillLine(self,cx,cy,cmd[1],cmd[2]);
+                cx = cmd[1];
+                cy = cmd[2];
+            }
+            if(cmd[0] == 'q') {
+                fillLine(self,cx,cy,cmd[3],cmd[4]);
+                cx = cmd[3];
+                cy = cmd[4];
+            }
+        })
+    }
+
+    //Bresenham's from Rosetta Code
+    // http://rosettacode.org/wiki/Bitmap/Bresenham's_line_algorithm#JavaScript
+    fillLine = function(image,x0,y0, x1,y1) {
+        x0 = Math.floor(x0);
+        y0 = Math.floor(y0);
+        x1 = Math.floor(x1);
+        y1 = Math.floor(y1);
+        var dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+        var dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+        var err = (dx>dy ? dx : -dy)/2;
+
+        while (true) {
+            image.fillPixel(x0,y0);
+            if (x0 === x1 && y0 === y1) break;
+            var e2 = err;
+            if (e2 > -dx) { err -= dy; x0 += sx; }
+            if (e2 < dy) { err += dx; y0 += sy; }
         }
     }
 }
@@ -80,7 +139,7 @@ exports.encodePNG = function(bitmap, outstream, cb) {
         width:bitmap.width,
         height:bitmap.height,
     });
-    
+
     for(var i=0; i<bitmap.width; i++) {
         for(var j=0; j<bitmap.height; j++) {
             for(var k=0; k<4; k++) {
@@ -95,5 +154,3 @@ exports.encodePNG = function(bitmap, outstream, cb) {
         cb();
     });
 }
-
-
