@@ -73,9 +73,24 @@ var green = 0x00ff00ff;
     ctx.lineTo(90,90);
     ctx.lineTo(10,10);
     ctx.fill();
-    PImage.encodePNG(img1, fs.createWriteStream('out.png'), function(err) {
-        console.log("wrote out the png file to out.png");
+    PImage.encodePNG(img1, fs.createWriteStream('polygon.png'), function(err) {
+        console.log("wrote out the png file to polygon.png");
     });
+}
+
+
+{
+    //draw lines with translation
+    var img1 = PImage.make(100,100);
+    var ctx = img1.getContext('2d');
+    ctx.setFillStyleRGBA(0,255,0,1);
+    ctx.fillRect(0,0,5,5);
+    ctx.translate(30,50);
+    ctx.fillRect(0,0,5,5);
+    PImage.encodePNG(img1, fs.createWriteStream('translate.png'), function(err) {
+        console.log("wrote out the png file to translate.png");
+    });
+
 }
 
 function eq(a,b) {

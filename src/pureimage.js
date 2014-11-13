@@ -1,6 +1,8 @@
 var opentype = require('opentype.js');
 var fs = require('fs');
 var PNG = require('pngjs').PNG;
+var trans = require('./transform');
+
 
 function p(s) {  console.log(s);  }
 
@@ -21,6 +23,7 @@ function Bitmap4BBP(w,h) {
 
 function Bitmap4BBPContext(bitmap) {
     this._bitmap = bitmap;
+    this.transform = new trans.Transform();
     this._settings = {
         font: {
             family:'serif',
@@ -29,7 +32,11 @@ function Bitmap4BBPContext(bitmap) {
     }
 
     this._index = function(x,y) {
-        return (this._bitmap.width * y + x)*4;
+        var pt = this.transform.transformPoint(x,y);
+        return (this._bitmap.width * Math.floor(pt.y) + Math.floor(pt.x))*4;
+    }
+    this.translate = function(x,y) {
+        this.transform.translate(x,y);
     }
     this.getPixeli32 = function(x,y) {
         return this._bitmap._buffer.readUInt32BE(this._index(x,y));
@@ -240,6 +247,7 @@ function Bitmap4BBPContext(bitmap) {
     this.measureText = function(text) {
         var font = _fonts[this._settings.font.family];
         var fsize = this._settings.font.size;
+        console.log(font);
         var glyphs = font.font.stringToGlyphs(text);
         var advance = 0;
         glyphs.forEach(function(g) {
