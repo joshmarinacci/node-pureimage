@@ -98,7 +98,80 @@ function Bitmap4BBPContext(bitmap) {
         this.path.push(['b',cp1x,cp1y,cp2x,cp2y,x,y]);
     }
 
+    function makePoint(x,y) {
+        return {x:x, y:y};
+    }
+    function pathToPolygon(path) {
+        var poly = [];
+        path.forEach(function(cmd) {
+            if(cmd[0] == 'm') poly.push(makePoint(cmd[1],cmd[2]));
+            if(cmd[0] == 'l') poly.push(makePoint(cmd[1],cmd[2]));
+            if(cmd[0] == 'q') poly.push(makePoint(cmd[3],cmd[4]));
+        });
+        return poly;
+    }
+    function calcMinimumBounds(poly) {
+        var bounds = {
+            x: 10000,
+            y: 10000,
+            x2: -10000,
+            y2: -10000,
+        }
+        poly.forEach(function(pt) {
+            bounds.x  = Math.min(bounds.x,pt.x);
+            bounds.y  = Math.min(bounds.y,pt.y);
+            bounds.x2 = Math.max(bounds.x2,pt.x);
+            bounds.y2 = Math.max(bounds.y2,pt.y);
+        });
+        return bounds;
+    }
+    //adapted from http://alienryderflex.com/polygon
+    function calcSortedIntersections(poly,y) {
+        console.log("intsection of ",y, 'and ', poly);
+        var j = poly.length-1;
+        var oddNodes = false;
+        var xlist = [];
+        for(var i=0; i<poly.length; i++) {
+            var A = poly[i];
+            var B = poly[j];
+            if(A.y<y && B.y>=y || B.y<y && A.y>=y) {
+                console.log("match at y");
+                var xval = A.x + (y-A.y) / (B.y-A.y) * (B.x-A.x);
+                console.log("xval = ",xval);
+                xlist.push(xval);
+                //(polyX[i]+(pixelY-polyY[i])/(polyY[j]-polyY[i])
+      //*(polyX[j]-polyX[i]));
+            }
+            j=i;
+        }
+        return xlist.sort();
+    }
+
+
+
     this.fill = function() {
+        //this.stroke();
+        var poly = pathToPolygon(this.path);
+        var bounds = calcMinimumBounds(poly);
+        console.log("bounds = ", bounds);
+        for(var j=bounds.y; j<=bounds.y2; j++) {
+        //for(var j=bounds.y; j<=bounds.y+5; j++) {
+            //console.log('drawing line', j);
+            var ints = calcSortedIntersections(poly,j);
+            //console.log('intersections',ints);
+            //fill between each pair of intersections
+            for(var i=0; i<ints.length; i+=2) {
+                var start = Math.floor(ints[i]);
+                var end   = Math.floor(ints[i+1]);
+                //console.log('drawing',start,end);
+                for(var ii=start; ii<=end; ii++) {
+                    //console.log("filling",ii);
+                    this.fillPixel(ii,j);
+                }
+            }
+        }
+    }
+    this.stroke = function() {
         var cx = 0;
         var cy = 0;
         var self = this;
