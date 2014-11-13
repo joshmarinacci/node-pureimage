@@ -59,7 +59,7 @@ function Bitmap4BBPContext(bitmap) {
         if(y<0) return;
         if(x >= this._bitmap.width) return;
         if(y >= this._bitmap.height) return;
-        this._bitmap._buffer.writeUInt32BE(this._fillColor, this._index(x,y));
+        this._bitmap._buffer.writeUInt32BE(this._fillColor, this._index(Math.floor(x),Math.floor(y)));
     }
 
     this.drawImage = function(img2, x,y) {
@@ -127,7 +127,7 @@ function Bitmap4BBPContext(bitmap) {
     }
     //adapted from http://alienryderflex.com/polygon
     function calcSortedIntersections(poly,y) {
-        console.log("intsection of ",y, 'and ', poly);
+        //console.log("intsection of ",y, 'and ', poly);
         var j = poly.length-1;
         var oddNodes = false;
         var xlist = [];
@@ -135,16 +135,12 @@ function Bitmap4BBPContext(bitmap) {
             var A = poly[i];
             var B = poly[j];
             if(A.y<y && B.y>=y || B.y<y && A.y>=y) {
-                console.log("match at y");
                 var xval = A.x + (y-A.y) / (B.y-A.y) * (B.x-A.x);
-                console.log("xval = ",xval);
                 xlist.push(xval);
-                //(polyX[i]+(pixelY-polyY[i])/(polyY[j]-polyY[i])
-      //*(polyX[j]-polyX[i]));
             }
             j=i;
         }
-        return xlist.sort();
+        return xlist.sort(function(a,b) {  return a>b; });
     }
 
 
@@ -153,7 +149,6 @@ function Bitmap4BBPContext(bitmap) {
         //this.stroke();
         var poly = pathToPolygon(this.path);
         var bounds = calcMinimumBounds(poly);
-        console.log("bounds = ", bounds);
         for(var j=bounds.y; j<=bounds.y2; j++) {
         //for(var j=bounds.y; j<=bounds.y+5; j++) {
             //console.log('drawing line', j);
@@ -161,11 +156,12 @@ function Bitmap4BBPContext(bitmap) {
             //console.log('intersections',ints);
             //fill between each pair of intersections
             for(var i=0; i<ints.length; i+=2) {
+                //console.log("segment on ", j);
                 var start = Math.floor(ints[i]);
                 var end   = Math.floor(ints[i+1]);
                 //console.log('drawing',start,end);
                 for(var ii=start; ii<=end; ii++) {
-                    //console.log("filling",ii);
+                    //console.log("filling",ii,j);
                     this.fillPixel(ii,j);
                 }
             }
@@ -226,7 +222,6 @@ function Bitmap4BBPContext(bitmap) {
         var ctx = self;
         this.beginPath();
         var font = _fonts[self._settings.font.family];
-        console.log("looking at size", self._settings.font.size);
         var path = font.font.getPath(text, x, y, self._settings.font.size);
         path.commands.forEach(function(cmd) {
             switch(cmd.type) {
