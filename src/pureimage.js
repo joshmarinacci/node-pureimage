@@ -130,7 +130,6 @@ exports.make = function(w,h) {
 }
 
 exports.encodePNG = function(bitmap, outstream, cb) {
-    console.log("encoding");
     var png = new PNG({
         width:bitmap.width,
         height:bitmap.height,
