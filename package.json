@@ -1,24 +1,22 @@
 {
   "name": "pureimage",
   "version": "0.0.1",
-  "description":"Pure JS image drawing API based on Canvas. Export to PNG streams.",
+  "description": "Pure JS image drawing API based on Canvas. Export to PNG streams.",
   "author": {
-      "name":"Josh Marinacci",
-      "email":"joshua@marinacci.org",
-      "url":"http://joshondesign.com/"
+    "name": "Josh Marinacci",
+    "email": "joshua@marinacci.org",
+    "url": "http://joshondesign.com/"
   },
-  "main":"./src/pureimage.js",
+  "main": "./src/pureimage.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/joshmarinacci/node-pureimage.git"
   },
-  
   "dependencies": {
+    "opentype.js": "^0.4.1",
     "pngjs": "^0.4.0"
   },
-
   "scripts": {
     "test": "node tests/simple_tests.js"
   }
-  
 }

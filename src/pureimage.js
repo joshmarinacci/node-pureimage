@@ -1,4 +1,4 @@
-var opentype = require('../vendor/opentype.js');
+var opentype = require('opentype.js');
 var fs = require('fs');
 var PNG = require('pngjs').PNG;
 
@@ -235,6 +235,26 @@ function Bitmap4BBPContext(bitmap) {
                 case 'Z': ctx.closePath(); ctx.fill(); ctx.beginPath(); break;
             }
         });
+    }
+
+    this.measureText = function(text) {
+        var font = _fonts[this._settings.font.family];
+        var fsize = this._settings.font.size;
+        var glyphs = font.font.stringToGlyphs(text);
+        var advance = 0;
+        var yMin = 0;
+        var yMax = 0;
+        glyphs.forEach(function(g) {
+            advance += g.advanceWidth;
+            yMin = Math.min(g.yMin,yMin);
+            yMax = Math.max(g.yMax,yMax);
+        });
+
+        return {
+            width: advance/font.font.unitsPerEm*fsize,
+            emHeightAscent:yMax/font.font.unitsPerEm*fsize,
+            emHeightDescent:yMin/font.font.unitsPerEm*fsize,
+        };
     }
 }
 
