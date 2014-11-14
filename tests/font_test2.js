@@ -9,8 +9,8 @@ fnt.load(function() {
     ctx.setFont('Source Sans Pro',120);
     ctx.fillText("Greetings",50,150);
     ctx.fillText("Earthling",50,360);
+    //ctx.fillText("a",400,300);
     var metrics = ctx.measureText("Greetings");
-    console.log("metrics = ", metrics);
 
 
     function hline(y) {
@@ -27,6 +27,7 @@ fnt.load(function() {
         ctx.lineTo(x, 399);
         ctx.stroke();
     }
+
 
     vline(50+0);
     vline(50+metrics.width);

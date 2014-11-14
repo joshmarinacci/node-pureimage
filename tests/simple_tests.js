@@ -108,6 +108,7 @@ var green = 0x00ff00ff;
 }
 
 {
+    //antialiased polygon
     var img = PImage.make(10,10);
     var ctx = img.getContext('2d');
     ctx.setFillStyle('#ffffff');
@@ -117,6 +118,7 @@ var green = 0x00ff00ff;
     ctx.lineTo(8,8);
     ctx.closePath();
     ctx.fill();
+    /*
     for(var j=0; j<img.height; j++) {
         var line = "";
         for(var i=0; i<img.width; i++) {
@@ -129,9 +131,13 @@ var green = 0x00ff00ff;
         }
         console.log(line);
     }
+    */
     PImage.encodePNG(img, fs.createWriteStream('aapoly.png'), function(err) {
-        //console.log("wrote out the png file to aapoly.png");
+        console.log("wrote out the png file to aapoly.png");
     });
+
+    ctx.fillStyle = "red";
+    console.log("ctx fill style  = ", ctx.fillStyle, ctx._fillColor.toString(16));
 }
 
 function eq(a,b) {

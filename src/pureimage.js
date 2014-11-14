@@ -208,12 +208,38 @@ function Bitmap4BBPContext(bitmap) {
     function makePoint(x,y) {
         return {x:x, y:y};
     }
+
+    function calcQuadraticAtT(p, t) {
+        var x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x;
+        var y = (1 - t) * (1 - t) * p[0].y + 2 * (1 - t) * t * p[1].y + t * t * p[2].y;
+        return {x:x,y:y};
+    }
+
     function pathToPolygon(path) {
         var poly = [];
+        var last = null;
         path.forEach(function(cmd) {
-            if(cmd[0] == 'm') poly.push(makePoint(cmd[1],cmd[2]));
-            if(cmd[0] == 'l') poly.push(makePoint(cmd[1],cmd[2]));
-            if(cmd[0] == 'q') poly.push(makePoint(cmd[3],cmd[4]));
+            if(cmd[0] == 'm') {
+                last = makePoint(cmd[1],cmd[2]);
+                poly.push(last);
+            }
+
+
+            if(cmd[0] == 'l') {
+                last = makePoint(cmd[1],cmd[2]);
+                poly.push(last);
+            }
+            if(cmd[0] == 'q') {
+                var pts = [];
+                pts.push(last);
+                pts.push(makePoint(cmd[1],cmd[2]));
+                pts.push(makePoint(cmd[3],cmd[4]));
+
+                poly.push(calcQuadraticAtT(pts,0.33));
+                poly.push(calcQuadraticAtT(pts,0.66));
+                poly.push(calcQuadraticAtT(pts,1.0));
+                last = pts[2];
+            }
         });
         return poly;
     }
@@ -361,6 +387,7 @@ function Bitmap4BBPContext(bitmap) {
         var font = _fonts[self._settings.font.family];
         var path = font.font.getPath(text, x, y, self._settings.font.size);
         ctx.beginPath();
+        var first = true;
         path.commands.forEach(function(cmd) {
             switch(cmd.type) {
                 case 'M': ctx.moveTo(cmd.x,cmd.y); break;
