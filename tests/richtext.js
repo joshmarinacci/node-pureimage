@@ -20,16 +20,10 @@ function makeStyledJSDoc() {
             'font-family':"'Source Code Pro'",
             'background-color':'#ccffee',
         },
-        'plain': {
-            'font-size':20,
-            'color':'#000000',
-            'font-style':'normal',
-            'font-weight':'400',
-        },
 
         'paragraph': {
             'color':'#000000',
-            'font-size':15,
+            'font-size':30,
             'font-family':"'Source Serif Pro'",
             'font-style':'normal',
             'background-color':'#ffffff',
@@ -38,12 +32,12 @@ function makeStyledJSDoc() {
             'border-color':'#000000',
         },
         'header': {
-            'font-size':30,
+            'font-size':50,
             'font-family':"'Source Sans Pro'",
             'block-padding':10,
         },
         'subheader': {
-            'font-size':20,
+            'font-size':40,
             'font-family':"'Source Sans Pro'",
             'block-padding':10,
         },
@@ -96,12 +90,9 @@ function makeStyledJSDoc() {
 var fnt = PImage.registerFont('tests/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
 fnt.load(function() {
 
-    var img = PImage.make(800,400);
+    var img = PImage.make(800,600);
     var ctx = img.getContext('2d');
-    ctx.setFillStyleRGBA(0,255,255, 1);
-    ctx.setFont('Source Sans Pro',20);
-    ctx.fillText("Greetings",50,150);
-    ctx.fillText("Earthling",50,360);
+    ctx.setFillStyleRGBA(0,255,0, 1);
 
     var config = {
         context:ctx,

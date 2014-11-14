@@ -96,6 +96,8 @@ var green = 0x00ff00ff;
 
 {
 
+    //uint32 tests
+
     var uint32 = require('../src/uint32');
     var int = uint32.toUint32(0xff0000);
     console.log('int = ', uint32.toHex(int));
@@ -103,8 +105,33 @@ var green = 0x00ff00ff;
     var int3 = uint32.or(int2,0xff);
     console.log(uint32.toHex(int3));
 
+}
 
-
+{
+    var img = PImage.make(10,10);
+    var ctx = img.getContext('2d');
+    ctx.setFillStyle('#ffffff');
+    ctx.beginPath();
+    ctx.moveTo(2,2);
+    ctx.lineTo(8,2);
+    ctx.lineTo(8,8);
+    ctx.closePath();
+    ctx.fill();
+    for(var j=0; j<img.height; j++) {
+        var line = "";
+        for(var i=0; i<img.width; i++) {
+            var px = (ctx.getPixeli32(i,j)>>24&0xFF);
+            var str = px.toString(16);
+            if(str == '0') {
+                str = '00';
+            }
+            line += str+' ';
+        }
+        console.log(line);
+    }
+    PImage.encodePNG(img, fs.createWriteStream('aapoly.png'), function(err) {
+        //console.log("wrote out the png file to aapoly.png");
+    });
 }
 
 function eq(a,b) {

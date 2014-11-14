@@ -105,6 +105,41 @@ function Bitmap4BBPContext(bitmap) {
         if(y >= this._bitmap.height) return;
         this._bitmap._buffer.writeUInt32BE(this._fillColor, this._index(Math.floor(x),Math.floor(y)));
     }
+
+    function intToFloatArray(int) {
+        var r = uint32.getByteBigEndian(int,0);
+        var g = uint32.getByteBigEndian(int,1);
+        var b = uint32.getByteBigEndian(int,2);
+        var a = uint32.getByteBigEndian(int,3);
+        var parts = [r,g,b,a];
+        return parts;
+    }
+    function lerp(a,b,t) {
+        return a + (b-a)*t;
+    }
+
+    this.fillPixelRGBA  = function(x,y, new_int) {
+        if(x<0) return;
+        if(y<0) return;
+        if(x >= this._bitmap.width) return;
+        if(y >= this._bitmap.height) return;
+        var n = this._index(Math.floor(x),Math.floor(y));
+        var old_int = this._bitmap._buffer.readUInt32BE(n);
+        var old_rgba = intToFloatArray(old_int);
+        var new_rgba = intToFloatArray(new_int);
+        var new_alpha = new_rgba[3]/255;
+        //console.log("old = ", old_rgba, "new ", new_rgba, new_alpha);
+        var final_rgba = [
+            lerp(old_rgba[0],new_rgba[0],new_alpha),
+            lerp(old_rgba[1],new_rgba[1],new_alpha),
+            lerp(old_rgba[2],new_rgba[2],new_alpha),
+            new_alpha*255,
+        ];
+        //console.log("final rgba", final_rgba);
+        var final_int = uint32.fromBytesBigEndian(final_rgba[0], final_rgba[1], final_rgba[2], final_rgba[3]);
+        this._bitmap._buffer.writeUInt32BE(final_int,n);
+    }
+
     this.strokePixel = function(x,y) {
         if(x<0) return;
         if(y<0) return;
@@ -204,10 +239,22 @@ function Bitmap4BBPContext(bitmap) {
         return xlist.sort(function(a,b) {  return a>b; });
     }
 
-
+    function fract(v) {
+        return v-Math.floor(v);
+    }
+    function rgbaToInt(r,g,b,a) {
+        r = uint32.toUint32(r)
+        g = uint32.toUint32(g);
+        b = uint32.toUint32(b);
+        a = uint32.toUint32(a);
+        var int = uint32.shiftLeft(r,24) + uint32.shiftLeft(g,16) + uint32.shiftLeft(b,8) + a;
+        return int;
+    }
 
     this.fill = function() {
         //this.stroke();
+        //get just the color part
+        var rgb = uint32.and(this._fillColor,0xFFFFFF00);
         var poly = pathToPolygon(this.path);
         var bounds = calcMinimumBounds(poly);
         for(var j=bounds.y; j<=bounds.y2; j++) {
@@ -217,11 +264,25 @@ function Bitmap4BBPContext(bitmap) {
             //console.log('intersections',ints);
             //fill between each pair of intersections
             for(var i=0; i<ints.length; i+=2) {
-                //console.log("segment on ", j);
+                var fstart = ints[i];
+                var fend   = ints[i+1];
+                var fstartf = fract(fstart);
+                var fendf   = fract(fend);
                 var start = Math.floor(ints[i]);
                 var end   = Math.floor(ints[i+1]);
-                //console.log('drawing',start,end);
                 for(var ii=start; ii<=end; ii++) {
+                    if(ii == start) {
+                        //first
+                        var int = uint32.or(rgb,(1-fstartf)*255);
+                        this.fillPixelRGBA(ii,j, int);
+                        continue;
+                    }
+                    if(ii == end) {
+                        //last
+                        var int = uint32.or(rgb,fendf*255);
+                        this.fillPixelRGBA(ii,j, int);
+                        continue;
+                    }
                     //console.log("filling",ii,j);
                     this.fillPixel(ii,j);
                 }
