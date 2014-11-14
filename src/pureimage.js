@@ -37,8 +37,19 @@ function Bitmap4BBPContext(bitmap) {
             size: 14,
         }
     }
-    this._fillColor = 0xFFFFFFFF;
+
+    this._fillColor = 0xFFFFFFFF;   // the real int holding the RGBA value
+    this._fillStyle_text = "black"; // the text version set by using the fillStyle setter.
     this._strokeColor = 0x000000FF;
+    this._strokeStyle_text = "black";
+    Object.defineProperty(this, 'fillStyle', {
+        get: function() { return this._fillStyle_text; },
+        set: function(val) { this.setFillStyle(val); this._fillStyle_text = val }
+    });
+    Object.defineProperty(this, 'strokeStyle', {
+        get: function() { return this._strokeStyle_text; },
+        set: function(val) { this.setStrokeStyle(val); this._strokeStyle_text = val }
+    });
 
     this._index = function(x,y) {
         var pt = this.transform.transformPoint(x,y);
