@@ -7,17 +7,17 @@ API, based on HTML Canvas, for NodeJS. It has no native dependencies.
 Current features:
 
 * set pixels
-* draw lines
-* fill rectangles
+* stroke and fill paths (rectangles, lines, quadratic curves)
 * copy images
 * export to PNG
+* render text (no bold or italics yet)
 
 
 Why?
 ====
 
-The are more than enough drawing APIs out there. Why do we need another? Well,
-my personal hatred of C/C++ compilers is widely known. The popular
+The are more than enough drawing APIs out there. Why do we need another? My
+personal hatred of C/C++ compilers is widely known. The popular
 Node modules [Canvas.js](https://github.com/Automattic/node-canvas) does a great
 job, but it's backed by Cairo, a C/C++ layer. I hate having native dependencies
 in Node modules. They often don't compile, or break after a system update. They
@@ -73,9 +73,11 @@ On the roadmap
 ===============
 
 
-* drawing text from truetype files. Have to figure out a pure JS font rasterizer
+* *done* drawing text from truetype files. Have to figure out a pure JS font rasterizer
+* *done*: quadratic curves
 * bezier curves, stroked and filled
-* alpha compositing
+* anti-aliased curves (partially done)
+* full alpha compositing
 * PNG loading for compositing
 * Jpeg input/output
 
