@@ -23,7 +23,7 @@ function makeStyledJSDoc() {
 
         'paragraph': {
             'color':'#000000',
-            'font-size':30,
+            'font-size':15,
             'font-family':"'Source Serif Pro'",
             'font-style':'normal',
             'background-color':'#ffffff',
@@ -32,12 +32,12 @@ function makeStyledJSDoc() {
             'border-color':'#000000',
         },
         'header': {
-            'font-size':50,
+            'font-size':30,
             'font-family':"'Source Sans Pro'",
             'block-padding':10,
         },
         'subheader': {
-            'font-size':40,
+            'font-size':20,
             'font-family':"'Source Sans Pro'",
             'block-padding':10,
         },
