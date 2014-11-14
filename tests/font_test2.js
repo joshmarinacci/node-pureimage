@@ -36,6 +36,6 @@ fnt.load(function() {
 
 
     PImage.encodePNG(img, fs.createWriteStream("out2.png"), function(){
-        console.log("done");
+        console.log("rendered out2.png");
     });
 })
