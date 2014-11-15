@@ -135,6 +135,9 @@ var green = 0x00ff00ff;
     PImage.encodePNG(img, fs.createWriteStream('aapoly.png'), function(err) {
         console.log("wrote out the png file to aapoly.png");
     });
+    PImage.encodeJPEG(img, fs.createWriteStream('aapoly.jpg'), function(err) {
+        console.log("wrote out the png file to aapoly.jpg");
+    });
 
     ctx.fillStyle = "red";
     console.log("ctx fill style  = ", ctx.fillStyle, ctx._fillColor.toString(16));

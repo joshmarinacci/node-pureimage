@@ -13,6 +13,7 @@
     "url": "https://github.com/joshmarinacci/node-pureimage.git"
   },
   "dependencies": {
+    "jpeg-js": "0.0.4",
     "opentype.js": "^0.4.1",
     "pngjs": "^0.4.0"
   },

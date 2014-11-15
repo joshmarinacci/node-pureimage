@@ -1,6 +1,7 @@
 var opentype = require('opentype.js');
 var fs = require('fs');
 var PNG = require('pngjs').PNG;
+var JPEG = require('jpeg-js');
 var trans = require('./transform');
 var uint32 = require('./uint32');
 
@@ -442,6 +443,17 @@ exports.encodePNG = function(bitmap, outstream, cb) {
         console.log("ended");
         cb();
     });
+}
+
+exports.encodeJPEG = function(bitmap, outstream, cb) {
+    var data = {
+        data:bitmap._buffer,
+        width:bitmap.width,
+        height:bitmap.height,
+    }
+    var jpegImageData = JPEG.encode(data, 50);
+    outstream.write(jpegImageData.data);
+    if(cb)cb();
 }
 
 
