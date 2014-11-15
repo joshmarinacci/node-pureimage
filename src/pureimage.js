@@ -1,7 +1,7 @@
 // Pure Image uses existing libraries for font parsing, jpeg/png encode/decode
 // and borrowed code for transform management and unsigned integer manipulation
 
-//2014-11-14  line count: 418, 411, 407, 376
+//2014-11-14  line count: 418, 411, 407, 376, 379
 
 
 var opentype = require('opentype.js');
@@ -89,16 +89,7 @@ function Bitmap4BBPContext(bitmap) {
         if(y >= this._bitmap.height) return;
         var n = this._index(Math.floor(x),Math.floor(y));
         var old_int = this._bitmap._buffer.readUInt32BE(n);
-        var old_rgba = intToFloatArray(old_int);
-        var new_rgba = intToFloatArray(new_int);
-        var new_alpha = new_rgba[3]/255;
-        var final_rgba = [
-            lerp(old_rgba[0],new_rgba[0],new_alpha),
-            lerp(old_rgba[1],new_rgba[1],new_alpha),
-            lerp(old_rgba[2],new_rgba[2],new_alpha),
-            new_alpha*255,
-        ];
-        var final_int = uint32.fromBytesBigEndian(final_rgba[0], final_rgba[1], final_rgba[2], final_rgba[3]);
+        var final_int = exports.compositePixel(new_int,old_int);
         this._bitmap._buffer.writeUInt32BE(final_int,n);
     }
 
@@ -347,10 +338,6 @@ function intToFloatArray(int) {
     return parts;
 }
 
-function lerp(a,b,t) {
-    return a + (b-a)*t;
-}
-
 function makePoint(x,y) {
     return {x:x, y:y};
 }
@@ -456,4 +443,23 @@ drawLine = function(image,x0,y0, x1,y1, color) {
         if (e2 > -dx) { err -= dy; x0 += sx; }
         if (e2 < dy) { err += dx; y0 += sy; }
     }
+}
+
+function lerp(a,b,t) {
+    return a + (b-a)*t;
+}
+
+exports.compositePixel  = function(src,dst) {
+    var src_rgba = intToFloatArray(src);
+    var dst_rgba = intToFloatArray(dst);
+    var src_alpha = src_rgba[3]/255;
+    var dst_alpha = dst_rgba[3]/255;
+
+    var final_rgba = [
+        lerp(dst_rgba[0],src_rgba[0],src_alpha),
+        lerp(dst_rgba[1],src_rgba[1],src_alpha),
+        lerp(dst_rgba[2],src_rgba[2],src_alpha),
+        dst_rgba[3],
+    ];
+    return uint32.fromBytesBigEndian(final_rgba[0], final_rgba[1], final_rgba[2], final_rgba[3]);
 }
