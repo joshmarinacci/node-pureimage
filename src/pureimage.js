@@ -138,16 +138,15 @@ function Bitmap4BBPContext(bitmap) {
         }
         addCirclePoint(this,'l',endAngle);
     }
+
     this.fill = function() {
         //get just the color part
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);
-        var poly = pathToPolygon(this.path);
-        var bounds = calcMinimumBounds(poly);
+        var lines = pathToLines(this.path);
+        var bounds = calcMinimumBounds(lines);
+
         for(var j=bounds.y; j<=bounds.y2; j++) {
-        //for(var j=bounds.y; j<=bounds.y+5; j++) {
-            //console.log('drawing line', j);
-            var ints = calcSortedIntersections(poly,j);
-            //console.log('intersections',ints);
+            var ints = calcSortedIntersections(lines,j);
             //fill between each pair of intersections
             for(var i=0; i<ints.length; i+=2) {
                 var fstart = ints[i];
@@ -176,13 +175,11 @@ function Bitmap4BBPContext(bitmap) {
         }
     }
     this.stroke = function() {
-        var poly = pathToPolygon(this.path);
-        var prev = poly[poly.length-1];
-        for(var i=0; i<poly.length; i++) {
-            var curr = poly[i];
-            drawLine(this,prev.x,prev.y,curr.x,curr.y, this._strokeColor);
-            prev = curr;
-        }
+        var lines = pathToLines(this.path);
+        var ctx = this;
+        lines.forEach(function(line){
+            drawLine(ctx,line.start.x,line.start.y, line.end.x,line.end.y, ctx._strokeColor);
+        });
     }
 
     function makeRectPath(ctx,x,y,w,h) {
@@ -223,6 +220,20 @@ function Bitmap4BBPContext(bitmap) {
                 case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
                 case 'L': ctx.lineTo(cmd.x,cmd.y); break;
                 case 'Z': ctx.closePath(); ctx.fill(); ctx.beginPath(); break;
+            }
+        });
+    }
+    this.strokeText = function(text, x, y) {
+        var ctx = this;
+        var font = _fonts[this._settings.font.family];
+        var path = font.font.getPath(text, x, y, this._settings.font.size);
+        ctx.beginPath();
+        path.commands.forEach(function(cmd) {
+            switch(cmd.type) {
+                case 'M': ctx.moveTo(cmd.x,cmd.y); break;
+                case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
+                case 'L': ctx.lineTo(cmd.x,cmd.y); break;
+                case 'Z': ctx.closePath(); ctx.stroke(); ctx.beginPath(); break;
             }
         });
     }
@@ -344,65 +355,74 @@ function calcQuadraticAtT(p, t) {
     return {x:x,y:y};
 }
 
-function pathToPolygon(path) {
-    var poly = [];
-    var last = null;
+function pathToLines(path) {
+    var lines = [];
+    var curr = null;
     path.forEach(function(cmd) {
         if(cmd[0] == 'm') {
-            last = makePoint(cmd[1],cmd[2]);
-            poly.push(last);
+            curr = makePoint(cmd[1],cmd[2]);
+            return;
         }
-
-
         if(cmd[0] == 'l') {
-            last = makePoint(cmd[1],cmd[2]);
-            poly.push(last);
+            var pt = makePoint(cmd[1],cmd[2]);
+            var line = makeLine(curr,pt);
+            lines.push(line);
+            curr = pt;
         }
         if(cmd[0] == 'q') {
             var pts = [];
-            pts.push(last);
+            pts.push(curr);
             pts.push(makePoint(cmd[1],cmd[2]));
             pts.push(makePoint(cmd[3],cmd[4]));
-
-            poly.push(calcQuadraticAtT(pts,0.33));
-            poly.push(calcQuadraticAtT(pts,0.66));
-            poly.push(calcQuadraticAtT(pts,1.0));
-            last = pts[2];
+            var pt1 = calcQuadraticAtT(pts,0.33);
+            var pt2 = calcQuadraticAtT(pts,0.66);
+            var pt3 = calcQuadraticAtT(pts,1.0);
+            lines.push(makeLine(curr,pt1));
+            lines.push(makeLine(pt1,pt2));
+            lines.push(makeLine(pt2,pt3));
+            curr = pt3;
         }
     });
-    return poly;
+    return lines;
 }
 
-function calcMinimumBounds(poly) {
+function makeLine(start,end) {
+    return {
+        start:start,
+        end:end,
+    }
+}
+
+function calcMinimumBounds(lines) {
     var bounds = {
         x: 10000,
         y: 10000,
         x2: -10000,
         y2: -10000,
     }
-    poly.forEach(function(pt) {
+    function checkPoint(pt) {
         bounds.x  = Math.min(bounds.x,pt.x);
         bounds.y  = Math.min(bounds.y,pt.y);
         bounds.x2 = Math.max(bounds.x2,pt.x);
         bounds.y2 = Math.max(bounds.y2,pt.y);
-    });
+    }
+    lines.forEach(function(line) {
+        checkPoint(line.start);
+        checkPoint(line.end);
+    })
     return bounds;
 }
 
 //adapted from http://alienryderflex.com/polygon
-function calcSortedIntersections(poly,y) {
-    //console.log("intsection of ",y, 'and ', poly);
-    var j = poly.length-1;
-    var oddNodes = false;
+function calcSortedIntersections(lines,y) {
     var xlist = [];
-    for(var i=0; i<poly.length; i++) {
-        var A = poly[i];
-        var B = poly[j];
+    for(var i=0; i<lines.length; i++) {
+        var A = lines[i].start;
+        var B = lines[i].end;
         if(A.y<y && B.y>=y || B.y<y && A.y>=y) {
             var xval = A.x + (y-A.y) / (B.y-A.y) * (B.x-A.x);
             xlist.push(xval);
         }
-        j=i;
     }
     return xlist.sort(function(a,b) {  return a>b; });
 }
