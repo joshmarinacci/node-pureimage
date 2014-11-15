@@ -128,7 +128,16 @@ function Bitmap4BBPContext(bitmap) {
     this.bezierCurveTo = function(cp1x, cp1y, cp2x, cp2y, x, y) {
         this.path.push(['b',cp1x,cp1y,cp2x,cp2y,x,y]);
     }
-
+    this.arc = function(x,y, radius, startAngle, endAngle, clockwise) {
+        function addCirclePoint(ctx,type,a) {
+            ctx.path.push([type,x+Math.sin(a)*radius,y+Math.cos(a)*radius]);
+        }
+        addCirclePoint(this,'m',startAngle);
+        for(var a=startAngle; a<=endAngle; a+=Math.PI/8) {
+            addCirclePoint(this,'l',a);
+        }
+        addCirclePoint(this,'l',endAngle);
+    }
     this.fill = function() {
         //get just the color part
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);
