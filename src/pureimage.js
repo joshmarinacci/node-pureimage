@@ -9,7 +9,7 @@ var NAMED_COLORS = {
     'red':0xFF0000ff,
     'green':0x00FF00ff,
 }
-var DEFAULT_FONT_FAMILY = 'Source Sans Pro';
+var DEFAULT_FONT_FAMILY = 'source';
 
 function p(s) {  console.log(s);  }
 
@@ -374,7 +374,7 @@ function Bitmap4BBPContext(bitmap) {
     this.setFont = function(family, size) {
         this._settings.font.family = family;
         if(!_fonts[family]) {
-            console.log("WARNING. MISSING FONT FAMILY",family);
+            //console.log("WARNING. MISSING FONT FAMILY",family);
             this._settings.font.family = DEFAULT_FONT_FAMILY;
         }
         this._settings.font.size = size;
@@ -401,6 +401,9 @@ function Bitmap4BBPContext(bitmap) {
 
     this.measureText = function(text) {
         var font = _fonts[this._settings.font.family];
+        if(!font) {
+            console.log("WARNING. Can't find font family ", this._settings.font.family);
+        }
         var fsize = this._settings.font.size;
         var glyphs = font.font.stringToGlyphs(text);
         var advance = 0;
