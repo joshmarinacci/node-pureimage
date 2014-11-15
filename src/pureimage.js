@@ -2,7 +2,7 @@
 // and borrowed code for transform management and unsigned integer manipulation
 
 //2014-11-14  line count: 418, 411, 407, 376, 379, 367
-//2014-11-15  line count: 401, 399, 386, 369
+//2014-11-15  line count: 401, 399, 386, 369, 349,
 
 
 var opentype = require('opentype.js');
@@ -319,17 +319,10 @@ function colorStringToUint32(str) {
     return 0xFF0000;
 }
 
-function intToByteArray(int) {
-    var r = uint32.getByteBigEndian(int,0);
-    var g = uint32.getByteBigEndian(int,1);
-    var b = uint32.getByteBigEndian(int,2);
-    var a = uint32.getByteBigEndian(int,3);
-    var parts = [r,g,b,a];
-    return parts;
-}
-
 function makePoint (x,y)       {  return {x:x, y:y} }
 function makeLine  (start,end) {  return {start:start, end:end} }
+function fract(v) {  return v-Math.floor(v);   }
+function lerp(a,b,t) {  return a + (b-a)*t; }
 
 function calcQuadraticAtT(p, t) {
     var x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x;
@@ -343,12 +336,10 @@ function pathToLines(path) {
     path.forEach(function(cmd) {
         if(cmd[0] == 'm') {
             curr = makePoint(cmd[1],cmd[2]);
-            return;
         }
         if(cmd[0] == 'l') {
             var pt = makePoint(cmd[1],cmd[2]);
-            var line = makeLine(curr,pt);
-            lines.push(line);
+            lines.push(makeLine(curr,pt));
             curr = pt;
         }
         if(cmd[0] == 'q') {
@@ -398,16 +389,6 @@ function calcSortedIntersections(lines,y) {
     return xlist.sort(function(a,b) {  return a>b; });
 }
 
-function fract(v) {  return v-Math.floor(v);   }
-
-function rgbaToInt(r,g,b,a) {
-    r = uint32.toUint32(r)
-    g = uint32.toUint32(g);
-    b = uint32.toUint32(b);
-    a = uint32.toUint32(a);
-    var int = uint32.shiftLeft(r,24) + uint32.shiftLeft(g,16) + uint32.shiftLeft(b,8) + a;
-    return int;
-}
 
 
 //Bresenham's from Rosetta Code
@@ -430,13 +411,10 @@ drawLine = function(image, line, color) {
     }
 }
 
-function lerp(a,b,t) {
-    return a + (b-a)*t;
-}
 
 exports.compositePixel  = function(src,dst) {
-    var src_rgba = intToByteArray(src);
-    var dst_rgba = intToByteArray(dst);
+    var src_rgba = uint32.getBytesBigEndian(src);
+    var dst_rgba = uint32.getBytesBigEndian(dst);
     var src_alpha = src_rgba[3]/255;
     var dst_alpha = dst_rgba[3]/255;
 
