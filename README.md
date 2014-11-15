@@ -91,6 +91,7 @@ Thanks to Rosetta Code for [Bresenham's in JS](http://rosettacode.org/wiki/Bitma
 
 Thanks to Kuba Niegowski for [PngJS](https://github.com/niegowski/node-pngjs)
 
+Thanks to Eugene Ware for [jpeg-js]( https://github.com/eugeneware/jpeg-js )
 
 
 Notes
