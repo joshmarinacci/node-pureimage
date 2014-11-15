@@ -117,8 +117,8 @@ fnt.load(function() {
     rte.redraw();
 
 
-    PImage.encodePNG(img, fs.createWriteStream("richtext.png"), function(){
-        console.log("rendered richtext.png");
+    PImage.encodePNG(img, fs.createWriteStream("build/richtext.png"), function(){
+        console.log("rendered build/richtext.png");
     });
 
 });

@@ -2,6 +2,7 @@
 // and borrowed code for transform management and unsigned integer manipulation
 
 //2014-11-14  line count: 418, 411, 407, 376, 379, 367
+//2014-11-15  line count: 401, 399, 386, 369
 
 
 var opentype = require('opentype.js');
@@ -112,31 +113,28 @@ function Bitmap4BBPContext(bitmap) {
     }
 
     this.moveTo = function(x,y) {
-        this.pathmtx = x;
-        this.pathmty = y;
+        this.pathstart = makePoint(x,y);
         this.path.push(['m',x,y]);
     }
     this.closePath = function() {
-        this.lineTo(this.pathmtx,this.pathmty);
+        this.lineTo(this.pathstart.x,this.pathstart.y);
     }
     this.lineTo = function(x,y) {
         this.path.push(['l',x,y]);
     }
     this.quadraticCurveTo = function(cp1x, cp1y, x, y) {
-        this.path.push(['q',cp1x,cp1y,x,y]);
+        this.path.push(['q', cp1x, cp1y, x, y]);
     }
     this.bezierCurveTo = function(cp1x, cp1y, cp2x, cp2y, x, y) {
-        this.path.push(['b',cp1x,cp1y,cp2x,cp2y,x,y]);
+        this.path.push(['b', cp1x, cp1y, cp2x, cp2y, x, y]);
     }
-    this.arc = function(x,y, radius, startAngle, endAngle, clockwise) {
+    this.arc = function(x,y, rad, start, end, clockwise) {
         function addCirclePoint(ctx,type,a) {
-            ctx.path.push([type,x+Math.sin(a)*radius,y+Math.cos(a)*radius]);
+            ctx.path.push([type,x+Math.sin(a)*rad,y+Math.cos(a)*rad]);
         }
-        addCirclePoint(this,'m',startAngle);
-        for(var a=startAngle; a<=endAngle; a+=Math.PI/8) {
-            addCirclePoint(this,'l',a);
-        }
-        addCirclePoint(this,'l',endAngle);
+        addCirclePoint(this,'m',start);
+        for(var a=start; a<=end; a+=Math.PI/16)  addCirclePoint(this,'l',a);
+        addCirclePoint(this,'l',end);
     }
 
     this.fill = function() {
@@ -149,10 +147,8 @@ function Bitmap4BBPContext(bitmap) {
             var ints = calcSortedIntersections(lines,j);
             //fill between each pair of intersections
             for(var i=0; i<ints.length; i+=2) {
-                var fstart = ints[i];
-                var fend   = ints[i+1];
-                var fstartf = fract(fstart);
-                var fendf   = fract(fend);
+                var fstartf = fract(ints[i]);
+                var fendf   = fract(ints[i+1]);
                 var start = Math.floor(ints[i]);
                 var end   = Math.floor(ints[i+1]);
                 for(var ii=start; ii<=end; ii++) {
@@ -178,7 +174,7 @@ function Bitmap4BBPContext(bitmap) {
         var lines = pathToLines(this.path);
         var ctx = this;
         lines.forEach(function(line){
-            drawLine(ctx,line.start.x,line.start.y, line.end.x,line.end.y, ctx._strokeColor);
+            drawLine(ctx, line, ctx._strokeColor);
         });
     }
 
@@ -209,34 +205,21 @@ function Bitmap4BBPContext(bitmap) {
     }
 
 
-    this.fillText = function(text, x, y) {
-        var ctx = this;
-        var font = _fonts[this._settings.font.family];
-        var path = font.font.getPath(text, x, y, this._settings.font.size);
+    function processTextPath(ctx,text,x,y, fill) {
+        var font = _fonts[ctx._settings.font.family];
+        var path = font.font.getPath(text, x, y, ctx._settings.font.size);
         ctx.beginPath();
         path.commands.forEach(function(cmd) {
             switch(cmd.type) {
                 case 'M': ctx.moveTo(cmd.x,cmd.y); break;
                 case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
                 case 'L': ctx.lineTo(cmd.x,cmd.y); break;
-                case 'Z': ctx.closePath(); ctx.fill(); ctx.beginPath(); break;
+                case 'Z': ctx.closePath(); fill?ctx.fill():ctx.stroke(); ctx.beginPath(); break;
             }
         });
     }
-    this.strokeText = function(text, x, y) {
-        var ctx = this;
-        var font = _fonts[this._settings.font.family];
-        var path = font.font.getPath(text, x, y, this._settings.font.size);
-        ctx.beginPath();
-        path.commands.forEach(function(cmd) {
-            switch(cmd.type) {
-                case 'M': ctx.moveTo(cmd.x,cmd.y); break;
-                case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
-                case 'L': ctx.lineTo(cmd.x,cmd.y); break;
-                case 'Z': ctx.closePath(); ctx.stroke(); ctx.beginPath(); break;
-            }
-        });
-    }
+    this.fillText   = function(text, x, y) {  processTextPath(this, text, x,y, true);  }
+    this.strokeText = function(text, x, y) {  processTextPath(this, text, x,y, false); }
 
     this.measureText = function(text) {
         var font = _fonts[this._settings.font.family];
@@ -336,7 +319,7 @@ function colorStringToUint32(str) {
     return 0xFF0000;
 }
 
-function intToFloatArray(int) {
+function intToByteArray(int) {
     var r = uint32.getByteBigEndian(int,0);
     var g = uint32.getByteBigEndian(int,1);
     var b = uint32.getByteBigEndian(int,2);
@@ -345,9 +328,8 @@ function intToFloatArray(int) {
     return parts;
 }
 
-function makePoint(x,y) {
-    return {x:x, y:y};
-}
+function makePoint (x,y)       {  return {x:x, y:y} }
+function makeLine  (start,end) {  return {start:start, end:end} }
 
 function calcQuadraticAtT(p, t) {
     var x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x;
@@ -386,20 +368,9 @@ function pathToLines(path) {
     return lines;
 }
 
-function makeLine(start,end) {
-    return {
-        start:start,
-        end:end,
-    }
-}
 
 function calcMinimumBounds(lines) {
-    var bounds = {
-        x: 10000,
-        y: 10000,
-        x2: -10000,
-        y2: -10000,
-    }
+    var bounds = {  x:  Number.MAX_VALUE, y:  Number.MAX_VALUE,  x2: Number.MIN_VALUE, y2: Number.MIN_VALUE }
     function checkPoint(pt) {
         bounds.x  = Math.min(bounds.x,pt.x);
         bounds.y  = Math.min(bounds.y,pt.y);
@@ -427,9 +398,7 @@ function calcSortedIntersections(lines,y) {
     return xlist.sort(function(a,b) {  return a>b; });
 }
 
-function fract(v) {
-    return v-Math.floor(v);
-}
+function fract(v) {  return v-Math.floor(v);   }
 
 function rgbaToInt(r,g,b,a) {
     r = uint32.toUint32(r)
@@ -443,11 +412,11 @@ function rgbaToInt(r,g,b,a) {
 
 //Bresenham's from Rosetta Code
 // http://rosettacode.org/wiki/Bitmap/Bresenham's_line_algorithm#JavaScript
-drawLine = function(image,x0,y0, x1,y1, color) {
-    x0 = Math.floor(x0);
-    y0 = Math.floor(y0);
-    x1 = Math.floor(x1);
-    y1 = Math.floor(y1);
+drawLine = function(image, line, color) {
+    var x0 = Math.floor(line.start.x);
+    var y0 = Math.floor(line.start.y);
+    var x1 = Math.floor(line.end.x);
+    var y1 = Math.floor(line.end.y);
     var dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     var dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
     var err = (dx>dy ? dx : -dy)/2;
@@ -466,8 +435,8 @@ function lerp(a,b,t) {
 }
 
 exports.compositePixel  = function(src,dst) {
-    var src_rgba = intToFloatArray(src);
-    var dst_rgba = intToFloatArray(dst);
+    var src_rgba = intToByteArray(src);
+    var dst_rgba = intToByteArray(dst);
     var src_alpha = src_rgba[3]/255;
     var dst_alpha = dst_rgba[3]/255;
 

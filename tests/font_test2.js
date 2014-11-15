@@ -12,6 +12,7 @@ fnt.load(function() {
     //ctx.fillText("Greetings",50,150);
     //ctx.fillText("Earthling",50,360);
     ctx.fillText("iag&",0,300);
+    ctx.strokeText("iag&",0,400);
 
 
 
