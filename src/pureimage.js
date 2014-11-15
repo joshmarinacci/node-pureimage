@@ -1,7 +1,7 @@
 // Pure Image uses existing libraries for font parsing, jpeg/png encode/decode
 // and borrowed code for transform management and unsigned integer manipulation
 
-//2014-11-14  line count: 418, 411, 407, 376, 379
+//2014-11-14  line count: 418, 411, 407, 376, 379, 367
 
 
 var opentype = require('opentype.js');
@@ -130,7 +130,6 @@ function Bitmap4BBPContext(bitmap) {
     }
 
     this.fill = function() {
-        //this.stroke();
         //get just the color part
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);
         var poly = pathToPolygon(this.path);
@@ -168,25 +167,13 @@ function Bitmap4BBPContext(bitmap) {
         }
     }
     this.stroke = function() {
-        var cx = 0;
-        var cy = 0;
-        var self = this;
-        this.path.forEach(function(cmd){
-            if(cmd[0] == 'm') {
-                cx = cmd[1];
-                cy = cmd[2];
-            }
-            if(cmd[0] == 'l') {
-                drawLine(self,cx,cy,cmd[1],cmd[2], self._strokeColor);
-                cx = cmd[1];
-                cy = cmd[2];
-            }
-            if(cmd[0] == 'q') {
-                drawLine(self,cx,cy,cmd[3],cmd[4], self._strokeColor);
-                cx = cmd[3];
-                cy = cmd[4];
-            }
-        })
+        var poly = pathToPolygon(this.path);
+        var prev = poly[poly.length-1];
+        for(var i=0; i<poly.length; i++) {
+            var curr = poly[i];
+            drawLine(this,prev.x,prev.y,curr.x,curr.y, this._strokeColor);
+            prev = curr;
+        }
     }
 
     function makeRectPath(ctx,x,y,w,h) {
