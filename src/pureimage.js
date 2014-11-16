@@ -343,8 +343,14 @@ function fract(v) {  return v-Math.floor(v);   }
 function lerp(a,b,t) {  return a + (b-a)*t; }
 
 function calcQuadraticAtT(p, t) {
-    var x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x;
-    var y = (1 - t) * (1 - t) * p[0].y + 2 * (1 - t) * t * p[1].y + t * t * p[2].y;
+    var x = (1-t)*(1-t)*p[0].x + 2*(1-t)*t*p[1].x + t*t*p[2].x;
+    var y = (1-t)*(1-t)*p[0].y + 2*(1-t)*t*p[1].y + t*t*p[2].y;
+    return {x:x,y:y};
+}
+
+function calcBezierAtT(p, t) {
+    var x = (1-t)*(1-t)*(1-t)*p[0].x + 3*(1-t)*(1-t)*t*p[1].x + 3*(1-t)*t*t*p[2].x + t*t*t*p[3].x;
+    var y = (1-t)*(1-t)*(1-t)*p[0].y + 3*(1-t)*(1-t)*t*p[1].y + 3*(1-t)*t*t*p[2].y + t*t*t*p[3].y;
     return {x:x,y:y};
 }
 
@@ -361,17 +367,20 @@ function pathToLines(path) {
             curr = pt;
         }
         if(cmd[0] == 'q') {
-            var pts = [];
-            pts.push(curr);
-            pts.push(makePoint(cmd[1],cmd[2]));
-            pts.push(makePoint(cmd[3],cmd[4]));
-            var pt1 = calcQuadraticAtT(pts,0.33);
-            var pt2 = calcQuadraticAtT(pts,0.66);
-            var pt3 = calcQuadraticAtT(pts,1.0);
-            lines.push(makeLine(curr,pt1));
-            lines.push(makeLine(pt1,pt2));
-            lines.push(makeLine(pt2,pt3));
-            curr = pt3;
+            var pts = [curr, makePoint(cmd[1],cmd[2]), makePoint(cmd[3],cmd[4])];
+            for(var t=0; t<1; t+=0.1) {
+                var pt = calcQuadraticAtT(pts,t);
+                lines.push(makeLine(curr,pt));
+                curr = pt;
+            }
+        }
+        if(cmd[0] == 'b') {
+            var pts = [curr, makePoint(cmd[1],cmd[2]), makePoint(cmd[3],cmd[4]), makePoint(cmd[5],cmd[6])];
+            for(var t=0; t<1; t+=0.1) {
+                var pt = calcBezierAtT(pts,t);
+                lines.push(makeLine(curr,pt));
+                curr = pt;
+            }
         }
     });
     return lines;

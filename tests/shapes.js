@@ -52,6 +52,21 @@ fnt.load(function() {
     ctx.fill();
 
 
+
+
+    {
+        var xoff = 400;
+        var yoff = 0;
+        ctx.beginPath();
+        ctx.moveTo(109 + xoff, 224 + yoff);
+        ctx.bezierCurveTo(64 + xoff, 166 + yoff, 134 + xoff, 172 + yoff, 221 + xoff, 169 + yoff);
+        ctx.bezierCurveTo(281 + xoff, 167 + yoff, 180 + xoff, 261 + yoff, 333 + xoff, 252 + yoff);
+        ctx.bezierCurveTo(470 + xoff, 244 + yoff, 80 + xoff, 295 + yoff, 110 + xoff, 242 + yoff);
+        ctx.closePath();
+        ctx.fill();
+        //ctx.stroke();
+    }
+
     /*
     var metrics = ctx.measureText("Greetings");
 
@@ -78,7 +93,7 @@ fnt.load(function() {
     hline(150-metrics.emHeightDescent);
     */
 
-    PImage.encodePNG(img, fs.createWriteStream("out2.png"), function(){
-        console.log("rendered out2.png");
+    PImage.encodePNG(img, fs.createWriteStream("build/shapes.png"), function(){
+        console.log("rendered build/shapes.png");
     });
 })
