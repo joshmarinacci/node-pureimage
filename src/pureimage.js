@@ -272,6 +272,24 @@ exports.encodeJPEG = function(bitmap, outstream, cb) {
     if(cb)cb();
 }
 
+//TODO: Josh: finish this. turn it into a real bitmap object
+exports.decodeJPEG = function(data) {
+    var rawImageData = JPEG.decode(data);
+    console.log("Raw = ", rawImageData);
+    return rawImageData;
+}
+
+exports.decodePNG = function(instream, cb) {
+    instream.pipe(new PNG())
+    .on("parsed", function() {
+        var bitmap =  new Bitmap4BBP(this.width,this.height);
+        for(var i=0; i<bitmap._buffer.length; i++) {
+            bitmap._buffer[i] = this.data[i];
+        };
+        if(cb) cb(bitmap);
+    });
+}
+
 
 var _fonts = { }
 
