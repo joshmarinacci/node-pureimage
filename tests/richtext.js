@@ -1,30 +1,30 @@
 var fs = require('fs');
 var PImage = require('../src/pureimage');
-var comp = require('../../../richtext/rt2/component');
-var Document = require('../../../richtext/rt2/document').Document;
+var comp = require('../../richtext/rt2/component');
+var Document = require('../../richtext/rt2/document').Document;
 
 function makeStyledJSDoc() {
     var frame = Document.makeFrame();
     frame.styles = {
         'bold': {
             'font-style':'normal',
-            'font-family':"'Source Serif Pro'",
+            'font-family':"Source Sans Pro",
             'font-weight':'700',
         },
         'italic': {
             'font-style':'italic',
-            'font-family':"'Source Serif Pro'",
+            'font-family':"Source Sans Pro",
         },
         'code': {
             'color':'#000000',
-            'font-family':"'Source Code Pro'",
+            'font-family':"Source Sans Pro",
             'background-color':'#ccffee',
         },
 
         'paragraph': {
             'color':'#000000',
             'font-size':15,
-            'font-family':"'Source Serif Pro'",
+            'font-family':"Source Sans Pro",
             'font-style':'normal',
             'background-color':'#ffffff',
             'font-weight':'400',
@@ -33,29 +33,29 @@ function makeStyledJSDoc() {
         },
         'header': {
             'font-size':30,
-            'font-family':"'Source Sans Pro'",
+            'font-family':"Source Sans Pro",
             'block-padding':10,
         },
         'subheader': {
             'font-size':20,
-            'font-family':"'Source Sans Pro'",
+            'font-family':"Source Sans Pro",
             'block-padding':10,
         },
         'left': {
             'font-size':25,
-            'font-family':"'Source Sans Pro'",
+            'font-family':"Source Sans Pro",
             'block-padding':10,
             'text-align':'left',
         },
         'center': {
             'font-size':25,
-            'font-family':"'Source Sans Pro'",
+            'font-family':"Source Sans Pro",
             'block-padding':10,
             'text-align':'center',
         },
         'right': {
             'font-size':25,
-            'font-family':"'Source Sans Pro'",
+            'font-family':"Source Sans Pro",
             'block-padding':10,
             'text-align':'right',
         },
@@ -92,7 +92,8 @@ fnt.load(function() {
 
     var img = PImage.make(800,600);
     var ctx = img.getContext('2d');
-    ctx.setFillStyleRGBA(0,255,0, 1);
+    ctx.fillStyle = '#00ff00';
+    //ctx.setFillStyleRGBA(0,255,0, 1);
 
     var config = {
         context:ctx,
@@ -115,8 +116,9 @@ fnt.load(function() {
     rte.relayout();
     rte.redraw();
 
-    PImage.encodePNG(img, fs.createWriteStream("richtext.png"), function(){
-        console.log("rendered richtext.png");
+
+    PImage.encodePNG(img, fs.createWriteStream("build/richtext.png"), function(){
+        console.log("rendered build/richtext.png");
     });
 
 });

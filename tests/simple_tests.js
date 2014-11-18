@@ -143,6 +143,14 @@ if(!fs.existsSync("build")) {
     ctx.fillStyle = "red";
 }
 
+{
+
+    //compositing tests
+    var src = 0xFF0000FF;
+    var dst = 0xFFFFFFFF;
+    eq(PImage.compositePixel(src,dst),0xFF0000FF);
+}
+
 function eq(a,b) {
     if(a != b) throw new Error(a.toString(16) + " is not equal to " + b.toString(16));
 }
