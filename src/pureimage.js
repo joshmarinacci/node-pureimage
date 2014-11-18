@@ -325,6 +325,7 @@ exports.registerFont = function(binary, family, weight, style, variant) {
 // =============== Utility functions
 
 function colorStringToUint32(str) {
+    if(!str) return 0x000000;
     if(str.indexOf('#')==0) {
         var int = uint32.toUint32(parseInt(str.substring(1),16));
         int = uint32.shiftLeft(int,8);
