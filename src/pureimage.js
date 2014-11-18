@@ -143,7 +143,7 @@ function Bitmap4BBPContext(bitmap) {
         var lines = pathToLines(this.path);
         var bounds = calcMinimumBounds(lines);
 
-        for(var j=bounds.y; j<=bounds.y2; j++) {
+        for(var j=bounds.y2-1; j>=bounds.y; j--) {
             var ints = calcSortedIntersections(lines,j);
             //fill between each pair of intersections
             for(var i=0; i<ints.length; i+=2) {
