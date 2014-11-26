@@ -394,6 +394,7 @@ exports.registerFont = function(binary, family, weight, style, variant) {
         loaded: false,
         font: null,
         load: function(cb) {
+            console.log("PureImage loading", family,weight,style,variant);
             if(this.loaded) {
                 if(cb)cb();
                 return;
@@ -409,6 +410,7 @@ exports.registerFont = function(binary, family, weight, style, variant) {
     };
     return _fonts[family];
 }
+exports.debug_list_of_fonts = _fonts;
 
 
 
