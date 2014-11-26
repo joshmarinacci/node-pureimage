@@ -21,7 +21,7 @@ function Bitmap4BBP(w,h,options) {
     this.width = w;
     this.height = h;
     var fillval = 0x000000FF;
-    if(options && options.fillval) {
+    if(options && (typeof options.fillval) !== undefined) {
         fillval = options.fillval;
     }
     this._buffer = new Buffer(this.width*this.height*4);
@@ -126,6 +126,7 @@ function Bitmap4BBPContext(bitmap) {
             }
         }
     }
+
 
     this.beginPath = function() {
         this.path = [];
@@ -251,10 +252,11 @@ function Bitmap4BBPContext(bitmap) {
         var path = font.font.getPath(ch, 0, glyph.yMax/font.font.unitsPerEm*size, size);
         var bitmap = exports.make(
                 Math.ceil(xsize),
-                Math.ceil(ysize), { fillval: 0x00000100 });
+                Math.ceil(ysize), { fillval: uint32.toUint32(0x00000000) });
         var ctx = bitmap.getContext('2d');
         ctx.fillStyle = '#000000';
         ctx.mode = "REPLACE";
+
         ctx.beginPath();
         var fill = true;
         path.commands.forEach(function(cmd) {
@@ -276,6 +278,34 @@ function Bitmap4BBPContext(bitmap) {
         }
     }
 
+    this.copyImage = function(img2, fx,fy, color) {
+        var x = Math.floor(fx);
+        var y = Math.floor(fy);
+        var i2w = img2.width;
+        var i2h = img2.height;
+        var i1w = this._bitmap.width;
+        var i1h = this._bitmap.height;
+        for(var j=0; j<i2h; j++) {
+            for(var i=0; i<i2w; i++) {
+                if(x+i >= i1w) continue;
+                if(x+i < 0) continue;
+                if(y+j >= i1h) continue;
+                if(y+j < 0) continue;
+                if(i > i2w) continue;
+                if(j > i2h) continue;
+                var ns = (j*i2w + i)*4;
+                var nd = ((j+y)*i1w + (x+i))*4;
+                var oval = this._bitmap._buffer.readUInt32BE(nd);
+                var nval = img2._buffer.readUInt32BE(ns);
+                var nrgb = uint32.getBytesBigEndian(nval);
+                var crgb = uint32.getBytesBigEndian(color);
+                var nval2 = uint32.fromBytesBigEndian(crgb[0],crgb[1],crgb[2],nrgb[3]);
+                var fval = exports.compositePixel(nval2,oval, this.mode);
+                this._bitmap._buffer.writeUInt32BE(fval,nd);
+            }
+        }
+    }
+
     function processTextPath(ctx,text,x,y, fill) {
         var font = _fonts[ctx._settings.font.family];
         var size = ctx._settings.font.size;
@@ -288,12 +318,10 @@ function Bitmap4BBPContext(bitmap) {
                     cache.insert(font,size,ch,glyph);
                 }
                 var glyph = cache.get(font,size,ch);
-                ctx.mode = 'REPLACE';
                 var fx = x+off;
                 var fy = y-glyph.ascent;
                 var fpt = ctx.transform.transformPoint(fx,fy);
-                ctx.drawImage(glyph.bitmap, Math.floor(fpt.x), Math.floor(fpt.y));
-                ctx.mode = 'OVER';
+                ctx.copyImage(glyph.bitmap, Math.floor(fpt.x), Math.floor(fpt.y), ctx._fillColor);
                 off += glyph.advance;
             }
         } else {
@@ -418,6 +446,7 @@ exports.debug_list_of_fonts = _fonts;
 
 function colorStringToUint32(str) {
     if(!str) return 0x000000;
+    //hex values always get 255 for the alpha channel
     if(str.indexOf('#')==0) {
         var int = uint32.toUint32(parseInt(str.substring(1),16));
         int = uint32.shiftLeft(int,8);
@@ -535,12 +564,10 @@ drawLine = function(image, line, color) {
 
 //composite pixel doubles the time. need to implement replace with a better thing
 exports.compositePixel  = function(src,dst,omode) {
-    //return 0x00ff00ff;
-    //TODO: why is this so slow?
     if(omode == 'REPLACE') {
+
         return src;
     }
-
     var src_rgba = uint32.getBytesBigEndian(src);
     var dst_rgba = uint32.getBytesBigEndian(dst);
 

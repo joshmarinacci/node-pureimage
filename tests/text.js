@@ -9,17 +9,20 @@ fnt.load(function() {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0,0,200,200);
     ctx.setFont('Source Sans Pro',20);
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = '#00ff00';
     ctx.USE_FONT_GLYPH_CACHING = true;
     var before = process.hrtime();
-    var count = 1*1000;
+    var count = 1;//*1000;
     for(var i=0; i<count; i++) {
-        var str = "ABCDEgae";
+        var str = "A";
+        ctx.fillStyle = '#00ff00';
         ctx.fillText(str,30,30);
-        ctx.save();
-        ctx.translate(0,80);
-        ctx.fillText(str,30,30);
-        ctx.restore();
+        ctx.fillStyle = '#ffff00';
+        ctx.fillText(str,30,60);
+        //    ctx.save();
+        //ctx.translate(0,80);
+        //ctx.fillText(str,30,30);
+        //ctx.restore();
     }
     var diff = process.hrtime(before);
     console.log('with caching', diff);
