@@ -12,10 +12,14 @@ fnt.load(function() {
     ctx.fillStyle = '#000000';
     ctx.USE_FONT_GLYPH_CACHING = true;
     var before = process.hrtime();
-    var count = 20*1000;
+    var count = 1*1000;
     for(var i=0; i<count; i++) {
-        var str = "ABCDE";
+        var str = "ABCDEgae";
         ctx.fillText(str,30,30);
+        ctx.save();
+        ctx.translate(0,80);
+        ctx.fillText(str,30,30);
+        ctx.restore();
     }
     var diff = process.hrtime(before);
     console.log('with caching', diff);
@@ -24,7 +28,7 @@ fnt.load(function() {
     var before = process.hrtime();
     for(var i=0; i<count; i++) {
         var str = "ABCDE";
-        ctx.fillText(str,30,30);
+        //ctx.fillText(str,30,30);
     }
     var diff = process.hrtime(before);
     console.log('without caching', diff);

@@ -222,31 +222,36 @@ function Bitmap4BBPContext(bitmap) {
         }
         this._settings.font.size = size;
     }
-    //we get more than a factor 10x speedup by using caching
-    this.USE_FONT_GLYPH_CACHING = false;
+    //we get more than a factor 2x speedup by using caching
+    this.USE_FONT_GLYPH_CACHING = true;
 
     var cache = {
         glyphs:{},
-        makeKey: function(font,ch) {
-            var key = font.family + "_"+ch;
+        makeKey: function(font,size,ch) {
+            var key = font.family + "_"+size+ "_"+ch;
             return key;
         },
-        contains: function(font, ch) {
-            return (typeof this.glyphs[this.makeKey(font,ch)]) !== 'undefined';
+        contains: function(font, size, ch) {
+            return (typeof this.glyphs[this.makeKey(font,size,ch)]) !== 'undefined';
         },
-        insert: function(font,ch,bitmap) {
-            this.glyphs[this.makeKey(font,ch)] = bitmap;
+        insert: function(font, size, ch,bitmap) {
+            this.glyphs[this.makeKey(font,size,ch)] = bitmap;
         },
-        get: function(font,ch) {
-            return this.glyphs[this.makeKey(font,ch)];
+        get: function(font, size, ch) {
+            return this.glyphs[this.makeKey(font,size,ch)];
         }
     }
 
     function renderGlyphToBitmap(font, ch, size) {
-        var path = font.font.getPath(ch, 0, 30, size);
+        var ysize = (font.font.ascender - font.font.descender)/font.font.unitsPerEm*size;
         var glyph = font.font.charToGlyph(ch);
-        var xsize = (glyph.xMax-glyph.xMin)/font.font.unitsPerEm*size + 1;
-        var bitmap = exports.make(Math.ceil(xsize),30, { fillval: 0x00000100 });
+        var ysize = (glyph.yMax-glyph.yMin)/font.font.unitsPerEm*size;
+        var xsize = (glyph.xMax-glyph.xMin)/font.font.unitsPerEm*size + 3;
+
+        var path = font.font.getPath(ch, 0, glyph.yMax/font.font.unitsPerEm*size, size);
+        var bitmap = exports.make(
+                Math.ceil(xsize),
+                Math.ceil(ysize), { fillval: 0x00000100 });
         var ctx = bitmap.getContext('2d');
         ctx.fillStyle = '#000000';
         ctx.mode = "REPLACE";
@@ -266,23 +271,28 @@ function Bitmap4BBPContext(bitmap) {
             bitmap: bitmap,
             glyph: glyph,
             advance: glyph.advanceWidth/font.font.unitsPerEm*size,
+            ascent: glyph.yMax/font.font.unitsPerEm*size,
+            descent: glyph.yMin/font.font.unitsPerEm*size,
         }
     }
 
     function processTextPath(ctx,text,x,y, fill) {
         var font = _fonts[ctx._settings.font.family];
+        var size = ctx._settings.font.size;
         if(ctx.USE_FONT_GLYPH_CACHING) {
             var off = 0;
             for(var i=0; i<text.length; i++) {
                 var ch = text[i];
-                if(!cache.contains(font,ch)) {
-                    console.log("rendering",ch);
-                    var glyph = renderGlyphToBitmap(font,ch,ctx._settings.font.size);
-                    cache.insert(font,ch,glyph);
+                if(!cache.contains(font,size,ch)) {
+                    var glyph = renderGlyphToBitmap(font,ch,size);
+                    cache.insert(font,size,ch,glyph);
                 }
-                var glyph = cache.get(font,ch);
+                var glyph = cache.get(font,size,ch);
                 ctx.mode = 'REPLACE';
-                ctx.drawImage(glyph.bitmap, Math.floor(x+off), Math.floor(y-20));
+                var fx = x+off;
+                var fy = y-glyph.ascent;
+                var fpt = ctx.transform.transformPoint(fx,fy);
+                ctx.drawImage(glyph.bitmap, Math.floor(fpt.x), Math.floor(fpt.y));
                 ctx.mode = 'OVER';
                 off += glyph.advance;
             }
