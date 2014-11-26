@@ -17,14 +17,21 @@ var NAMED_COLORS = {
 }
 var DEFAULT_FONT_FAMILY = 'source';
 
-function Bitmap4BBP(w,h) {
+function Bitmap4BBP(w,h,options) {
     this.width = w;
     this.height = h;
+    var fillval = 0x000000FF;
+    if(options && options.fillval) {
+        fillval = options.fillval;
+    }
     this._buffer = new Buffer(this.width*this.height*4);
     for(var i=0; i<this.width; i++) {
         for(var j=0; j<this.height; j++) {
-            this._buffer.writeUInt32BE(0x000000FF, (j*this.width+i)*4);
+            this._buffer.writeUInt32BE(fillval, (j*this.width+i)*4);
         }
+    }
+    this._index = function(x,y) {
+        return (this.width * Math.floor(y) + Math.floor(x))*4;
     }
 
     this.getContext = function(type) {
@@ -35,6 +42,7 @@ function Bitmap4BBP(w,h) {
 function Bitmap4BBPContext(bitmap) {
     this._bitmap = bitmap;
     this.transform = new trans.Transform();
+    this.mode = "OVER";
     this._settings = {
         font: {
             family:'serif',
@@ -90,7 +98,7 @@ function Bitmap4BBPContext(bitmap) {
         if(y >= this._bitmap.height) return;
         var n = this._index(Math.floor(x),Math.floor(y));
         var old_int = this._bitmap._buffer.readUInt32BE(n);
-        var final_int = exports.compositePixel(new_int,old_int);
+        var final_int = exports.compositePixel(new_int,old_int,this.mode);
         this._bitmap._buffer.writeUInt32BE(final_int,n);
     }
 
@@ -98,12 +106,17 @@ function Bitmap4BBPContext(bitmap) {
         for(var j=0; j<img2.height; j++) {
             for(var i=0; i<img2.width; i++) {
                 if(x+i >= this._bitmap.width) continue;
+                if(x+i < 0) continue;
                 if(y+j >= this._bitmap.height) continue;
+                if(y+j < 0) continue;
                 if(i > img2.width) continue;
                 if(j > img2.height) continue;
                 var ns = (j*img2.width + i)*4;
                 var nd = this._index(i+x,j+y);
-                this._bitmap._buffer.writeUInt32BE(img2._buffer.readUInt32BE(ns),nd);
+                var oval = this._bitmap._buffer.readUInt32BE(nd);
+                var nval = img2._buffer.readUInt32BE(ns);
+                var fval = exports.compositePixel(nval,oval, this.mode);
+                this._bitmap._buffer.writeUInt32BE(fval,nd);
             }
         }
     }
@@ -203,12 +216,36 @@ function Bitmap4BBPContext(bitmap) {
         }
         this._settings.font.size = size;
     }
+    //we get more than a factor 10x speedup by using caching
+    this.USE_FONT_GLYPH_CACHING = false;
 
+    var cache = {
+        glyphs:{},
+        makeKey: function(font,ch) {
+            var key = font.family + "_"+ch;
+            return key;
+        },
+        contains: function(font, ch) {
+            return (typeof this.glyphs[this.makeKey(font,ch)]) !== 'undefined';
+        },
+        insert: function(font,ch,bitmap) {
+            this.glyphs[this.makeKey(font,ch)] = bitmap;
+        },
+        get: function(font,ch) {
+            return this.glyphs[this.makeKey(font,ch)];
+        }
+    }
 
-    function processTextPath(ctx,text,x,y, fill) {
-        var font = _fonts[ctx._settings.font.family];
-        var path = font.font.getPath(text, x, y, ctx._settings.font.size);
+    function renderGlyphToBitmap(font, ch, size) {
+        var path = font.font.getPath(ch, 0, 30, size);
+        var glyph = font.font.charToGlyph(ch);
+        var xsize = (glyph.xMax-glyph.xMin)/font.font.unitsPerEm*size + 1;
+        var bitmap = exports.make(Math.ceil(xsize),30, { fillval: 0x00000100 });
+        var ctx = bitmap.getContext('2d');
+        ctx.fillStyle = '#000000';
+        ctx.mode = "REPLACE";
         ctx.beginPath();
+        var fill = true;
         path.commands.forEach(function(cmd) {
             switch(cmd.type) {
                 case 'M': ctx.moveTo(cmd.x,cmd.y); break;
@@ -217,6 +254,44 @@ function Bitmap4BBPContext(bitmap) {
                 case 'Z': ctx.closePath(); fill?ctx.fill():ctx.stroke(); ctx.beginPath(); break;
             }
         });
+        ctx.mode = "OVER";
+        return {
+            path: path,
+            bitmap: bitmap,
+            glyph: glyph,
+            advance: glyph.advanceWidth/font.font.unitsPerEm*size,
+        }
+    }
+
+    function processTextPath(ctx,text,x,y, fill) {
+        var font = _fonts[ctx._settings.font.family];
+        if(ctx.USE_FONT_GLYPH_CACHING) {
+            var off = 0;
+            for(var i=0; i<text.length; i++) {
+                var ch = text[i];
+                if(!cache.contains(font,ch)) {
+                    console.log("rendering",ch);
+                    var glyph = renderGlyphToBitmap(font,ch,ctx._settings.font.size);
+                    cache.insert(font,ch,glyph);
+                }
+                var glyph = cache.get(font,ch);
+                ctx.mode = 'REPLACE';
+                ctx.drawImage(glyph.bitmap, Math.floor(x+off), Math.floor(y-20));
+                ctx.mode = 'OVER';
+                off += glyph.advance;
+            }
+        } else {
+            var path = font.font.getPath(text, x, y, ctx._settings.font.size);
+            ctx.beginPath();
+            path.commands.forEach(function(cmd) {
+                switch(cmd.type) {
+                    case 'M': ctx.moveTo(cmd.x,cmd.y); break;
+                    case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
+                    case 'L': ctx.lineTo(cmd.x,cmd.y); break;
+                    case 'Z': ctx.closePath(); fill?ctx.fill():ctx.stroke(); ctx.beginPath(); break;
+                }
+            });
+        }
     }
     this.fillText   = function(text, x, y) {  processTextPath(this, text, x,y, true);  }
     this.strokeText = function(text, x, y) {  processTextPath(this, text, x,y, false); }
@@ -240,8 +315,8 @@ function Bitmap4BBPContext(bitmap) {
 
 }
 
-exports.make = function(w,h) {
-    return new Bitmap4BBP(w,h);
+exports.make = function(w,h,options) {
+    return new Bitmap4BBP(w,h,options);
 }
 
 exports.encodePNG = function(bitmap, outstream, cb) {
@@ -440,17 +515,26 @@ drawLine = function(image, line, color) {
 }
 
 
-exports.compositePixel  = function(src,dst) {
+//composite pixel doubles the time. need to implement replace with a better thing
+exports.compositePixel  = function(src,dst,omode) {
+    //return 0x00ff00ff;
+    //TODO: why is this so slow?
+    if(omode == 'REPLACE') {
+        return src;
+    }
+
     var src_rgba = uint32.getBytesBigEndian(src);
     var dst_rgba = uint32.getBytesBigEndian(dst);
+
     var src_alpha = src_rgba[3]/255;
     var dst_alpha = dst_rgba[3]/255;
+    var final_a = dst_rgba[3];
 
     var final_rgba = [
         lerp(dst_rgba[0],src_rgba[0],src_alpha),
         lerp(dst_rgba[1],src_rgba[1],src_alpha),
         lerp(dst_rgba[2],src_rgba[2],src_alpha),
-        dst_rgba[3],
+        final_a,
     ];
     return uint32.fromBytesBigEndian(final_rgba[0], final_rgba[1], final_rgba[2], final_rgba[3]);
 }
