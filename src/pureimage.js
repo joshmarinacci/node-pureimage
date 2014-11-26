@@ -102,17 +102,23 @@ function Bitmap4BBPContext(bitmap) {
         this._bitmap._buffer.writeUInt32BE(final_int,n);
     }
 
-    this.drawImage = function(img2, x,y) {
-        for(var j=0; j<img2.height; j++) {
-            for(var i=0; i<img2.width; i++) {
-                if(x+i >= this._bitmap.width) continue;
+    this.drawImage = function(img2, fx,fy) {
+        var x = Math.floor(fx);
+        var y = Math.floor(fy);
+        var i2w = img2.width;
+        var i2h = img2.height;
+        var i1w = this._bitmap.width;
+        var i1h = this._bitmap.height;
+        for(var j=0; j<i2h; j++) {
+            for(var i=0; i<i2w; i++) {
+                if(x+i >= i1w) continue;
                 if(x+i < 0) continue;
-                if(y+j >= this._bitmap.height) continue;
+                if(y+j >= i1h) continue;
                 if(y+j < 0) continue;
-                if(i > img2.width) continue;
-                if(j > img2.height) continue;
-                var ns = (j*img2.width + i)*4;
-                var nd = this._index(i+x,j+y);
+                if(i > i2w) continue;
+                if(j > i2h) continue;
+                var ns = (j*i2w + i)*4;
+                var nd = ((j+y)*i1w + (x+i))*4;
                 var oval = this._bitmap._buffer.readUInt32BE(nd);
                 var nval = img2._buffer.readUInt32BE(ns);
                 var fval = exports.compositePixel(nval,oval, this.mode);
