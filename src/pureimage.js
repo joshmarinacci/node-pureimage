@@ -40,6 +40,9 @@ function Bitmap4BBP(w,h,options) {
 }
 
 function Bitmap4BBPContext(bitmap) {
+    //we get more than a factor 2x speedup by using caching
+    this.USE_FONT_GLYPH_CACHING = true;
+
     this._bitmap = bitmap;
     this.transform = new trans.Transform();
     this.mode = "OVER";
@@ -223,25 +226,7 @@ function Bitmap4BBPContext(bitmap) {
         }
         this._settings.font.size = size;
     }
-    //we get more than a factor 2x speedup by using caching
-    this.USE_FONT_GLYPH_CACHING = true;
 
-    var cache = {
-        glyphs:{},
-        makeKey: function(font,size,ch) {
-            var key = font.family + "_"+size+ "_"+ch;
-            return key;
-        },
-        contains: function(font, size, ch) {
-            return (typeof this.glyphs[this.makeKey(font,size,ch)]) !== 'undefined';
-        },
-        insert: function(font, size, ch,bitmap) {
-            this.glyphs[this.makeKey(font,size,ch)] = bitmap;
-        },
-        get: function(font, size, ch) {
-            return this.glyphs[this.makeKey(font,size,ch)];
-        }
-    }
 
     function renderGlyphToBitmap(font, ch, size) {
         var ysize = (font.font.ascender - font.font.descender)/font.font.unitsPerEm*size;
@@ -279,6 +264,7 @@ function Bitmap4BBPContext(bitmap) {
     }
 
     this.copyImage = function(img2, fx,fy, color) {
+        var crgb = uint32.getBytesBigEndian(color);
         var x = Math.floor(fx);
         var y = Math.floor(fy);
         var i2w = img2.width;
@@ -291,15 +277,14 @@ function Bitmap4BBPContext(bitmap) {
                 if(x+i < 0) continue;
                 if(y+j >= i1h) continue;
                 if(y+j < 0) continue;
-                if(i > i2w) continue;
-                if(j > i2h) continue;
                 var ns = (j*i2w + i)*4;
+                var alpha = img2._buffer[ns+3];
+                //skip fully transparent pixels
+                if(alpha == 0) continue;
+
                 var nd = ((j+y)*i1w + (x+i))*4;
                 var oval = this._bitmap._buffer.readUInt32BE(nd);
-                var nval = img2._buffer.readUInt32BE(ns);
-                var nrgb = uint32.getBytesBigEndian(nval);
-                var crgb = uint32.getBytesBigEndian(color);
-                var nval2 = uint32.fromBytesBigEndian(crgb[0],crgb[1],crgb[2],nrgb[3]);
+                var nval2 = uint32.fromBytesBigEndian(crgb[0],crgb[1],crgb[2],alpha);
                 var fval = exports.compositePixel(nval2,oval, this.mode);
                 this._bitmap._buffer.writeUInt32BE(fval,nd);
             }
@@ -582,4 +567,22 @@ exports.compositePixel  = function(src,dst,omode) {
         final_a,
     ];
     return uint32.fromBytesBigEndian(final_rgba[0], final_rgba[1], final_rgba[2], final_rgba[3]);
+}
+
+
+var cache = {
+    glyphs:{},
+    makeKey: function(font,size,ch) {
+        var key = font.family + "_"+size+ "_"+ch;
+        return key;
+    },
+    contains: function(font, size, ch) {
+        return (typeof this.glyphs[this.makeKey(font,size,ch)]) !== 'undefined';
+    },
+    insert: function(font, size, ch,bitmap) {
+        this.glyphs[this.makeKey(font,size,ch)] = bitmap;
+    },
+    get: function(font, size, ch) {
+        return this.glyphs[this.makeKey(font,size,ch)];
+    }
 }
