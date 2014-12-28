@@ -102,6 +102,27 @@ function Bitmap4BBPContext(bitmap) {
         this._bitmap._buffer.writeUInt32BE(final_int,n);
     }
 
+    this.drawImage2 = function(img2,
+        sx,sy,sw,sh,
+        dx,dy,dw,dh) {
+        //console.log('draw image2 invoked',sx,sy,sw,sh, dx,dy,dw,dh);
+        //console.log("this image = ", this._bitmap.width, this._bitmap.height);
+        var i2w = img2.width;
+        var i2h = img2.height;
+        var i1w = this._bitmap.width;
+        var i1h = this._bitmap.height;
+        for(var j=0; j<sh; j++) {
+            for(var i=0; i<sw; i++) {
+                var ns = ((sy+j)*i2w + (sx+i))*4;
+                var nd = ((dy+j)*i1w + (dx+i))*4;
+                var oval = this._bitmap._buffer.readUInt32BE(nd);
+                var nval = img2._buffer.readUInt32BE(ns);
+                var fval = exports.compositePixel(nval,oval, this.mode);
+                this._bitmap._buffer.writeUInt32BE(fval,nd);
+            }
+        }
+
+    }
     this.drawImage = function(img2, fx,fy) {
         var x = Math.floor(fx);
         var y = Math.floor(fy);
