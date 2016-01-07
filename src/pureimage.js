@@ -361,8 +361,11 @@ function Bitmap4BBPContext(bitmap) {
         };
     }
 
-
-
+    this.getImageData = function(x, y, widh, height) {
+      return {
+        data: new Uint8Array(this._bitmap._buffer)
+      };
+    };
 }
 
 exports.make = function(w,h,options) {
