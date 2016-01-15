@@ -70,6 +70,9 @@ function Bitmap4BBPContext(bitmap) {
     this.getPixeli32 = function(x,y) {
         return this._bitmap._buffer.readUInt32BE(this._index(x,y));
     }
+    this.setPixeli32 = function(x,y, int) {
+        return this._bitmap._buffer.writeUInt32BE(int,this._index(x,y));
+    }
 
     // ===============  style state
 
@@ -231,9 +234,17 @@ function Bitmap4BBPContext(bitmap) {
         ctx.closePath();
     }
 
-    this.fillRect = function(x,y,w,h) {    makeRectPath(this,x,y,w,h);   this.fill();    }
+    this.fillRect   = function(x,y,w,h) {  makeRectPath(this,x,y,w,h);   this.fill();    }
 
     this.strokeRect = function(x,y,w,h) {  makeRectPath(this,x,y,w,h);   this.stroke();  }
+
+    this.clearRect  = function(x,y,w,h) {
+      for(var i=x; i<x+w; i++) {
+        for(var j=y; j<y+h; j++) {
+          this.setPixeli32(i,j,0x00000000);
+        }
+      }
+    }
 
 
 

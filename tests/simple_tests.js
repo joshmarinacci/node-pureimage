@@ -36,6 +36,7 @@ if(!fs.existsSync("build")) {
 }
 
 {
+    //copy between images
     var img1 = PImage.make(100,100); // filled with black
 
     var img2 = PImage.make(16,16);   // filled with black
@@ -137,7 +138,7 @@ if(!fs.existsSync("build")) {
         console.log("wrote out the png file to build/aapoly.png");
     });
     PImage.encodeJPEG(img, fs.createWriteStream('build/aapoly.jpg'), function(err) {
-        console.log("wrote out the png file to build/aapoly.jpg");
+        console.log("wrote out the jpg file to build/aapoly.jpg");
     });
 
     ctx.fillStyle = "red";
@@ -159,3 +160,19 @@ function dumpBytes(img) {
         console.log(i,img._buffer[i].toString(16));
     }
 }
+
+
+function clearRectTest() {
+     //clear rect
+     var img = PImage.make(100,100);
+     var ctx = img.getContext('2d');
+     ctx.fillStyle = 'green';
+     ctx.fillRect(0,0,100,100);
+     ctx.clearRect(25,25,50,50);
+     eq(ctx.getPixeli32(1,1), 0x00FF00ff); // opaque green
+     eq(ctx.getPixeli32(30,30), 0x00000000); //transparent black
+     PImage.encodePNG(img, fs.createWriteStream('build/clearrect.png'), function(err) {
+        console.log("wrote out the png file to build/clearrect.png",err);
+     });
+}
+clearRectTest();
