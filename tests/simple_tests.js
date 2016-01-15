@@ -77,8 +77,8 @@ if(!fs.existsSync("build")) {
     ctx.lineTo(90,90);
     ctx.lineTo(10,10);
     ctx.fill();
-    PImage.encodePNG(img1, fs.createWriteStream('polygon.png'), function(err) {
-        console.log("wrote out the png file to polygon.png");
+    PImage.encodePNG(img1, fs.createWriteStream('build/polygon.png'), function(err) {
+        console.log("wrote out the png file to build/polygon.png");
     });
 }
 
@@ -91,8 +91,8 @@ if(!fs.existsSync("build")) {
     ctx.fillRect(0,0,5,5);
     ctx.translate(30,50);
     ctx.fillRect(0,0,5,5);
-    PImage.encodePNG(img1, fs.createWriteStream('translate.png'), function(err) {
-        console.log("wrote out the png file to translate.png");
+    PImage.encodePNG(img1, fs.createWriteStream('build/translate.png'), function(err) {
+        console.log("wrote out the png file to build/translate.png");
     });
 
 }
@@ -133,11 +133,11 @@ if(!fs.existsSync("build")) {
         console.log(line);
     }
     */
-    PImage.encodePNG(img, fs.createWriteStream('aapoly.png'), function(err) {
-        console.log("wrote out the png file to aapoly.png");
+    PImage.encodePNG(img, fs.createWriteStream('build/aapoly.png'), function(err) {
+        console.log("wrote out the png file to build/aapoly.png");
     });
-    PImage.encodeJPEG(img, fs.createWriteStream('aapoly.jpg'), function(err) {
-        console.log("wrote out the png file to aapoly.jpg");
+    PImage.encodeJPEG(img, fs.createWriteStream('build/aapoly.jpg'), function(err) {
+        console.log("wrote out the png file to build/aapoly.jpg");
     });
 
     ctx.fillStyle = "red";
