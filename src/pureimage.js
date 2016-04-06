@@ -398,7 +398,7 @@ exports.encodePNG = function(bitmap, outstream, cb) {
         }
     }
 
-    png.pack().pipe(outstream).on('close', cb);
+    png.pack().pipe(outstream).on('finish', cb);
 }
 
 exports.encodeJPEG = function(bitmap, outstream, cb) {
@@ -585,7 +585,6 @@ drawLine = function(image, line, color) {
 //composite pixel doubles the time. need to implement replace with a better thing
 exports.compositePixel  = function(src,dst,omode) {
     if(omode == 'REPLACE') {
-
         return src;
     }
     var src_rgba = uint32.getBytesBigEndian(src);
