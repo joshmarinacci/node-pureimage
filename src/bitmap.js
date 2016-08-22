@@ -1,7 +1,4 @@
 "use strict";
-/**
- * Created by josh on 8/21/16.
- */
 var uint32 = require('./uint32');
 var Context = require('./context');
 

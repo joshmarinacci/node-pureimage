@@ -140,14 +140,14 @@ if(!fs.existsSync("build")) {
     eq(PImage.compositePixel(src,dst),0xFF0000FF);
 }
 */
-function eq(a,b) {
-    if(a != b) throw new Error(a.toString(16) + " is not equal to " + b.toString(16));
-}
+
+/*
 function dumpBytes(img) {
     for(var i=0; i<10; i++) {
         console.log(i,img._buffer[i].toString(16));
     }
 }
+*/
 
 function index(data,x,y) {
     return (data.width * y + x)*4;

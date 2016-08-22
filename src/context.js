@@ -9,7 +9,7 @@ class Context {
         Object.defineProperty(this, 'fillStyle', {
             get: function() { return this._fillStyle_text; },
             set: function(val) {
-                this._fillColor = this.colorStringToUint32(val);
+                this._fillColor = Context.colorStringToUint32(val);
                 this._fillStyle_text = val;
             }
         });
@@ -47,7 +47,7 @@ class Context {
     }
 
 
-    colorStringToUint32(str) {
+    static colorStringToUint32(str) {
         if(!str) return 0x000000;
         //hex values always get 255 for the alpha channel
         if(str.indexOf('#')==0) {
