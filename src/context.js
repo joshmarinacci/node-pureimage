@@ -31,6 +31,16 @@ class Context {
         }
     }
 
+    strokeRect(x,y,w,h) {
+        for(var i=x; i<x+w; i++) {
+            this.bitmap.setPixelRGBA(i, y, this._fillColor);
+            this.bitmap.setPixelRGBA(i, y+h, this._fillColor);
+        }
+        for(var j=y; j<y+h; j++) {
+            this.bitmap.setPixelRGBA(x, j, this._fillColor);
+            this.bitmap.setPixelRGBA(x+w, j, this._fillColor);
+        }
+    }
 
     getImageData(x,y,w,h) {
         return this.bitmap;
@@ -45,6 +55,14 @@ class Context {
             int = uint32.shiftLeft(int,8);
             int = uint32.or(int,0xff);
             return int;
+        }
+        if(str.indexOf('rgba')==0) {
+            var parts = str.trim().substring(4).replace('(','').replace(')','').split(',');
+            return uint32.fromBytesBigEndian(
+                parseInt(parts[0]),
+                parseInt(parts[1]),
+                parseInt(parts[2]),
+                Math.floor(parseFloat(parts[3])*255));
         }
         if(str.indexOf('rgb')==0) {
             var parts = str.trim().substring(3).replace('(','').replace(')','').split(',');

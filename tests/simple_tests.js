@@ -5,6 +5,7 @@ var assert = require('assert');
 var black = 0x000000ff;
 var red =   0xff0000ff;
 var green = 0x00ff00ff;
+var transparent = 0x00000000;
 
 
 if(!fs.existsSync("build")) {
@@ -214,8 +215,14 @@ function drawClearStrokeRect() {
     ctx.fillRect(25,25,100,100);
     ctx.clearRect(45,45,60,60);
     ctx.strokeRect(50,50,50,50);
+    var id2 = ctx.getImageData(0,0,150,150);
+    assert.equal(id2.getPixelRGBA(25,25),black);
+    assert.equal(id2.getPixelRGBA(45,45),transparent);
+    assert.equal(id2.getPixelRGBA(50,50),black);
+    assert.equal(id2.getPixelRGBA(51,51),transparent);
     // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_shapes
 }
+drawClearStrokeRect();
 
 function drawTriangle() {
     var canvas = PImage.make(150,150);
