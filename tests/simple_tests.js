@@ -193,13 +193,19 @@ clearRectTest();
 function drawRects() {
     var canvas = PImage.make(150,150);
     var ctx = canvas.getContext("2d");
-    ctx.fillStyle = "rgb(200,0,0)";
+    ctx.fillStyle = "rgb(255,0,0)";
     ctx.fillRect (10, 10, 50, 50);
 
-    ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
+    ctx.fillStyle = "rgba(0, 0, 255, 1.0)";
     ctx.fillRect (30, 30, 50, 50);
-    // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
+    var id2 = ctx.getImageData(0,0,150,150);
+    assert.equal(id2.getPixelRGBA(0,0),0x000000ff);
+    assert.equal(id2.getPixelRGBA(10,10),0xff0000ff);
+    assert.equal(id2.getPixelRGBA(30,30),0x0000ffff);
 }
+drawRects();
+
+//test fillStyle = rgba(255,255,255,0.5)
 
 function drawClearStrokeRect() {
     var canvas = PImage.make(150,150);

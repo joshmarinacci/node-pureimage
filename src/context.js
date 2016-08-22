@@ -46,11 +46,14 @@ class Context {
             int = uint32.or(int,0xff);
             return int;
         }
+        if(str.indexOf('rgb')==0) {
+            var parts = str.trim().substring(3).replace('(','').replace(')','').split(',');
+            return uint32.fromBytesBigEndian(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]), 255);
+        }
         if(NAMED_COLORS[str]) {
             return NAMED_COLORS[str];
         }
-        console.log("UNKNOWN style format",str);
-        return 0xFF0000;
+        throw new Error("unknown style format: " + str );
     }
 
 
