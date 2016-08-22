@@ -11,33 +11,9 @@ var PNG = require('pngjs').PNG;
 var JPEG = require('jpeg-js');
 var trans = require('./transform');
 var uint32 = require('./uint32');
-
-var NAMED_COLORS = {
-    'white':0xFFFFFFff, 'black':0x000000ff,  'red':0xFF0000ff,  'green':0x00FF00ff, 'blue':0x0000FFff,
-}
+var NAMED_COLORS = require('./named_colors');
 var DEFAULT_FONT_FAMILY = 'source';
-
-function Bitmap4BBP(w,h,options) {
-    this.width = w;
-    this.height = h;
-    var fillval = 0x000000FF;
-    if(options && (typeof options.fillval) !== undefined) {
-        fillval = options.fillval;
-    }
-    this._buffer = new Buffer(this.width*this.height*4);
-    for(var i=0; i<this.width; i++) {
-        for(var j=0; j<this.height; j++) {
-            this._buffer.writeUInt32BE(fillval, (j*this.width+i)*4);
-        }
-    }
-    this._index = function(x,y) {
-        return (this.width * Math.floor(y) + Math.floor(x))*4;
-    }
-
-    this.getContext = function(type) {
-        return new Bitmap4BBPContext(this);
-    }
-}
+var Bitmap = require('./bitmap');
 
 function Bitmap4BBPContext(bitmap) {
     //we get more than a factor 2x speedup by using caching
@@ -380,8 +356,8 @@ function Bitmap4BBPContext(bitmap) {
 }
 
 exports.make = function(w,h,options) {
-    return new Bitmap4BBP(w,h,options);
-}
+    return new Bitmap(w,h,options);
+};
 
 exports.encodePNG = function(bitmap, outstream, cb) {
     var png = new PNG({
@@ -416,7 +392,7 @@ exports.decodeJPEG = function(data) {
     var rawImageData = JPEG.decode(data);
     console.log("Raw = ", rawImageData);
     return rawImageData;
-}
+};
 
 exports.decodePNG = function(instream, cb) {
     instream.pipe(new PNG())
