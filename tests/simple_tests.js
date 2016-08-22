@@ -170,14 +170,8 @@ function simplePixelTest() {
     c.fillStyle = '#00ff00';
     c.fillRect(0,0,100,100);
     var id2 = c.getImageData(0,0,100,100);
-    var n2 = index(id2,0,0);
-    assert.equal(id2.data[n2+0],0x00);
-    assert.equal(id2.data[n2+1],0xFF);
-    assert.equal(id2.data[n2+2],0x00);
-    assert.equal(id2.data[n2+3],0xFF);
+    assert.equal(id2.getPixelRGBA(0,0),0x00ff00ff);
 }
-
-
 simplePixelTest();
 
 
@@ -185,30 +179,16 @@ function clearRectTest() {
     console.log("clear rect test");
     //clear rect
     var img = PImage.make(100,100);
-    var ctx = img.getContext('2d');
-    ctx.fillStyle = 'green';
-    ctx.fillRect(0,0,100,100);
-    ctx.clearRect(25,25,50,50);
-    eq(ctx.getPixeli32(1,1), 0x00FF00ff); // opaque green
-    eq(ctx.getPixeli32(30,30), 0x00000000); //transparent black
-    PImage.encodePNG(img, fs.createWriteStream('build/clearrect.png'), function(err) {
-        //console.log("wrote out the png file to build/clearrect.png",err);
-    });
+    var c = img.getContext('2d');
+    c.fillStyle = 'green';
+    c.fillRect(0,0,100,100);
+    c.clearRect(25,25,50,50);
+    var id2 = c.getImageData(0,0,100,100);
+    assert.equal(id2.getPixelRGBA(0,0),0x00ff00ff);
+    assert.equal(id2.getPixelRGBA(25,25),0x00000000);
 }
-//clearRectTest();
+clearRectTest();
 
-
-/*
-tests:
-
-rotate text
-scale text
-draw rect with green
-draw rect with hex
-
-create canvas of 150x150. verify it is that wide
-
- */
 
 function drawRects() {
     var canvas = PImage.make(150,150);

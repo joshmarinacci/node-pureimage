@@ -26,6 +26,11 @@ class Bitmap {
         this.data[i+2] = bytes[2];
         this.data[i+3] = bytes[3];
     }
+    getPixelRGBA(x,y) {
+        var i = (this.width * y + x) * 4;
+        return uint32.fromBytesBigEndian(this.data[i+0], this.data[i+1], this.data[i+2], this.data[i+3]);
+    }
+
     getContext(type) {
         return new Context(this);
     }

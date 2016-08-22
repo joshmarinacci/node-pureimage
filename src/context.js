@@ -1,5 +1,6 @@
 "use strict";
 var uint32 = require('./uint32');
+var NAMED_COLORS = require('./named_colors');
 
 class Context {
     constructor(bitmap) {
@@ -21,6 +22,15 @@ class Context {
             }
         }
     }
+
+    clearRect(x,y,w,h) {
+        for(var i=x; i<x+w; i++) {
+            for(var j=y; j<y+h; j++) {
+                this.bitmap.setPixelRGBA(i,j,0x00000000);
+            }
+        }
+    }
+
 
     getImageData(x,y,w,h) {
         return this.bitmap;
