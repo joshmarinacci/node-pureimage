@@ -58,7 +58,11 @@ class Context {
     }
 
     getImageData(x,y,w,h) {
+        console.log("pretending to do something");
         return this.bitmap;
+    }
+    putImageData(id, x, y) {
+        console.log("pretending to do something");
     }
 
     drawImage(bitmap, x,y,w,h) {

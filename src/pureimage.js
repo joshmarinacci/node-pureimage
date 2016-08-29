@@ -393,7 +393,19 @@ exports.encodeJPEG = function(bitmap, outstream, cb) {
 exports.decodeJPEG = function(data) {
     var rawImageData = JPEG.decode(data);
     console.log("Raw = ", rawImageData);
-    return rawImageData;
+    var bitmap = new Bitmap(rawImageData.width, rawImageData.height);
+    for(var i=0; i<rawImageData.width; i++) {
+        for(var j=0; j<rawImageData.height; j++) {
+            var n = (j*rawImageData.width + i)*4;
+            bitmap.setPixelRGBA_i(i,j,
+                rawImageData.data[n+0],
+                rawImageData.data[n+1],
+                rawImageData.data[n+2],
+                rawImageData.data[n+3]
+            );
+        }
+    }
+    return bitmap;
 };
 
 exports.decodeJPEGFromURL = function(url, cb) {

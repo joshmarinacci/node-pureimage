@@ -23,6 +23,14 @@ class Bitmap {
         this.data[i+2] = bytes[2];
         this.data[i+3] = bytes[3];
     }
+    setPixelRGBA_i(x,y,r,g,b,a) {
+        var i = (this.width * y + x)*4;
+        //var bytes = uint32.getBytesBigEndian(rgba);
+        this.data[i+0] = r;//bytes[0];
+        this.data[i+1] = g;//bytes[1];
+        this.data[i+2] = b;//bytes[2];
+        this.data[i+3] = a;//bytes[3];
+    }
     getPixelRGBA(x,y) {
         var i = (this.width * y + x) * 4;
         return uint32.fromBytesBigEndian(this.data[i+0], this.data[i+1], this.data[i+2], this.data[i+3]);
