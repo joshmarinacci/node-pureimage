@@ -662,17 +662,17 @@ function drawText() {
 
 
 function scaleImage() {
-    var ctx = document.getElementById('canvas').getContext('2d');
-    var img = new Image();
-    img.onload = function(){
+    var canvas = PImage.make(150,150);
+    var ctx = canvas.getContext('2d');
+    PImage.decodeJPEGFromURL('https://mdn.mozillademos.org/files/5397/rhino.jpg',(img)=>{
         for (var i=0;i<4;i++){
             for (var j=0;j<3;j++){
                 ctx.drawImage(img,j*50,i*38,50,38);
             }
         }
-    };
-    img.src = 'https://mdn.mozillademos.org/files/5397/rhino.jpg';
+    });
 }
+scaleImage();
 
 function canvasState() {
     var ctx = document.getElementById('canvas').getContext('2d');
@@ -872,5 +872,4 @@ function imageResize() {
     var img2 = PImage.make(200,200);
     var c = img2.getContext('2d');
     c.drawImage(img2,0,0,100,100, 0,0,200,200);
-
 }

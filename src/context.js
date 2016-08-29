@@ -46,6 +46,10 @@ class Context {
         return this.bitmap;
     }
 
+    drawImage(bitmap, x,y,w,h) {
+        console.log("drawing",x,y,w,h);
+    }
+
 
     static colorStringToUint32(str) {
         if(!str) return 0x000000;

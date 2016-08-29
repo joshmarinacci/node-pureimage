@@ -394,6 +394,11 @@ exports.decodeJPEG = function(data) {
     return rawImageData;
 };
 
+exports.decodeJPEGFromURL = function(url, cb) {
+    var bitmap = new Bitmap(100,100);
+    cb(bitmap);
+};
+
 exports.decodePNG = function(instream, cb) {
     instream.pipe(new PNG())
     .on("parsed", function() {
