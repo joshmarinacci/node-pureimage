@@ -206,6 +206,26 @@ function drawRects() {
 }
 drawRects();
 
+function px_eq(ctx, x,y, rgba) {
+    var id2 = ctx.getImageData(0,0,50,50);
+    assert.equal(id2.getPixelRGBA(x,y),rgba);
+}
+function fillRects() {
+    var canvas = PImage.make(50,50);
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "rgb(255,0,0)";
+    ctx.fillRect (0,0,50,50);
+    px_eq(ctx,0,0,0xFF0000ff);
+
+    //fill with blue
+
+    //fill with red, then 50% white
+
+    //fill with linear gradient from black to white
+    //fill with repeating texture
+}
+fillRects();
+
 //test fillStyle = rgba(255,255,255,0.5)
 
 function drawClearStrokeRect() {
@@ -672,7 +692,7 @@ function scaleImage() {
         }
     });
 }
-scaleImage();
+//scaleImage();
 
 function canvasState() {
     var ctx = document.getElementById('canvas').getContext('2d');
