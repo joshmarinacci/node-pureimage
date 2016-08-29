@@ -18,12 +18,16 @@ class Context {
     fillRect(x,y,w,h) {
         for(var i=x; i<x+w; i++) {
             for(var j=y; j<y+h; j++) {
-                var new_pixel = this.calculateRGBA(i,j);
-                var old_pixel = this.bitmap.getPixelRGBA(i,j);
-                var final_pixel = this.composite(i,j,old_pixel,new_pixel);
-                this.bitmap.setPixelRGBA(i,j,final_pixel);
+                this.fillPixel(i,j);
             }
         }
+    }
+
+    fillPixel(i,j) {
+        var new_pixel = this.calculateRGBA(i,j);
+        var old_pixel = this.bitmap.getPixelRGBA(i,j);
+        var final_pixel = this.composite(i,j,old_pixel,new_pixel);
+        this.bitmap.setPixelRGBA(i,j,final_pixel);
     }
 
     composite(i,j,old_pixel, new_pixel) {
