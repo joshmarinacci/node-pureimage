@@ -367,9 +367,11 @@ exports.encodePNG = function(bitmap, outstream, cb) {
 
     for(var i=0; i<bitmap.width; i++) {
         for(var j=0; j<bitmap.height; j++) {
+            var rgba = bitmap.getPixelRGBA(i,j);
+            var n = (j*bitmap.width+i)*4;
+            var bytes = uint32.getBytesBigEndian(rgba);
             for(var k=0; k<4; k++) {
-                var n = (j*bitmap.width+i)*4 + k;
-                png.data[n] = bitmap._buffer[n];
+                png.data[n+k] = bytes[k];
             }
         }
     }
