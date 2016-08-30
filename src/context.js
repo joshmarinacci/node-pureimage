@@ -29,6 +29,8 @@ class Context {
     }
 
     fillPixel(i,j) {
+        i = Math.floor(i);
+        j = Math.floor(j);
         var new_pixel = this.calculateRGBA(i,j);
         var old_pixel = this.bitmap.getPixelRGBA(i,j);
         var final_pixel = this.composite(i,j,old_pixel,new_pixel);

@@ -85,10 +85,10 @@ for(var i=0; i<gw-1; i++) {
 }
 
 //randomly shift the grid
-grid.forEach(function(pt){
+grid.forEach(function(pt,i){
     var dist = 19;
     pt.x = pt.x + rand(-dist,dist);
-    //pt.y = pt.y + rand(-dist,dist);
+    pt.y = pt.y + rand(-dist,dist);
 });
 
 //draw the dots
