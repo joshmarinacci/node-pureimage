@@ -1,12 +1,14 @@
 "use strict";
 var uint32 = require('./uint32');
 var NAMED_COLORS = require('./named_colors');
+var trans = require('./transform');
 
 class Context {
     constructor(bitmap) {
         this.bitmap = bitmap;
         this._fillColor = 0x000000FF;
         this._strokeColor = 0x000000FF;
+        this.transform = new trans.Transform();
         Object.defineProperty(this, 'fillStyle', {
             get: function() { return this._fillStyle_text; },
             set: function(val) {
@@ -16,6 +18,25 @@ class Context {
         });
     }
 
+    // transforms
+    save() {
+        this.transform.save();
+    }
+    translate(x,y) {
+        this.transform.translate(x,y);
+    }
+    rotate(angle) {
+        this.transform.rotate(angle);
+    }
+    scale(sx,sy) {
+        this.transform.scale(sx,sy);
+    }
+    restore() {
+        this.transform.restore();
+    }
+
+
+    //simple rect
     fillRect(x,y,w,h) {
         x = Math.floor(x);
         y = Math.floor(y);
@@ -27,7 +48,26 @@ class Context {
             }
         }
     }
+    clearRect(x,y,w,h) {
+        for(var i=x; i<x+w; i++) {
+            for(var j=y; j<y+h; j++) {
+                this.bitmap.setPixelRGBA(i,j,0x00000000);
+            }
+        }
+    }
+    strokeRect(x,y,w,h) {
+        for(var i=x; i<x+w; i++) {
+            this.bitmap.setPixelRGBA(i, y, this._fillColor);
+            this.bitmap.setPixelRGBA(i, y+h, this._fillColor);
+        }
+        for(var j=y; j<y+h; j++) {
+            this.bitmap.setPixelRGBA(x, j, this._fillColor);
+            this.bitmap.setPixelRGBA(x+w, j, this._fillColor);
+        }
+    }
 
+
+    //set single pixel
     fillPixel(i,j) {
         i = Math.floor(i);
         j = Math.floor(j);
@@ -42,11 +82,9 @@ class Context {
         var final_pixel = this.composite(i,j,old_pixel,new_pixel);
         this.bitmap.setPixelRGBA(i,j,final_pixel);
     }
-
     composite(i,j,old_pixel, new_pixel) {
         return new_pixel;
     }
-
     calculateRGBA(x,y) {
         return this._fillColor;
     }
@@ -54,25 +92,8 @@ class Context {
         return this._strokeColor;
     }
 
-    clearRect(x,y,w,h) {
-        for(var i=x; i<x+w; i++) {
-            for(var j=y; j<y+h; j++) {
-                this.bitmap.setPixelRGBA(i,j,0x00000000);
-            }
-        }
-    }
 
-    strokeRect(x,y,w,h) {
-        for(var i=x; i<x+w; i++) {
-            this.bitmap.setPixelRGBA(i, y, this._fillColor);
-            this.bitmap.setPixelRGBA(i, y+h, this._fillColor);
-        }
-        for(var j=y; j<y+h; j++) {
-            this.bitmap.setPixelRGBA(x, j, this._fillColor);
-            this.bitmap.setPixelRGBA(x+w, j, this._fillColor);
-        }
-    }
-
+    //get set image data
     getImageData(x,y,w,h) {
         console.log("pretending to do something");
         return this.bitmap;
@@ -81,6 +102,8 @@ class Context {
         console.log("pretending to do something");
     }
 
+
+    // draw image
     drawImage(bitmap, sx,sy,sw,sh, dx, dy, dw, dh) {
         for(var i=dx; i<dx+dw; i++) {
             for(var j=dy; j<dy+dh; j++) {
@@ -94,20 +117,25 @@ class Context {
         }
     }
 
+    // paths
     beginPath() {
         this.path = [];
     }
     moveTo(x,y) {
-        this.pathstart = makePoint(x,y);
-        this.path.push(['m',x,y]);
+        let pt = this.transform.transformPoint({x:x,y:y});
+        this.pathstart = pt;
+        this.path.push(['m',pt]);
     }
     lineTo(x,y) {
-        this.path.push(['l',x,y]);
+        let pt = this.transform.transformPoint({x:x, y:y});
+        this.path.push(['l',pt]);
     }
     closePath() {
-        this.lineTo(this.pathstart.x,this.pathstart.y);
+        this.path.push(['l',this.pathstart]);
     }
 
+
+    //draw and fill paths
     stroke() {
         pathToLines(this.path).forEach((line)=> this.drawLine(line));
     }
@@ -130,7 +158,6 @@ class Context {
             if (e2 < dy) { err += dx; y0 += sy; }
         }
     }
-
     fill() {
         //get just the color part
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);
@@ -168,8 +195,6 @@ class Context {
         }
     }
 
-
-
     static colorStringToUint32(str) {
         if(!str) return 0x000000;
         //hex values always get 255 for the alpha channel
@@ -197,14 +222,12 @@ class Context {
         throw new Error("unknown style format: " + str );
     }
 
-
 }
 module.exports = Context;
 
 
 function fract(v) {  return v-Math.floor(v);   }
 
-function makePoint (x,y)       {  return {x:x, y:y} }
 
 function makeLine  (start,end) {  return {start:start, end:end} }
 
@@ -214,15 +237,15 @@ function pathToLines(path) {
     var curr = null;
     path.forEach(function(cmd) {
         if(cmd[0] == 'm') {
-            curr = makePoint(cmd[1],cmd[2]);
+            curr = cmd[1];
         }
         if(cmd[0] == 'l') {
-            var pt = makePoint(cmd[1],cmd[2]);
+            var pt = cmd[1];
             lines.push(makeLine(curr,pt));
             curr = pt;
         }
         if(cmd[0] == 'q') {
-            var pts = [curr, makePoint(cmd[1],cmd[2]), makePoint(cmd[3],cmd[4])];
+            var pts = [curr, cmd[1], cmd[2]];
             for(var t=0; t<1; t+=0.1) {
                 var pt = calcQuadraticAtT(pts,t);
                 lines.push(makeLine(curr,pt));
@@ -230,7 +253,7 @@ function pathToLines(path) {
             }
         }
         if(cmd[0] == 'b') {
-            var pts = [curr, makePoint(cmd[1],cmd[2]), makePoint(cmd[3],cmd[4]), makePoint(cmd[5],cmd[6])];
+            var pts = [curr, cmd[1], cmd[2], cmd[3]];
             for(var t=0; t<1; t+=0.1) {
                 var pt = calcBezierAtT(pts,t);
                 lines.push(makeLine(curr,pt));

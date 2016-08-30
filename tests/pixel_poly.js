@@ -43,13 +43,13 @@ function pick(arr) {
 }
 
 
-var canvas = PImage.make(1000,600);
+var canvas = PImage.make(6000,3000);
 
 var ctx = canvas.getContext('2d');
 var w = canvas.width;
 var h = canvas.height;
-var gw = Math.floor(w/43);
-var gh = Math.floor(h/43);
+var gw = Math.floor(w/200);
+var gh = Math.floor(h/200);
 ctx.fillStyle = 'white';
 ctx.fillRect(0,0,w,h);
 
@@ -94,10 +94,13 @@ grid.forEach(function(pt,i){
 //draw the dots
 ctx.fillStyle = 'blue';
 grid.forEach(function(pt){
-    ctx.fillRect(pt.x,pt.y, 4, 4)
+    //ctx.fillRect(pt.x,pt.y, 4, 4)
 });
 
 //fill the polys
+ctx.save();
+//ctx.rotate(Math.PI/180.0*45);
+ctx.scale(4.5,4.5);
 cells.forEach(function(cell) {
     var c = cell[4];
     var color = 'rgb('+Math.floor(c[0])+','+Math.floor(c[1])+','+Math.floor(c[2])+')';
@@ -124,6 +127,7 @@ cells.forEach(function(cell) {
     ctx.closePath();
     ctx.stroke();
 });
+ctx.restore();
 
 
 PImage.encodePNG(canvas, fs.createWriteStream('out.png'), (err) => {
