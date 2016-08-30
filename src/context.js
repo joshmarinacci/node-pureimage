@@ -65,8 +65,14 @@ class Context {
         console.log("pretending to do something");
     }
 
-    drawImage(bitmap, x,y,w,h) {
-        console.log("drawing",x,y,w,h);
+    drawImage(bitmap,
+              sx,sy,sw,sh,
+              dx, dy, dw, dh
+    ) {
+        console.log("pretending to draw",
+            dx, dy, dw, dh,
+            sx, sy, sw, sh
+        );
     }
 
 
