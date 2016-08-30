@@ -104,7 +104,8 @@ function Bitmap4BBPContext(bitmap) {
             }
         }
 
-    }
+    };
+
     this.drawImage = function(img2, fx,fy) {
         var x = Math.floor(fx);
         var y = Math.floor(fy);
@@ -554,7 +555,7 @@ function calcSortedIntersections(lines,y) {
 }
 
 
-
+/*
 //Bresenham's from Rosetta Code
 // http://rosettacode.org/wiki/Bitmap/Bresenham's_line_algorithm#JavaScript
 drawLine = function(image, line, color) {
@@ -574,7 +575,7 @@ drawLine = function(image, line, color) {
         if (e2 < dy) { err += dx; y0 += sy; }
     }
 }
-
+*/
 
 //composite pixel doubles the time. need to implement replace with a better thing
 exports.compositePixel  = function(src,dst,omode) {

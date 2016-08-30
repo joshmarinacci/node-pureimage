@@ -86,38 +86,36 @@ for(var i=0; i<gw-1; i++) {
 
 //randomly shift the grid
 grid.forEach(function(pt){
-    //var dist = 19;
-    //pt.x = pt.x + rand(-dist,dist);
+    var dist = 19;
+    pt.x = pt.x + rand(-dist,dist);
     //pt.y = pt.y + rand(-dist,dist);
 });
 
 //draw the dots
 ctx.fillStyle = 'blue';
 grid.forEach(function(pt){
-    console.log("drawing at",pt);
-    ctx.fillRect(pt.x,pt.y, 10, 10)
+    ctx.fillRect(pt.x,pt.y, 4, 4)
 });
 
 //fill the polys
 cells.forEach(function(cell) {
-    ctx.fillStyle = 'green';
-    //ctx.fillRect(cell[0].x, cell[0].y, 30, 30);
+    var c = cell[4];
+    var color = 'rgb('+Math.floor(c[0])+','+Math.floor(c[1])+','+Math.floor(c[2])+')';
+    ctx.fillStyle = color;
+    //ctx.fillRect(cell[0].x, cell[0].y, 40, 40);
     ctx.beginPath();
     ctx.moveTo(cell[0].x, cell[0].y);
     ctx.lineTo(cell[1].x, cell[1].y);
     ctx.lineTo(cell[2].x, cell[2].y);
     ctx.lineTo(cell[3].x, cell[3].y);
     ctx.closePath();
-    var c = cell[4];
-    var color = 'rgb('+Math.floor(c[0])+','+Math.floor(c[1])+','+Math.floor(c[2])+')';
-    ctx.fillStyle = color;
     ctx.fill();
 });
 
-/*
+
 //draw the poly lines
 cells.forEach(function(cell) {
-    ctx.strokeStyle = 'black';
+    //ctx.strokeStyle = 'black';
     ctx.beginPath();
     ctx.moveTo(cell[0].x, cell[0].y);
     ctx.lineTo(cell[1].x, cell[1].y);
@@ -126,7 +124,7 @@ cells.forEach(function(cell) {
     ctx.closePath();
     ctx.stroke();
 });
-*/
+
 
 PImage.encodePNG(canvas, fs.createWriteStream('out.png'), (err) => {
     console.log("wrote to out.png. err = ",err);
