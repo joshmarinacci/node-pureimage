@@ -392,7 +392,6 @@ exports.encodeJPEG = function(bitmap, outstream, cb) {
 //TODO: Josh: finish this. turn it into a real bitmap object
 exports.decodeJPEG = function(data) {
     var rawImageData = JPEG.decode(data);
-    console.log("Raw = ", rawImageData);
     var bitmap = new Bitmap(rawImageData.width, rawImageData.height);
     for(var i=0; i<rawImageData.width; i++) {
         for(var j=0; j<rawImageData.height; j++) {

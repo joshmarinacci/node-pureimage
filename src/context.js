@@ -67,12 +67,17 @@ class Context {
 
     drawImage(bitmap,
               sx,sy,sw,sh,
-              dx, dy, dw, dh
-    ) {
-        console.log("pretending to draw",
-            dx, dy, dw, dh,
-            sx, sy, sw, sh
-        );
+              dx, dy, dw, dh) {
+        for(var i=dx; i<dx+dw; i++) {
+            for(var j=dy; j<dy+dh; j++) {
+                var tx = (i-dx)/(dx+dw);
+                var ssx = Math.floor(tx * bitmap.width);
+                var ty = (j-dy)/(dy+dh);
+                var ssy = Math.floor(ty * bitmap.height);
+                var rgba = bitmap.getPixelRGBA(ssx,ssy);
+                this.bitmap.setPixelRGBA(i, j, rgba);
+            }
+        }
     }
 
 
