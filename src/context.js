@@ -16,6 +16,10 @@ class Context {
     }
 
     fillRect(x,y,w,h) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+        w = Math.floor(w);
+        h = Math.floor(h);
         for(var i=x; i<x+w; i++) {
             for(var j=y; j<y+h; j++) {
                 this.fillPixel(i,j);
