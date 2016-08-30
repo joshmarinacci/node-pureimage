@@ -42,14 +42,16 @@ function pick(arr) {
     return arr[Math.floor(Math.random()*arr.length)];
 }
 
+console.log("allocating");
+var canvas = PImage.make(16000,8000);
+console.log("allocated");
 
-var canvas = PImage.make(6000,3000);
 
 var ctx = canvas.getContext('2d');
 var w = canvas.width;
 var h = canvas.height;
-var gw = Math.floor(w/200);
-var gh = Math.floor(h/200);
+var gw = Math.floor(w/800);
+var gh = Math.floor(h/800);
 ctx.fillStyle = 'white';
 ctx.fillRect(0,0,w,h);
 
@@ -91,6 +93,8 @@ grid.forEach(function(pt,i){
     pt.y = pt.y + rand(-dist,dist);
 });
 
+console.log("drawing");
+
 //draw the dots
 ctx.fillStyle = 'blue';
 grid.forEach(function(pt){
@@ -100,7 +104,7 @@ grid.forEach(function(pt){
 //fill the polys
 ctx.save();
 //ctx.rotate(Math.PI/180.0*45);
-ctx.scale(4.5,4.5);
+ctx.scale(18.5,18.5);
 cells.forEach(function(cell) {
     var c = cell[4];
     var color = 'rgb('+Math.floor(c[0])+','+Math.floor(c[1])+','+Math.floor(c[2])+')';
@@ -129,6 +133,7 @@ cells.forEach(function(cell) {
 });
 ctx.restore();
 
+console.log("saving to PNG");
 
 PImage.encodePNG(canvas, fs.createWriteStream('out.png'), (err) => {
     console.log("wrote to out.png. err = ",err);

@@ -6,7 +6,7 @@ class Bitmap {
     constructor(w,h,options) {
         this.width = w;
         this.height = h;
-        this.data = [];
+        this.data = Buffer.alloc(w*h*4);
         var fillval = 0x000000FF;
         for(var j=0; j<h; j++) {
             for (var i = 0; i < w; i++) {
