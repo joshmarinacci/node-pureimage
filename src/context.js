@@ -18,7 +18,7 @@ class Context {
         });
     }
 
-    // transforms
+    // transforms and state saving
     save() {
         this.transform.save();
     }
@@ -38,10 +38,6 @@ class Context {
 
     //simple rect
     fillRect(x,y,w,h) {
-        x = Math.floor(x);
-        y = Math.floor(y);
-        w = Math.floor(w);
-        h = Math.floor(h);
         for(var i=x; i<x+w; i++) {
             for(var j=y; j<y+h; j++) {
                 this.fillPixel(i,j);
@@ -69,8 +65,6 @@ class Context {
 
     //set single pixel
     fillPixel(i,j) {
-        i = Math.floor(i);
-        j = Math.floor(j);
         var new_pixel = this.calculateRGBA(i,j);
         var old_pixel = this.bitmap.getPixelRGBA(i,j);
         var final_pixel = this.composite(i,j,old_pixel,new_pixel);
