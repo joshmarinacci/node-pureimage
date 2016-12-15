@@ -401,6 +401,24 @@ exports.encodePNG = function(bitmap, outstream, cb) {
     png.pack().pipe(outstream).on('finish', cb);
 }
 
+exports.encodePNGSync = function(bitmap) {
+    let png = new PNG({
+        width: bitmap.width,
+        height: bitmap.height,
+    });
+
+    for (let i = 0; i < bitmap.width; i++) {
+        for (let j = 0; j < bitmap.height; j++) {
+            for (let k = 0; k < 4; k++) {
+                let n = (j * bitmap.width + i) * 4 + k;
+                png.data[n] = bitmap._buffer[n];
+            }
+        }
+    }
+
+    return PNG.sync.write(png);
+}
+
 exports.encodeJPEG = function(bitmap, outstream, cb) {
     var data = {
         data:bitmap._buffer,
@@ -455,6 +473,18 @@ exports.registerFont = function(binary, family, weight, style, variant) {
                 if(cb)cb();
             });
         }
+    };
+    return _fonts[family];
+}
+exports.registerFontSync = function(binary, family, weight, style, variant) {
+    _fonts[family] = {
+        binary: binary,
+        family: family,
+        weight: weight,
+        style: style,
+        variant: variant,
+        loaded: true,
+        font: opentype.loadSync(binary),
     };
     return _fonts[family];
 }
