@@ -586,7 +586,7 @@ function calcSortedIntersections(lines,y) {
             xlist.push(xval);
         }
     }
-    return xlist.sort(function(a,b) {  return a>b; });
+    return xlist.sort(function(a,b) {  return a-b; });
 }
 
 
