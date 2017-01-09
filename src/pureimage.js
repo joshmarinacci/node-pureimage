@@ -189,8 +189,10 @@ function Bitmap4BBPContext(bitmap) {
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);
         var lines = pathToLines(this.path);
         var bounds = calcMinimumBounds(lines);
+        var startY = Math.min(bounds.y2-1, bitmap.height);
+        var endY = Math.max(bounds.y, 0);
 
-        for(var j=bounds.y2-1; j>=bounds.y; j--) {
+        for(var j=startY; j>=endY; j--) {
             var ints = calcSortedIntersections(lines,j);
             //fill between each pair of intersections
             for(var i=0; i<ints.length; i+=2) {
