@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "jpeg-js": "0.0.4",
-    "opentype.js": "^0.4.3",
+    "opentype.js": "^0.6.9",
     "pngjs": "^3.0.0",
     "richtext": "0.0.4"
   },
