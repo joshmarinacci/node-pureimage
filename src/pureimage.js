@@ -474,6 +474,10 @@ exports.registerFont = function(binary, family, weight, style, variant) {
                 self.font = font;
                 if(cb)cb();
             });
+        },
+        loadSync: function() {
+            this.font = opentype.loadSync(binary);
+            this.loaded = true;
         }
     };
     return _fonts[family];
