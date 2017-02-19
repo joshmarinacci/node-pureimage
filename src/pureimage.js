@@ -219,8 +219,10 @@ function Bitmap4BBPContext(bitmap) {
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);
         var lines = pathToLines(this.path);
         var bounds = calcMinimumBounds(lines);
+        var startY = Math.min(bounds.y2-1, bitmap.height);
+        var endY = Math.max(bounds.y, 0);
 
-        for(var j=bounds.y2-1; j>=bounds.y; j--) {
+        for(var j=startY; j>=endY; j--) {
             var ints = calcSortedIntersections(lines,j);
             //fill between each pair of intersections
             for(var i=0; i<ints.length; i+=2) {
@@ -431,6 +433,24 @@ exports.encodePNG = function(bitmap, outstream, cb) {
     png.pack().pipe(outstream).on('finish', cb);
 }
 
+exports.encodePNGSync = function(bitmap) {
+    let png = new PNG({
+        width: bitmap.width,
+        height: bitmap.height,
+    });
+
+    for (let i = 0; i < bitmap.width; i++) {
+        for (let j = 0; j < bitmap.height; j++) {
+            for (let k = 0; k < 4; k++) {
+                let n = (j * bitmap.width + i) * 4 + k;
+                png.data[n] = bitmap._buffer[n];
+            }
+        }
+    }
+
+    return PNG.sync.write(png);
+}
+
 exports.encodeJPEG = function(bitmap, outstream, cb) {
     var data = {
         data:bitmap._buffer,
@@ -494,7 +514,23 @@ exports.registerFont = function(binary, family, weight, style, variant) {
                 self.font = font;
                 if(cb)cb();
             });
+        },
+        loadSync: function() {
+            this.font = opentype.loadSync(binary);
+            this.loaded = true;
         }
+    };
+    return _fonts[family];
+}
+exports.registerFontSync = function(binary, family, weight, style, variant) {
+    _fonts[family] = {
+        binary: binary,
+        family: family,
+        weight: weight,
+        style: style,
+        variant: variant,
+        loaded: true,
+        font: opentype.loadSync(binary),
     };
     return _fonts[family];
 }
@@ -596,7 +632,7 @@ function calcSortedIntersections(lines,y) {
             xlist.push(xval);
         }
     }
-    return xlist.sort(function(a,b) {  return a>b; });
+    return xlist.sort(function(a,b) {  return a-b; });
 }
 
 

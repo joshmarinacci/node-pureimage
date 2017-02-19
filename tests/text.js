@@ -3,7 +3,14 @@ var fs = require('fs');
 
 var fnt = PImage.registerFont('tests/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
 
-fnt.load(function() {
+// First test: render synchronously loading text
+fnt.loadSync();
+renderText('textSync');
+
+// Second test: render asynchronously (font is loaded at this point so it's going to be faster)
+fnt.load(function() { renderText('textAsync') });
+
+function renderText(fileName) {
     var img = PImage.make(200,200);
     var ctx = img.getContext('2d');
     ctx.fillStyle = "#ffffff";
@@ -36,7 +43,7 @@ fnt.load(function() {
     var diff = process.hrtime(before);
     console.log('without caching', diff);
 
-    PImage.encodePNG(img, fs.createWriteStream('build/text.png'), function(err) {
-        console.log("wrote out the png file to build/text.png");
+    PImage.encodePNG(img, fs.createWriteStream('build/' + fileName + '.png'), function(err) {
+        console.log("wrote out the png file to build/" + fileName + ".png");
     });
-});
+}
