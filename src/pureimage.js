@@ -18,13 +18,14 @@ var NAMED_COLORS = {
 var DEFAULT_FONT_FAMILY = 'source';
 
 function Bitmap4BBP(w,h,options) {
-    this.width = w;
-    this.height = h;
+    this.width = Math.floor(w);
+    this.height = Math.floor(h);
     var fillval = 0x000000FF;
     if(options && (typeof options.fillval) !== undefined) {
         fillval = options.fillval;
     }
     this._buffer = new Buffer(this.width*this.height*4);
+    this.data = this._buffer;
     for(var i=0; i<this.width; i++) {
         for(var j=0; j<this.height; j++) {
             this._buffer.writeUInt32BE(fillval, (j*this.width+i)*4);
@@ -36,6 +37,47 @@ function Bitmap4BBP(w,h,options) {
 
     this.getContext = function(type) {
         return new Bitmap4BBPContext(this);
+    }
+    this.setPixelRGBA = function(x,y,rgba) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+        if(x < 0) return;
+        if(y < 0) return;
+        if(x >= this.width) return;
+        if(y >= this.width) return;
+        var i = (this.width * y + x)*4;
+        var bytes = uint32.getBytesBigEndian(rgba);
+        this.data[i+0] = bytes[0];
+        this.data[i+1] = bytes[1];
+        this.data[i+2] = bytes[2];
+        this.data[i+3] = bytes[3];
+    }
+    this.setPixelRGBA_i = function(x,y,r,g,b,a) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+        if(x < 0) return;
+        if(y < 0) return;
+        if(x >= this.width) return;
+        if(y >= this.width) return;
+        var i = (this.width * y + x)*4;
+        this.data[i+0] = r;
+        this.data[i+1] = g;
+        this.data[i+2] = b;
+        this.data[i+3] = a;
+    }
+    this.getPixelRGBA = function(x,y) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+        if(x<0) return 0;
+        if(y<0) return 0;
+        if(x >= this.width) return 0;
+        if(y >= this.width) return 0;
+        var i = (this.width * y + x) * 4;
+        return uint32.fromBytesBigEndian(
+            this.data[i+0],
+            this.data[i+1],
+            this.data[i+2],
+            this.data[i+3]);
     }
 }
 
@@ -129,27 +171,15 @@ function Bitmap4BBPContext(bitmap) {
         }
 
     }
-    this.drawImage = function(img2, fx,fy) {
-        var x = Math.floor(fx);
-        var y = Math.floor(fy);
-        var i2w = img2.width;
-        var i2h = img2.height;
-        var i1w = this._bitmap.width;
-        var i1h = this._bitmap.height;
-        for(var j=0; j<i2h; j++) {
-            for(var i=0; i<i2w; i++) {
-                if(x+i >= i1w) continue;
-                if(x+i < 0) continue;
-                if(y+j >= i1h) continue;
-                if(y+j < 0) continue;
-                if(i > i2w) continue;
-                if(j > i2h) continue;
-                var ns = (j*i2w + i)*4;
-                var nd = ((j+y)*i1w + (x+i))*4;
-                var oval = this._bitmap._buffer.readUInt32BE(nd);
-                var nval = img2._buffer.readUInt32BE(ns);
-                var fval = exports.compositePixel(nval,oval, this.mode);
-                this._bitmap._buffer.writeUInt32BE(fval,nd);
+    this.drawImage = function(bitmap, sx,sy,sw,sh, dx, dy, dw, dh) {
+        for(var i=dx; i<dx+dw; i++) {
+            for(var j=dy; j<dy+dh; j++) {
+                var tx = (i-dx)/(dx+dw);
+                var ssx = Math.floor(tx * bitmap.width);
+                var ty = (j-dy)/(dy+dh);
+                var ssy = Math.floor(ty * bitmap.height);
+                var rgba = bitmap.getPixelRGBA(ssx,ssy);
+                this._bitmap.setPixelRGBA(i, j, rgba);
             }
         }
     }
@@ -411,11 +441,21 @@ exports.encodeJPEG = function(bitmap, outstream, cb) {
     if(cb)cb();
 }
 
-//TODO: Josh: finish this. turn it into a real bitmap object
 exports.decodeJPEG = function(data) {
     var rawImageData = JPEG.decode(data);
-    console.log("Raw = ", rawImageData);
-    return rawImageData;
+    var bitmap = new Bitmap4BBP(rawImageData.width, rawImageData.height);
+    for(var i=0; i<rawImageData.width; i++) {
+        for(var j=0; j<rawImageData.height; j++) {
+            var n = (j*rawImageData.width + i)*4;
+            bitmap.setPixelRGBA_i(i,j,
+                rawImageData.data[n+0],
+                rawImageData.data[n+1],
+                rawImageData.data[n+2],
+                rawImageData.data[n+3]
+            );
+        }
+    }
+    return bitmap;
 }
 
 exports.decodePNG = function(instream, cb) {
