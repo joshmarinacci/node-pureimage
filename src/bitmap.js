@@ -4,8 +4,8 @@ var Context = require('./context');
 
 class Bitmap {
     constructor(w,h,options) {
-        this.width = w;
-        this.height = h;
+        this.width = Math.floor(w);
+        this.height = Math.floor(h);
         this.data = Buffer.alloc(w*h*4);
         var fillval = 0x000000FF;
         for(var j=0; j<h; j++) {
