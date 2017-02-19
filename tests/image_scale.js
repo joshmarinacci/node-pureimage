@@ -2,7 +2,7 @@ var PImage = require('../src/pureimage');
 var fs = require('fs');
 
 var sc = 2;
-var img1 = PImage.decodeJPEG(fs.readFileSync("tests/images/cat.jpg"));
+var img1 = PImage.decodeJPEG(fs.readFileSync("tests/images/rock.jpg"));
 var img2 = PImage.make(img1.width/sc,img1.height/sc);
 var ctx = img2.getContext('2d');
 
