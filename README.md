@@ -9,7 +9,8 @@ Current features:
 * set pixels
 * stroke and fill paths (rectangles, lines, quadratic curves)
 * copy images
-* export to PNG
+* load from PNG and JPG
+* export to PNG and JPG
 * render text (no bold or italics yet)
 
 
@@ -51,11 +52,11 @@ var PImage = require('pureimage');
 var img1 = PImage.make(100,50);
 ```
 
-Fill with a red rectangle, 50% opacity
+Fill with a red rectangle
 
 ```
 var ctx = img1.getContext('2d');
-ctx.setFillStyleRGBA(255,0,0, 0.5);
+ctx.fillStyle = '#ff0000';
 ctx.fillRect(0,0,100,100);
 ```
 
@@ -78,8 +79,8 @@ On the roadmap
 * bezier curves, stroked and filled
 * anti-aliased curves (partially done)
 * full alpha compositing
-* PNG loading for compositing
-* Jpeg input/output
+* *done* PNG loading for compositing
+* *mostly done* Jpeg input/output
 
 
 Thanks!
