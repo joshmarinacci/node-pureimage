@@ -14,7 +14,7 @@ mkdir(BUILD_DIR);
 const white = '#ffffff';
 const black = '#000000';
 
-test('set pixel', (t) => {
+test('fill rect', (t) => {
     var img = PImage.make(50,50);
     var c = img.getContext('2d');
     c.fillStyle = black;
@@ -35,6 +35,19 @@ test('set pixel', (t) => {
 
 });
 
+
+test('clear rect', (t)=>{
+    console.log("clear rect test");
+    //clear rect
+    var img = PImage.make(100,100);
+    var c = img.getContext('2d');
+    c.fillStyle = white;
+    c.fillRect(0,0,100,100);
+    c.clearRect(25,25,50,50);
+    t.equal(img.getPixelRGBA(0,0),0xFFFFFFFF);
+    t.equal(img.getPixelRGBA(30,30),0x00000000);
+    t.end();
+});
 
 function mkdir(dir) {
     if (!fs.existsSync(dir)) {
