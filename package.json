@@ -18,7 +18,10 @@
     "pngjs": "^0.4.0",
     "richtext": "0.0.4"
   },
+  "devDependencies": {
+    "tape":"^4.6.3"
+  },
   "scripts": {
-    "test": "node tests/simple_tests.js"
+    "test": "node tests/runtests.js"
   }
 }
