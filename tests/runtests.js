@@ -32,10 +32,7 @@ test('fill rect', (t) => {
     t.equal(img.getPixelRGBA(25,25),0x000000FF);
     t.equal(img.getPixelRGBA(26,26),0x000000FF);
     t.end();
-
 });
-
-
 test('clear rect', (t)=>{
     console.log("clear rect test");
     //clear rect
@@ -48,6 +45,43 @@ test('clear rect', (t)=>{
     t.equal(img.getPixelRGBA(30,30),0x00000000);
     t.end();
 });
+/*test('stroke rect', (t)=>{
+    var img = PImage.make(50,50);
+    var c = img.getContext('2d');
+    c.fillStyle = black;
+    c.fillRect(0,0,50,50);
+    c.strokeStyle = white;
+    c.strokeRect(0,0,25,25);
+    t.equal(img.getPixelRGBA(0,0),0xFFFFFFFF);
+    t.equal(img.getPixelRGBA(1,1),0x000000FF);
+    t.end();
+});*/
+test('load png', (t)=>{
+    PImage.decodePNGFromStream(fs.createReadStream("tests/images/bird.png")).then((img)=>{
+        t.equal(img.width,200);
+        t.equal(img.height,133);
+        t.end();
+    });
+});
+
+test('load jpg', (t)=>{
+    PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((img)=>{
+        t.equal(img.width,200);
+        t.equal(img.height,133);
+        t.end();
+    }).catch((e) => {
+        t.fail();
+    })
+});
+/*
+test('save png', (t)=>{
+
+});
+test('save jpg', (t)=>{
+
+});
+*/
+
 
 function mkdir(dir) {
     if (!fs.existsSync(dir)) {
