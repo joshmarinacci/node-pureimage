@@ -73,14 +73,46 @@ test('load jpg', (t)=>{
         t.fail();
     })
 });
-/*
+
+function makeTestImage() {
+    var img = PImage.make(50,50);
+    var c = img.getContext('2d');
+    c.fillStyle = black;
+    c.fillRect(0,0,50,50);
+    c.fillStyle = white;
+    c.fillRect(0,0,25,25);
+    c.fillRect(25,25,25,25);
+    return img;
+}
 test('save png', (t)=>{
-
+    var img = makeTestImage();
+    var pth = path.join(BUILD_DIR,"test.png");
+    PImage.encodePNGToStream(img,fs.createWriteStream(pth)).then(()=>{
+        console.log('done writing');
+        PImage.decodePNGFromStream(fs.createReadStream(pth)).then((img)=>{
+            t.equal(img.width,50);
+            t.equal(img.height,50);
+            t.equal(img.getPixelRGBA(0,0),0xFFFFFFFF);
+            t.equal(img.getPixelRGBA(0,30),0x000000FF);
+            t.end();
+        });
+    });
 });
+
 test('save jpg', (t)=>{
-
+    var img = makeTestImage();
+    var pth = path.join(BUILD_DIR,"test.jpg");
+    PImage.encodeJPEGToStream(img,fs.createWriteStream(pth)).then(()=>{
+        PImage.decodeJPEGFromStream(fs.createReadStream(pth)).then((img)=>{
+            t.equal(img.width,50);
+            t.equal(img.height,50);
+            t.equal(img.getPixelRGBA(0,0),0xFFFFFFFF);
+            t.equal(img.getPixelRGBA(0,30),0x000000FF);
+            t.end();
+        });
+    });
 });
-*/
+
 
 
 function mkdir(dir) {

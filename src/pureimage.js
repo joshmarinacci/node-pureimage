@@ -17,35 +17,42 @@ exports.make = function(w,h,options) {
     return new Bitmap(w,h,options);
 };
 
-exports.encodePNG = function(bitmap, outstream, cb) {
-    var png = new PNG({
-        width:bitmap.width,
-        height:bitmap.height,
-    });
+exports.encodePNGToStream = function(bitmap, outstream) {
+    return new Promise((res,rej)=>{
+        var png = new PNG({
+            width:bitmap.width,
+            height:bitmap.height
+        });
 
-    for(var i=0; i<bitmap.width; i++) {
-        for(var j=0; j<bitmap.height; j++) {
-            var rgba = bitmap.getPixelRGBA(i,j);
-            var n = (j*bitmap.width+i)*4;
-            var bytes = uint32.getBytesBigEndian(rgba);
-            for(var k=0; k<4; k++) {
-                png.data[n+k] = bytes[k];
+        for(var i=0; i<bitmap.width; i++) {
+            for(var j=0; j<bitmap.height; j++) {
+                var rgba = bitmap.getPixelRGBA(i,j);
+                var n = (j*bitmap.width+i)*4;
+                var bytes = uint32.getBytesBigEndian(rgba);
+                for(var k=0; k<4; k++) {
+                    png.data[n+k] = bytes[k];
+                }
             }
         }
-    }
 
-    png.pack().pipe(outstream).on('finish', cb);
+        png.pack()
+            .pipe(outstream)
+            .on('finish', ()=>{  res(); })
+            .on('error', (err) => { rej(err); })
+    });
 }
 
-exports.encodeJPEG = function(bitmap, outstream, cb) {
-    var data = {
-        data:bitmap._buffer,
-        width:bitmap.width,
-        height:bitmap.height,
-    }
-    outstream.write(JPEG.encode(data, 50).data);
-    if(cb)cb();
-}
+exports.encodeJPEGToStream = function(img, outstream) {
+    return new Promise((res,rej)=> {
+        var data = {
+            data: img.data,
+            width: img.width,
+            height: img.height
+        };
+        outstream.on('error', (err) => rej(err));
+        outstream.write(JPEG.encode(data, 50).data, () => res());
+    });
+};
 
 exports.decodeJPEGFromStream = function(data) {
     return new Promise((res,rej)=>{
