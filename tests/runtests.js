@@ -114,6 +114,29 @@ test('save jpg', (t)=>{
 });
 
 
+test('resize jpg', (t) => {
+    PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((img)=>{
+        t.equal(img.width,200);
+        t.equal(img.height,133);
+
+        var img2 = PImage.make(50,50);
+        var c = img2.getContext('2d');
+        c.drawImage(img, 0, 0, 200, 133,  0,0, 50, 50);
+        var pth = path.join(BUILD_DIR,"resized_bird.jpg");
+        PImage.encodeJPEGToStream(img2,fs.createWriteStream(pth)).then(()=> {
+            PImage.decodeJPEGFromStream(fs.createReadStream(pth)).then((img)=> {
+                t.equal(img.width,50);
+                t.equal(img.height,50);
+                t.end();
+            });
+        });
+    }).catch((e) => {
+        console.log(e);
+        t.fail();
+    })
+
+});
+
 
 function mkdir(dir) {
     if (!fs.existsSync(dir)) {
