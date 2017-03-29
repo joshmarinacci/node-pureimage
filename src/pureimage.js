@@ -434,15 +434,15 @@ exports.encodePNG = function(bitmap, outstream, cb) {
 }
 
 exports.encodePNGSync = function(bitmap) {
-    let png = new PNG({
+    var png = new PNG({
         width: bitmap.width,
         height: bitmap.height,
     });
 
-    for (let i = 0; i < bitmap.width; i++) {
-        for (let j = 0; j < bitmap.height; j++) {
-            for (let k = 0; k < 4; k++) {
-                let n = (j * bitmap.width + i) * 4 + k;
+    for (var i = 0; i < bitmap.width; i++) {
+        for (var j = 0; j < bitmap.height; j++) {
+            for (var k = 0; k < 4; k++) {
+                var n = (j * bitmap.width + i) * 4 + k;
                 png.data[n] = bitmap._buffer[n];
             }
         }
