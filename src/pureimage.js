@@ -680,7 +680,7 @@ exports.compositePixel  = function(src,dst,omode) {
 
     var src_alpha = src_rgba[3]/255;
     var dst_alpha = dst_rgba[3]/255;
-    var final_a = dst_rgba[3];
+    var final_a = src_rgba[3];
 
     var final_rgba = [
         lerp(dst_rgba[0],src_rgba[0],src_alpha),
