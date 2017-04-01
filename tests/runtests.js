@@ -84,6 +84,7 @@ function makeTestImage() {
     c.fillRect(25,25,25,25);
     return img;
 }
+
 test('save png', (t)=>{
     var img = makeTestImage();
     var pth = path.join(BUILD_DIR,"test.png");
@@ -121,7 +122,10 @@ test('resize jpg', (t) => {
 
         var img2 = PImage.make(50,50);
         var c = img2.getContext('2d');
-        c.drawImage(img, 0, 0, 200, 133,  0,0, 50, 50);
+        c.drawImage(img,
+            0, 0, 200, 133, // source dimensions
+            0, 0, 50, 50   // destination dimensions
+        );
         var pth = path.join(BUILD_DIR,"resized_bird.jpg");
         PImage.encodeJPEGToStream(img2,fs.createWriteStream(pth)).then(()=> {
             PImage.decodeJPEGFromStream(fs.createReadStream(pth)).then((img)=> {
