@@ -171,6 +171,13 @@ function clearRectTest() {
      ctx.fillStyle = 'green';
      ctx.fillRect(0,0,100,100);
      ctx.clearRect(25,25,50,50);
+     ctx.strokeStyle = 'blue';
+     ctx.strokeWidth = 1;
+     ctx.beginPath();
+     ctx.moveTo(100,0);
+     ctx.lineTo(0,100);
+     ctx.stroke();
+     eq(ctx.getPixeli32(50,50), 0x0000FFff); // opaque blue
      eq(ctx.getPixeli32(1,1), 0x00FF00ff); // opaque green
      eq(ctx.getPixeli32(30,30), 0x00000000); //transparent black
      PImage.encodePNG(img, fs.createWriteStream('build/clearrect.png'), function(err) {
