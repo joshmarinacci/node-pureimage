@@ -649,7 +649,7 @@ function calcSortedIntersections(lines,y) {
 
 // antialiased Bresenham's line with width
 // http://members.chello.at/~easyfilter/bresenham.html
-drawLine = function(image, line, color, width) {
+function drawLine(image, line, color, width) {
   var x0 = Math.floor(line.start.x);
   var y0 = Math.floor(line.start.y);
   var x1 = Math.floor(line.end.x);
@@ -659,27 +659,32 @@ drawLine = function(image, line, color, width) {
 
    var err = dx-dy, e2, x2, y2;
    var ed = dx+dy == 0 ? 1 : Math.sqrt(dx*dx+dy*dy);
-
-   var rgb = uint32.and(color,0xFFFFFF00);
-
+  var rgb = uint32.and(color,0xFFFFFF00);
    for (width = (width+1)/2; ; ) {
-      image.compositePixel(x0,y0,color);
+     var alpha = ~~Math.max(0,255*(Math.abs(err-dx+dy)/ed-width+1));
+     var pixelColor = uint32.or(rgb,255-alpha);
+      image.compositePixel(x0,y0,pixelColor);
       e2 = err; x2 = x0;
       if (2*e2 >= -dx) {
-         for (e2 += dy, y2 = y0; e2 < ed*width && (y1 != y2 || dx > dy); e2 += dx)
-            image.compositePixel(x0, y2 += sy, uint32.or(rgb,Math.max(0,255*(Math.abs(e2)/ed-width+1))));
+         for (e2 += dy, y2 = y0; e2 < ed*width && (y1 != y2 || dx > dy); e2 += dx) {
+           var alpha = ~~Math.max(0,255*(Math.abs(e2)/ed-width+1));
+           var pixelColor = uint32.or(rgb,255-alpha);
+            image.compositePixel(x0, y2 += sy, pixelColor);
+          }
          if (x0 == x1) break;
          e2 = err; err -= dy; x0 += sx;
       }
       if (2*e2 <= dy) {
-         for (e2 = dx-e2; e2 < ed*width && (x1 != x2 || dx < dy); e2 += dy)
-            image.compositePixel(x2 += sx, y0, uint32.or(rgb,Math.max(0,255*(Math.abs(e2)/ed-width+1))));
+         for (e2 = dx-e2; e2 < ed*width && (x1 != x2 || dx < dy); e2 += dy) {
+         var alpha = ~~Math.max(0,255*(Math.abs(e2)/ed-width+1));
+         var pixelColor = uint32.or(rgb,255-alpha);
+            image.compositePixel(x2 += sx, y0, pixelColor);
+          }
          if (y0 == y1) break;
          err += dx; y0 += sy;
       }
    }
 }
-
 
 //composite pixel doubles the time. need to implement replace with a better thing
 exports.compositePixel  = function(src,dst,omode) {
@@ -691,7 +696,7 @@ exports.compositePixel  = function(src,dst,omode) {
 
     var src_alpha = src_rgba[3]/255;
     var dst_alpha = dst_rgba[3]/255;
-    var final_a = src_rgba[3];
+    var final_a = 255*(src_alpha + dst_alpha * (1-src_alpha));
 
     var final_rgba = [
         lerp(dst_rgba[0],src_rgba[0],src_alpha),
