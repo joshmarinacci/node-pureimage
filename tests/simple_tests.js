@@ -172,7 +172,7 @@ function clearRectTest() {
      ctx.fillRect(0,0,100,100);
      ctx.clearRect(25,25,50,50);
      ctx.strokeStyle = 'blue';
-     ctx.strokeWidth = 1;
+     ctx.lineWidth = 1;
      ctx.beginPath();
      ctx.moveTo(100,0);
      ctx.lineTo(0,100);
