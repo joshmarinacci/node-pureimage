@@ -185,3 +185,16 @@ function clearRectTest() {
      });
 }
 clearRectTest();
+
+
+function cropImageTest() {
+    var src = PImage.decodeJPEG(fs.readFileSync("tests/images/bird.jpg"));
+    var img = PImage.make(133,133);
+    var ctx = img.getContext('2d');
+    ctx.drawImage(src, 33, 33, 100, 100,  0,0, 133,133);
+    PImage.encodePNG(img, fs.createWriteStream('build/croptest.png'), function(err) {
+        console.log('wrote to build/croptest.png');
+    });
+
+}
+cropImageTest();

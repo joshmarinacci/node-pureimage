@@ -172,18 +172,18 @@ function Bitmap4BBPContext(bitmap) {
 
     }
     this.drawImage = function(bitmap, sx,sy,sw,sh, dx, dy, dw, dh) {
-        for(var i=dx; i<dx+dw; i++) {
-            for(var j=dy; j<dy+dh; j++) {
-                var tx = (i-dx)/(dx+dw);
-                var ssx = Math.floor(tx * bitmap.width);
-                var ty = (j-dy)/(dy+dh);
-                var ssy = Math.floor(ty * bitmap.height);
+        //console.log("drawing",sx,sy,sw,sh,dx,dy,dw,dh);
+        for(var i=0; i<dw; i++) {
+            var tx = i/dw;
+            var ssx = Math.floor(tx*sw)+sx;
+            for(var j=0; j<dh; j++) {
+                var ty = j/dh;
+                var ssy = sy+Math.floor(ty * sh);
                 var rgba = bitmap.getPixelRGBA(ssx,ssy);
-                this._bitmap.setPixelRGBA(i, j, rgba);
+                this._bitmap.setPixelRGBA(dx+i, dy+j, rgba);
             }
         }
-    }
-
+    };
 
     this.beginPath = function() {
         this.path = [];
