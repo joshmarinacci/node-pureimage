@@ -186,12 +186,75 @@ function clearRectTest() {
 }
 clearRectTest();
 
+function scaleAndCrop(img1, specs) {
+    console.log("scaling from ",img1.width, img1.height, ' to ', specs.width, specs.height);
+    var img2 = PImage.make(specs.width, specs.height);
+    var ctx = img2.getContext('2d');
+    var sw = specs.width;
+    var sh = specs.height;
+    var sx = 0;
+    var sy = 0;
+    if(img1.width > img1.height) {
+        // wide image
+        var sc = specs.height/img1.height;
+        sw = Math.floor(img1.width*sc);
+        sh = Math.floor(img1.height);
+        sx = Math.floor((img1.width-sw)/2);
+    } else {
+        // tall image
+        var sc = specs.width/img1.width;
+        sw = Math.floor(img1.width);
+        sh = Math.floor(img1.height*sc);
+    }
+    var dx = 0;
+    var dy = 0;
+    var dw = specs.width;
+    var dh = specs.height;
+    console.log("source = ", sx, sy, sw, sh);
+    ctx.drawImage(img1, sx, sy, sw, sh, dx, dy, dw, dh);
+
+    return img2;
+}
+
+function calcCrop(img1, specs) {
+    var scw = specs.width / img1.width;
+    var sch = specs.height / img1.height;
+    var sc = 1;
+    if(sch > scw) {
+        //scale height first
+        var sc = sch;
+    } else {
+        var sc = scw;
+    }
+    //specs.width / scale
+    var ow = specs.width / sc;
+    var oh = specs.height / sc;
+    console.log(ow,oh);
+    var ow2 = img1.width-ow;
+    var oh2 = img1.height-oh;
+    return {
+        sx:Math.floor(ow2/2),
+        sy:Math.floor(oh2/2),
+        sw:ow,
+        sh:oh,
+        dx:0,
+        dy:0,
+        dw:specs.width,
+        dh:specs.height
+    }
+}
 
 function cropImageTest() {
+    var specs = {width:133, height:133};
     var src = PImage.decodeJPEG(fs.readFileSync("tests/images/bird.jpg"));
-    var img = PImage.make(133,133);
+    console.log('source image',src.width,src.height);
+    var calcs = calcCrop(src, specs);
+    console.log(calcs);
+    var img = PImage.make(specs.width, specs.height);
     var ctx = img.getContext('2d');
-    ctx.drawImage(src, 33, 33, 100, 100,  0,0, 133,133);
+    ctx.drawImage(src,
+        calcs.sx, calcs.sy, calcs.sw, calcs.sh,
+        calcs.dx, calcs.dy, calcs.dw, calcs.dh);
     PImage.encodePNG(img, fs.createWriteStream('build/croptest.png'), function(err) {
         console.log('wrote to build/croptest.png');
     });
