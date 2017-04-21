@@ -222,9 +222,9 @@ function calcCrop(img1, specs) {
     var sc = 1;
     if(sch > scw) {
         //scale height first
-        var sc = sch;
+        sc = sch;
     } else {
-        var sc = scw;
+        sc = scw;
     }
     //specs.width / scale
     var ow = specs.width / sc;
@@ -245,9 +245,9 @@ function calcCrop(img1, specs) {
 }
 
 function cropImageTest() {
-    var specs = {width:133, height:133};
+    var specs = {width:100, height:133};
     var src = PImage.decodeJPEG(fs.readFileSync("tests/images/bird.jpg"));
-    console.log('source image',src.width,src.height);
+    console.log('source image',src.width,src.height, "to",specs);
     var calcs = calcCrop(src, specs);
     console.log(calcs);
     var img = PImage.make(specs.width, specs.height);

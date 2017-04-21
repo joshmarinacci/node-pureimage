@@ -44,7 +44,7 @@ function Bitmap4BBP(w,h,options) {
         if(x < 0) return;
         if(y < 0) return;
         if(x >= this.width) return;
-        if(y >= this.width) return;
+        if(y >= this.height) return;
         var i = (this.width * y + x)*4;
         var bytes = uint32.getBytesBigEndian(rgba);
         this.data[i+0] = bytes[0];
