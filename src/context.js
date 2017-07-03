@@ -138,19 +138,37 @@ class Context {
         this.path = [];
     }
     moveTo(x,y) {
-        let pt = this.transform.transformPoint({x:x,y:y});
+        return this._moveTo({x:x,y:y});
+    }
+    _moveTo(pt) {
+        pt = this.transform.transformPoint(pt);
         this.pathstart = pt;
         this.path.push(['m',pt]);
     }
     lineTo(x,y) {
-        let pt = this.transform.transformPoint({x:x, y:y});
-        this.path.push(['l',pt]);
+        return this._lineTo({x:x, y:y});
+    }
+    _lineTo(pt) {
+        this.path.push(['l',this.transform.transformPoint(pt)]);
     }
     quadraticCurveTo(cp1x, cp1y, x,y) {
         let cp1 = this.transform.transformPoint({x:cp1x, y:cp1y});
         let pt = this.transform.transformPoint({x:x, y:y});
         this.path.push(['q', cp1, pt]);
     }
+    arc(x,y, rad, start, end, clockwise) {
+        function calcPoint(ctx,type,angle) {
+            let px = x + Math.sin(angle)*rad;
+            let py = y + Math.cos(angle)*rad;
+            return {x:px,y:py};
+        }
+        this._moveTo(calcPoint(this,'m',start));
+        for(var a=start; a<=end; a+=Math.PI/16)  {
+            this._lineTo(calcPoint(this,'l',a));
+        }
+        this._lineTo(calcPoint(this,'l',end));
+    }
+
     closePath() {
         this.path.push(['l',this.pathstart]);
     }

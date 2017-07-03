@@ -216,6 +216,32 @@ test('stroke triangle', (t) => {
      //});
 });
 
+test('fill circle (arc)', (t)=>{
+    var img = PImage.make(100,100);
+    var ctx = img.getContext('2d');
+    ctx.fillStyle = blue;
+    ctx.beginPath();
+    ctx.arc(50,50,40,0,Math.PI*2,true); // Outer circle
+    ctx.closePath();
+    ctx.fill();
+    t.equal(img.getPixelRGBA(50,20),BLUE);
+    t.equal(img.getPixelRGBA(10,10),BLACK);
+    t.end();
+});
+
+test('stroke circle (arc)', (t)=>{
+    var img = PImage.make(100,100);
+    var ctx = img.getContext('2d');
+    ctx.strokeStyle = blue;
+    ctx.beginPath();
+    ctx.arc(50,50,40,0,Math.PI*2,true); // Outer circle
+    ctx.closePath();
+    ctx.stroke();
+    t.equal(img.getPixelRGBA(50,10),BLUE);
+    t.equal(img.getPixelRGBA(50,50),BLACK);
+    t.end();
+});
+
 return;
 
 test('font test', (t) => {
