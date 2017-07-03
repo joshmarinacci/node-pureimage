@@ -241,6 +241,26 @@ test('stroke circle (arc)', (t)=>{
     t.equal(img.getPixelRGBA(50,50),BLACK);
     t.end();
 });
+
+test('fill partial circle (arcTo)', (t)=>{
+    var img = PImage.make(100,100);
+    var ctx = img.getContext('2d');
+    ctx.fillStyle = blue;
+    ctx.beginPath();
+    ctx.arc(50,50,40,0,Math.PI,true); // Outer circle
+    ctx.closePath();
+    ctx.fill();
+    //t.equal(img.getPixelRGBA(50,10),BLUE);
+    //t.equal(img.getPixelRGBA(50,50),BLACK);
+    //t.end();
+
+    var path = 'build/arcto.png';
+    PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
+        console.log("wrote out the png file to",path);
+        t.end();
+    });
+});
+
 test('fill quad curves', (t) => {
     var img = PImage.make(150,150);
 
@@ -283,6 +303,40 @@ test('stroke quad curves', (t) => {
 
     t.equal(img.getPixelRGBA(80,25),BLUE);
     t.equal(img.getPixelRGBA(50,50),BLACK);
+    t.end();
+});
+
+test('fill cubic curves', (t) => {
+    var img = PImage.make(150,150);
+    var ctx = img.getContext('2d');
+    ctx.fillStyle = blue;
+    // Cubic curves example
+    ctx.beginPath();
+    ctx.moveTo(75,40);
+    ctx.bezierCurveTo(75,37,70,25,50,25);
+    ctx.bezierCurveTo(20,25,20,62.5,20,62.5);
+    ctx.bezierCurveTo(20,80,40,102,75,120);
+    ctx.bezierCurveTo(110,102,130,80,130,62.5);
+    ctx.bezierCurveTo(130,62.5,130,25,100,25);
+    ctx.bezierCurveTo(85,25,75,37,75,40);
+    ctx.fill();
+    t.end();
+});
+
+test('stroke cubic curves', (t) => {
+    var img = PImage.make(150,150);
+    var ctx = img.getContext('2d');
+    ctx.strokeStyle = blue;
+    // Cubic curves example
+    ctx.beginPath();
+    ctx.moveTo(75,40);
+    ctx.bezierCurveTo(75,37,70,25,50,25);
+    ctx.bezierCurveTo(20,25,20,62.5,20,62.5);
+    ctx.bezierCurveTo(20,80,40,102,75,120);
+    ctx.bezierCurveTo(110,102,130,80,130,62.5);
+    ctx.bezierCurveTo(130,62.5,130,25,100,25);
+    ctx.bezierCurveTo(85,25,75,37,75,40);
+    ctx.stroke();
     t.end();
 });
 

@@ -160,6 +160,16 @@ class Context {
         let pt = this.transform.transformPoint({x:x, y:y});
         this.path.push(['q', cp1, pt]);
     }
+    bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
+        this._bezierCurveTo({x:cp1x,y:cp1y},{x:cp2x,y:cp2y}, {x:x,y:y});
+    }
+    _bezierCurveTo(cp1, cp2, pt) {
+        cp1 = this.transform.transformPoint(cp1);
+        cp2 = this.transform.transformPoint(cp2);
+        pt  = this.transform.transformPoint(pt);
+        this.path.push(['b', cp1, cp2, pt]);
+    }
+
     arc(x,y, rad, start, end, clockwise) {
         function calcPoint(ctx,type,angle) {
             let px = x + Math.sin(angle)*rad;
@@ -171,6 +181,24 @@ class Context {
             this._lineTo(calcPoint(this,'l',a));
         }
         this._lineTo(calcPoint(this,'l',end));
+    }
+    arcTo() {
+        throw new Error("arcTo not yet supported");
+    }
+    rect() {
+        throw new Error("rect not yet supported");
+    }
+    ellipse() {
+        throw new Error("ellipse not yet supported");
+    }
+    clearRect() {
+        throw new Error("clearRect not yet supported");
+    }
+    clip() {
+        throw new Error("clip not yet supported");
+    }
+    measureText() {
+        throw new Error("measureText not yet supported");
     }
 
     closePath() {
@@ -316,6 +344,12 @@ function pathToLines(path) {
 function calcQuadraticAtT(p, t) {
     var x = (1-t)*(1-t)*p[0].x + 2*(1-t)*t*p[1].x + t*t*p[2].x;
     var y = (1-t)*(1-t)*p[0].y + 2*(1-t)*t*p[1].y + t*t*p[2].y;
+    return {x:x,y:y};
+}
+
+function calcBezierAtT(p, t) {
+    var x = (1-t)*(1-t)*(1-t)*p[0].x + 3*(1-t)*(1-t)*t*p[1].x + 3*(1-t)*t*t*p[2].x + t*t*t*p[3].x;
+    var y = (1-t)*(1-t)*(1-t)*p[0].y + 3*(1-t)*(1-t)*t*p[1].y + 3*(1-t)*t*t*p[2].y + t*t*t*p[3].y;
     return {x:x,y:y};
 }
 
