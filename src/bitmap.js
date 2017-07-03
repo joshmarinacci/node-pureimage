@@ -21,7 +21,7 @@ class Bitmap {
         if(x < 0) return;
         if(y < 0) return;
         if(x >= this.width) return;
-        if(y >= this.width) return;
+        if(y >= this.height) return;
         var i = (this.width * y + x)*4;
         var bytes = uint32.getBytesBigEndian(rgba);
         this.data[i+0] = bytes[0];
@@ -35,7 +35,7 @@ class Bitmap {
         if(x < 0) return;
         if(y < 0) return;
         if(x >= this.width) return;
-        if(y >= this.width) return;
+        if(y >= this.height) return;
         var i = (this.width * y + x)*4;
         this.data[i+0] = r;
         this.data[i+1] = g;
@@ -48,7 +48,7 @@ class Bitmap {
         if(x<0) return 0;
         if(y<0) return 0;
         if(x >= this.width) return 0;
-        if(y >= this.width) return 0;
+        if(y >= this.height) return 0;
         var i = (this.width * y + x) * 4;
         return uint32.fromBytesBigEndian(
             this.data[i+0],
@@ -63,7 +63,7 @@ class Bitmap {
         if(x<0) return 0;
         if(y<0) return 0;
         if(x >= this.width) return 0;
-        if(y >= this.width) return 0;
+        if(y >= this.height) return 0;
         var i = (this.width * y + x) * 4;
         return this.data.slice(i,i+4);
     }

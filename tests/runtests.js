@@ -358,3 +358,50 @@ test('font test', (t) => {
     });
 
 });
+
+function calcCrop(img1, specs) {
+    var scw = specs.width / img1.width;
+    var sch = specs.height / img1.height;
+    var sc = 1;
+    if(sch > scw) {
+        //scale height first
+        sc = sch;
+    } else {
+        sc = scw;
+    }
+    //specs.width / scale
+    var ow = specs.width / sc;
+    var oh = specs.height / sc;
+    console.log(ow,oh);
+    var ow2 = img1.width-ow;
+    var oh2 = img1.height-oh;
+    return {
+        sx:Math.floor(ow2/2),
+        sy:Math.floor(oh2/2),
+        sw:ow,
+        sh:oh,
+        dx:0,
+        dy:0,
+        dw:specs.width,
+        dh:specs.height
+    }
+}
+
+test('image cropping', (t)=>{
+    var specs = {width:100, height:133};
+    PImage.decodeJPEGFromStream(fs.createReadStream('tests/images/bird.jpg')).then((src)=>{
+        console.log('source image',src.width,src.height, "to",specs);
+        var calcs = calcCrop(src, specs);
+        console.log(calcs);
+        var img = PImage.make(specs.width, specs.height);
+        var ctx = img.getContext('2d');
+        ctx.drawImage(src,
+            calcs.sx, calcs.sy, calcs.sw, calcs.sh,
+            calcs.dx, calcs.dy, calcs.dw, calcs.dh);
+        PImage.encodePNGToStream(img, fs.createWriteStream('build/croptest.png')).then(()=>{
+            console.log('wrote to build/croptest.png');
+            t.end();
+        });
+    });
+});
+

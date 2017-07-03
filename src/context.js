@@ -123,19 +123,19 @@ class Context {
     }
 
 
-    // draw image
     drawImage(bitmap, sx,sy,sw,sh, dx, dy, dw, dh) {
-        for(var i=dx; i<dx+dw; i++) {
-            for(var j=dy; j<dy+dh; j++) {
-                var tx = (i-dx)/(dx+dw);
-                var ssx = Math.floor(tx * bitmap.width);
-                var ty = (j-dy)/(dy+dh);
-                var ssy = Math.floor(ty * bitmap.height);
+        for(var i=0; i<dw; i++) {
+            var tx = i/dw;
+            var ssx = Math.floor(tx*sw)+sx;
+            for(var j=0; j<dh; j++) {
+                var ty = j/dh;
+                var ssy = sy+Math.floor(ty * sh);
                 var rgba = bitmap.getPixelRGBA(ssx,ssy);
-                this.bitmap.setPixelRGBA(i, j, rgba);
+                this.bitmap.setPixelRGBA(dx+i, dy+j, rgba);
             }
         }
     }
+
 
     // paths
     beginPath() {
@@ -190,9 +190,6 @@ class Context {
     }
     ellipse() {
         throw new Error("ellipse not yet supported");
-    }
-    clearRect() {
-        throw new Error("clearRect not yet supported");
     }
     clip() {
         throw new Error("clip not yet supported");
@@ -381,7 +378,7 @@ function calcSortedIntersections(lines,y) {
             xlist.push(xval);
         }
     }
-    return xlist.sort(function(a,b) {  return a>b; });
+    return xlist.sort(function(a,b) {  return a-b; });
 }
 
 
