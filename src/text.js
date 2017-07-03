@@ -46,7 +46,6 @@ function findFont(family) {
 
 exports.processTextPath = function(ctx,text,x,y, fill) {
     let font = findFont(ctx._font.family);
-    //console.log("the font is",font);
     var size = ctx._font.size;
     if(ctx.USE_FONT_GLYPH_CACHING) {
         var off = 0;
@@ -64,7 +63,7 @@ exports.processTextPath = function(ctx,text,x,y, fill) {
             off += glyph.advance;
         }
     } else {
-        var path = font.font.getPath(text, x, y, ctx._font.size);
+        var path = font.font.getPath(text, x, y, size);
         ctx.beginPath();
         path.commands.forEach(function(cmd) {
             switch(cmd.type) {

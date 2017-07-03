@@ -286,20 +286,19 @@ test('stroke quad curves', (t) => {
     t.end();
 });
 
-return;
+
 
 test('font test', (t) => {
     var fnt = PImage.registerFont('tests/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
     fnt.load(function() {
         var img = PImage.make(200,200);
         var ctx = img.getContext('2d');
-        ctx.fillStyle = "#ffff00";
-        ctx.fillRect(0,0,200,200);
-        ctx.fillStyle = '#00ff00';
+        ctx.fillStyle = white;
         ctx.font = "48pt 'Source Sans Pro'";
-        ctx.fillText("Hello world", 10, 60);
-        PImage.encodePNGToStream(img, fs.createWriteStream('build/text.png')).then(()=>{
-            console.log("wrote out the png file to build/text.png");
+        ctx.fillText("ABC", 80, 80);
+        var path = 'build/text.png';
+        PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
+            console.log("wrote out the png file to",path);
             t.end();
         });
     });

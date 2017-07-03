@@ -27,15 +27,19 @@ class Context {
         this.transform = new trans.Transform();
         this._font = {
             family:'invalid',
-            size:-1
+            size:12
         };
         Object.defineProperty(this,'font', {
             get: function() {
 
             },
             set: function(val) {
-                console.log("pretending to set the font to",val);
-                console.log("current real font is ",this._font);
+                val = val.trim();
+                var n = val.indexOf(' ');
+                var size = parseInt(val.slice(0,n));
+                var name = val.slice(n);
+                this._font.family = name;
+                this._font.size = size;
             }
         });
     }
