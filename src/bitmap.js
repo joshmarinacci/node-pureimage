@@ -57,6 +57,17 @@ class Bitmap {
             this.data[i+3]);
     }
 
+    getPixelRGBA_separate(x,y) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+        if(x<0) return 0;
+        if(y<0) return 0;
+        if(x >= this.width) return 0;
+        if(y >= this.width) return 0;
+        var i = (this.width * y + x) * 4;
+        return this.data.slice(i,i+4);
+    }
+
     getContext(type) {
         return new Context(this);
     }

@@ -2,18 +2,40 @@
 var uint32 = require('./uint32');
 var NAMED_COLORS = require('./named_colors');
 var trans = require('./transform');
+var TEXT = require('./text');
 
 class Context {
     constructor(bitmap) {
         this.bitmap = bitmap;
         this._fillColor = 0x000000FF;
-        this._strokeColor = 0x000000FF;
-        this.transform = new trans.Transform();
         Object.defineProperty(this, 'fillStyle', {
             get: function() { return this._fillStyle_text; },
             set: function(val) {
                 this._fillColor = Context.colorStringToUint32(val);
                 this._fillStyle_text = val;
+            }
+        });
+
+        this._strokeColor = 0x000000FF;
+        Object.defineProperty(this, 'strokeStyle', {
+            get: function() { return this._strokeStyle_text; },
+            set: function(val) {
+                this._strokeColor = Context.colorStringToUint32(val);
+                this._strokeStyle_text = val;
+            }
+        });
+        this.transform = new trans.Transform();
+        this._font = {
+            family:'invalid',
+            size:-1
+        };
+        Object.defineProperty(this,'font', {
+            get: function() {
+
+            },
+            set: function(val) {
+                console.log("pretending to set the font to",val);
+                console.log("current real font is ",this._font);
             }
         });
     }
@@ -53,12 +75,12 @@ class Context {
     }
     strokeRect(x,y,w,h) {
         for(var i=x; i<x+w; i++) {
-            this.bitmap.setPixelRGBA(i, y, this._fillColor);
-            this.bitmap.setPixelRGBA(i, y+h, this._fillColor);
+            this.bitmap.setPixelRGBA(i, y, this._strokeColor);
+            this.bitmap.setPixelRGBA(i, y+h, this._strokeColor);
         }
         for(var j=y; j<y+h; j++) {
-            this.bitmap.setPixelRGBA(x, j, this._fillColor);
-            this.bitmap.setPixelRGBA(x+w, j, this._fillColor);
+            this.bitmap.setPixelRGBA(x, j, this._strokeColor);
+            this.bitmap.setPixelRGBA(x+w, j, this._strokeColor);
         }
     }
 
@@ -124,12 +146,17 @@ class Context {
         let pt = this.transform.transformPoint({x:x, y:y});
         this.path.push(['l',pt]);
     }
+    quadraticCurveTo(cp1x, cp1y, x,y) {
+        let cp1 = this.transform.transformPoint({x:cp1x, y:cp1y});
+        let pt = this.transform.transformPoint({x:x, y:y});
+        this.path.push(['q', cp1, pt]);
+    }
     closePath() {
         this.path.push(['l',this.pathstart]);
     }
 
 
-    //draw and fill paths
+    //stroke and fill paths
     stroke() {
         pathToLines(this.path).forEach((line)=> this.drawLine(line));
     }
@@ -188,6 +215,12 @@ class Context {
             }
         }
     }
+
+
+    //stroke and fill text
+    fillText(text, x ,y) { TEXT.processTextPath(this, text, x,y, true);  }
+    strokeText(text, x ,y) { TEXT.processTextPath(this, text, x,y, false);  }
+
 
     static colorStringToUint32(str) {
         if(!str) return 0x000000;
@@ -257,6 +290,13 @@ function pathToLines(path) {
     });
     return lines;
 }
+
+function calcQuadraticAtT(p, t) {
+    var x = (1-t)*(1-t)*p[0].x + 2*(1-t)*t*p[1].x + t*t*p[2].x;
+    var y = (1-t)*(1-t)*p[0].y + 2*(1-t)*t*p[1].y + t*t*p[2].y;
+    return {x:x,y:y};
+}
+
 
 function calcMinimumBounds(lines) {
     var bounds = {  x:  Number.MAX_VALUE, y:  Number.MAX_VALUE,  x2: Number.MIN_VALUE, y2: Number.MIN_VALUE }

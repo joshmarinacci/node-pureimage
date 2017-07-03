@@ -12,7 +12,13 @@ var BUILD_DIR = "build";
 mkdir(BUILD_DIR);
 
 const white = '#ffffff';
+const WHITE = 0xFFFFFFFF;
 const black = '#000000';
+const BLACK = 0x000000FF;
+const blue  = '#0000ff';
+const BLUE = 0x0000FFFF;
+const green = '#00ff00';
+const GREEN = 0x00FF00FF;
 
 test('fill rect', (t) => {
     var img = PImage.make(50,50);
@@ -56,6 +62,9 @@ test('clear rect', (t)=>{
     t.equal(img.getPixelRGBA(1,1),0x000000FF);
     t.end();
 });*/
+
+/* image loading and saving tests */
+
 test('load png', (t)=>{
     PImage.decodePNGFromStream(fs.createReadStream("tests/images/bird.png")).then((img)=>{
         t.equal(img.width,200);
@@ -114,7 +123,6 @@ test('save jpg', (t)=>{
     });
 });
 
-
 test('resize jpg', (t) => {
     PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((img)=>{
         t.equal(img.width,200);
@@ -149,3 +157,81 @@ function mkdir(dir) {
     }
 }
 
+
+test('fill rect', (t) => {
+    var img = PImage.make(100,100);
+    var ctx = img.getContext('2d');
+    ctx.fillStyle = blue;
+    ctx.fillRect(10,10,50,50);
+    t.equal(img.getPixelRGBA(40,40),BLUE);
+    t.equal(img.getPixelRGBA(0,0),BLACK);
+    t.end();
+});
+
+test('stroke rect', (t) => {
+    var img = PImage.make(100,100);
+    var ctx = img.getContext('2d');
+    ctx.strokeStyle = blue;
+    ctx.strokeRect(0,0,50,50);
+    t.equal(img.getPixelRGBA(0,0),BLUE);
+    t.equal(img.getPixelRGBA(1,1),BLACK);
+    t.equal(img.getPixelRGBA(50,40),BLUE);
+    t.equal(img.getPixelRGBA(50,49),BLUE);
+    //t.equal(img.getPixelRGBA(50,50),BLUE);  TODO: corner is missing for some reason
+    t.end();
+});
+
+
+test('fill triangle', (t) => {
+    var img = PImage.make(100,100);
+    var ctx = img.getContext('2d');
+    ctx.fillStyle = blue;
+    ctx.beginPath();
+    ctx.moveTo(10,10);
+    ctx.lineTo(100,30);
+    ctx.lineTo(90,90);
+    ctx.lineTo(10,10);
+    ctx.fill();
+    t.equal(img.getPixelRGBA(60,50),BLUE);
+    t.end();
+});
+
+test('stroke triangle', (t) => {
+    var img = PImage.make(100,100);
+    var ctx = img.getContext('2d');
+    ctx.strokeStyle = blue;
+    ctx.beginPath();
+    ctx.moveTo(10,10);
+    ctx.lineTo(100,30);
+    ctx.lineTo(90,90);
+    ctx.lineTo(10,10);
+    ctx.stroke();
+    t.equal(img.getPixelRGBA(10,10),BLUE);
+    t.equal(img.getPixelRGBA(20,15),BLACK);
+    t.end();
+     //var path = "build/p3.png";
+     //PImage.encodePNGToStream(img, fs.createWriteStream(path)).then((e)=>{
+     //    console.log("wrote out the png file to ",path);
+     //    t.end();
+     //});
+});
+
+return;
+
+test('font test', (t) => {
+    var fnt = PImage.registerFont('tests/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
+    fnt.load(function() {
+        var img = PImage.make(200,200);
+        var ctx = img.getContext('2d');
+        ctx.fillStyle = "#ffff00";
+        ctx.fillRect(0,0,200,200);
+        ctx.fillStyle = '#00ff00';
+        ctx.font = "48pt 'Source Sans Pro'";
+        ctx.fillText("Hello world", 10, 60);
+        PImage.encodePNGToStream(img, fs.createWriteStream('build/text.png')).then(()=>{
+            console.log("wrote out the png file to build/text.png");
+            t.end();
+        });
+    });
+
+});

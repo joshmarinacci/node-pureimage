@@ -2,15 +2,28 @@ PureImage
 ==============
 
 PureImage is a pure JavaScript implementation of an image drawing and encoding
-API, based on HTML Canvas, for NodeJS. It has no native dependencies.  
-
-Current features:
+API, based on HTML Canvas, for NodeJS. It has no native dependencies.
+  
+# note, pure image is being refactored
 
 * set pixels
-* stroke and fill paths (rectangles, lines, quadratic curves)
-* copy images
-* export to PNG
-* render text (no bold or italics yet)
+* stroke and fill paths (rectangles, lines, quadratic curves, not bezier yet)
+* copy and scale images (nearest neighbor)
+* import and export JPG and PNG from streams using promises
+* render basic text (no bold or italics yet)
+
+On the roadmap, but still missing
+===============
+
+* gradients
+* alpha composites
+* complex fonts
+* bezier curves, stroked and filled (broken)
+* anti-aliased lines and curves (broken)
+* full alpha compositing
+* loading and styled fonts
+* measure text
+* transforms
 
 
 Why?
@@ -36,7 +49,8 @@ It should run everywhere and be highly portable. But it will not be fast. If you
 need speed go use Canvas.js.
 
 PureImage uses only pure JS dependencies.  [OpenType](https://github.com/nodebox/opentype.js/)
-for font parsing and [PngJS](https://github.com/niegowski/node-pngjs) for PNG export.
+for font parsing, [PngJS](https://github.com/niegowski/node-pngjs) for PNG import/export, 
+and [jpeg-js](https://github.com/eugeneware/jpeg-js) for JPG import/export.
 
 
 
@@ -62,24 +76,31 @@ ctx.fillRect(0,0,100,100);
 Write out to a PNG file (uses `pngjs`)
 
 ```
-PImage.encodePNG(img1, fs.createWriteStream('out.png'), function(err) {
+PImage.encodePNGToStream(img1, fs.createWriteStream('out.png')).then(()=> {
     console.log("wrote out the png file to out.png");
+}).catch((e)=>{
+    console.log("there was an error writing");
 });
 ```
 
+Read a jpeg, resize it, then save it out
+
+```
+PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((img)=>{
+    console.log("size is",img.width,img.height);
+    var img2 = PImage.make(50,50);
+    var c = img2.getContext('2d');
+    c.drawImage(img,
+        0, 0, img.width, img.height, // source dimensions
+        0, 0, 50, 50   // destination dimensions
+    );
+    var pth = path.join(BUILD_DIR,"resized_bird.jpg");
+    PImage.encodeJPEGToStream(img2,fs.createWriteStream(pth)).then(()=> {
+        console.log("done writing");
+    });
+```
 
 
-On the roadmap
-===============
-
-
-* *done* drawing text from truetype files. Have to figure out a pure JS font rasterizer
-* *done*: quadratic curves
-* bezier curves, stroked and filled
-* anti-aliased curves (partially done)
-* full alpha compositing
-* PNG loading for compositing
-* Jpeg input/output
 
 
 Thanks!
@@ -94,11 +115,3 @@ Thanks to Kuba Niegowski for [PngJS](https://github.com/niegowski/node-pngjs)
 Thanks to Eugene Ware for [jpeg-js]( https://github.com/eugeneware/jpeg-js )
 
 
-Notes
-==========
-
-* move font stuff to pure image,
-* make a registerFont,
-* setFont(name,size,weight,style,variant),
-* and drawString function,
-* and measureText

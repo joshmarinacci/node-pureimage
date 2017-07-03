@@ -5,13 +5,12 @@
 //2014-11-15  line count: 401, 399, 386, 369, 349,
 
 
-var opentype = require('opentype.js');
 var fs = require('fs');
 var PNG = require('pngjs').PNG;
 var JPEG = require('jpeg-js');
 var uint32 = require('./uint32');
-var NAMED_COLORS = require('./named_colors');
 var Bitmap = require('./bitmap');
+var text = require('./text');
 
 exports.make = function(w,h,options) {
     return new Bitmap(w,h,options);
@@ -98,33 +97,4 @@ exports.decodePNGFromStream = function(instream) {
     })
 };
 
-
-var _fonts = { };
-
-exports.registerFont = function(binary, family, weight, style, variant) {
-    _fonts[family] = {
-        binary: binary,
-        family: family,
-        weight: weight,
-        style: style,
-        variant: variant,
-        loaded: false,
-        font: null,
-        load: function(cb) {
-            console.log("PureImage loading", family,weight,style,variant);
-            if(this.loaded) {
-                if(cb)cb();
-                return;
-            }
-            var self = this;
-            opentype.load(binary, function (err, font) {
-                if (err) throw new Error('Could not load font: ' + err);
-                self.loaded = true;
-                self.font = font;
-                if(cb)cb();
-            });
-        }
-    };
-    return _fonts[family];
-};
-exports.debug_list_of_fonts = _fonts;
+exports.registerFont = text.registerFont;
