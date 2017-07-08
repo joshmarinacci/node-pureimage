@@ -1,16 +1,66 @@
-var trans = require('../src/transform');
+var PImage = require('../src/pureimage');
 
-var t = new trans.Transform();
-console.log(t);
-t.translate(100,50);
-t.rotate(0);
-console.log(t);
-console.log(t.transformPoint(5,5));
-t.rotate(45*Math.PI/180);
-console.log(t.transformPoint(5,5));
+var fs = require('fs');
+var assert = require('assert');
 
-t.save();
-t.rotate(45*Math.PI/180);
-console.log(t.transformPoint(5,5));
-t.restore();
-console.log(t.transformPoint(5,5));
+function simpleTransforms() {
+    var img = PImage.make(10,10);
+    var ctx = img.getContext('2d');
+
+    function drawLine() {
+        ctx.beginPath();
+        ctx.moveTo(5, 5);
+        ctx.lineTo(10, 10);
+        ctx.lineTo(5, 10);
+        ctx.closePath();
+        console.log("the path is", ctx.path);
+    }
+    drawLine();
+
+    assert.equal(ctx.path[0][0],'m');
+    assert.equal(ctx.path[0][1].x,5);
+
+    ctx.save();
+    ctx.translate(5,0);
+    drawLine();
+    ctx.restore();
+    assert.equal(ctx.path[0][0],'m');
+    assert.equal(ctx.path[0][1].x,10);
+
+    drawLine();
+    assert.equal(ctx.path[0][0],'m');
+    assert.equal(ctx.path[0][1].x,5);
+
+
+    ctx.save();
+    ctx.rotate(Math.PI/180.0*90);
+    drawLine();
+    ctx.restore();
+    assert.equal(ctx.path[0][0],'m');
+    assert.equal(ctx.path[0][1].x,-5);
+    assert.equal(ctx.path[0][1].y,5);
+
+
+    ctx.save();
+    ctx.scale(2,2);
+    drawLine();
+    ctx.restore();
+    assert.equal(ctx.path[0][0],'m');
+    assert.equal(ctx.path[0][1].x,10);
+    assert.equal(ctx.path[0][1].y,10);
+
+    assert.equal(ctx.path[1][0],'l');
+    assert.equal(ctx.path[1][1].x,20);
+    assert.equal(ctx.path[1][1].y,20);
+
+    assert.equal(ctx.path[2][0],'l');
+    assert.equal(ctx.path[2][1].x,10);
+    assert.equal(ctx.path[2][1].y,20);
+
+    assert.equal(ctx.path[3][0],'l');
+    assert.equal(ctx.path[3][1].x,10);
+    assert.equal(ctx.path[3][1].y,10);
+}
+
+simpleTransforms();
+

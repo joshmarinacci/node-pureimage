@@ -172,7 +172,9 @@ function Transform(context) {
     // Helpers
     //==========================================
 
-    this.transformPoint = function(x, y) {
+    this.transformPoint = function(pt) {
+        var x = pt.x;
+        var y = pt.y;
         return {
             x: x * this.matrix[0] + y * this.matrix[2] + this.matrix[4],
             y: x * this.matrix[1] + y * this.matrix[3] + this.matrix[5]
