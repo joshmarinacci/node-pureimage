@@ -245,7 +245,7 @@ test('stroke circle (arc)', (t)=>{
 test('fill partial circle (arcTo)', (t)=>{
     var img = PImage.make(100,100);
     var ctx = img.getContext('2d');
-    ctx.fillStyle = blue;
+    ctx.fillStyle = green;
     ctx.beginPath();
     ctx.arc(50,50,40,0,Math.PI,true); // Outer circle
     ctx.closePath();
@@ -347,7 +347,7 @@ test('font test', (t) => {
     fnt.load(function() {
         var img = PImage.make(200,200);
         var ctx = img.getContext('2d');
-        ctx.fillStyle = white;
+        ctx.fillStyle = '#ffffff';
         ctx.font = "48pt 'Source Sans Pro'";
         ctx.fillText("ABC", 80, 80);
         var path = 'build/text.png';
@@ -428,8 +428,8 @@ test('aa polygon', (t) => {
 test('aa polygon fill', (t) => {
     var img = PImage.make(100,100);
     var ctx = img.getContext('2d');
-    ctx.fillStyle = white;
-    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#ffffff';
+    ctx.imageSmoothingEnabled = true;
     ctx.beginPath();
     ctx.moveTo(10,10);
     ctx.lineTo(80,30);
