@@ -287,12 +287,18 @@ class Context {
     }
 
     fill() {
+        this.imageSmoothingEnabled ? this.fill_aa() : this.fill_noaa();
+    }
+    fill_aa() {
         //get just the color part
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);
         var lines = pathToLines(this.path);
         var bounds = calcMinimumBounds(lines);
 
-        for(var j=bounds.y2-1; j>=bounds.y; j--) {
+        var startY = Math.min(bounds.y2-1, this.bitmap.height);
+        var endY = Math.max(bounds.y, 0);
+
+        for(var j=startY; j>=endY; j--) {
             var ints = calcSortedIntersections(lines,j);
             //fill between each pair of intersections
             for(var i=0; i<ints.length; i+=2) {
@@ -303,20 +309,44 @@ class Context {
                 for(var ii=start; ii<=end; ii++) {
                     if(ii == start) {
                         //first
-                        //var int = uint32.or(rgb,(1-fstartf)*255);
-                        //this.compositePixel(ii,j, int);
+                        var int = uint32.or(rgb,(1-fstartf)*255);
+                        this.fillPixelWithColor(ii,j, int);
+                        continue;
+                    }
+                    if(ii == end) {
+                        //last
+                        var int = uint32.or(rgb,fendf*255);
+                        this.fillPixelWithColor(ii,j, int);
+                        continue;
+                    }
+                    //console.log("filling",ii,j);
+                    this.fillPixelWithColor(ii,j, this._fillColor);
+                }
+            }
+        }
+    }
+    fill_noaa() {
+        //get just the color part
+        var rgb = uint32.and(this._fillColor, 0xFFFFFF00);
+        var lines = pathToLines(this.path);
+        var bounds = calcMinimumBounds(lines);
+        for(var j=bounds.y2-1; j>=bounds.y; j--) {
+            var ints = calcSortedIntersections(lines,j);
+            //fill between each pair of intersections
+            for(var i=0; i<ints.length; i+=2) {
+                var start = Math.floor(ints[i]);
+                var end   = Math.floor(ints[i+1]);
+                for(var ii=start; ii<=end; ii++) {
+                    if(ii == start) {
+                        //first
                         this.fillPixel(ii,j);
                         continue;
                     }
                     if(ii == end) {
                         //last
-                        //var int = uint32.or(rgb,fendf*255);
-                        //this.compositePixel(ii,j, int);
                         this.fillPixel(ii,j);
                         continue;
                     }
-                    //console.log("filling",ii,j);
-                    //this.compositePixel(ii,j, this._fillColor);
                     this.fillPixel(ii,j);
                 }
             }
