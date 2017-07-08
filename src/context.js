@@ -24,6 +24,15 @@ class Context {
                 this._strokeStyle_text = val;
             }
         });
+
+        this._lineWidth = 1;
+        Object.defineProperty(this, 'lineWidth', {
+            get: function() { return this._lineWidth; },
+            set: function(val) {
+                this._lineWidth = val;
+            }
+        });
+
         this.transform = new trans.Transform();
         this._font = {
             family:'invalid',
@@ -42,6 +51,8 @@ class Context {
                 this._font.size = size;
             }
         });
+
+        this.imageSmoothingEnabled = true;
     }
 
     // transforms and state saving
@@ -98,6 +109,12 @@ class Context {
     }
     strokePixel(i,j) {
         var new_pixel = this.calculateRGBA_stroke(i,j);
+        var old_pixel = this.bitmap.getPixelRGBA(i,j);
+        var final_pixel = this.composite(i,j,old_pixel,new_pixel);
+        this.bitmap.setPixelRGBA(i,j,final_pixel);
+    }
+    fillPixelWithColor(i,j,col) {
+        var new_pixel = col;
         var old_pixel = this.bitmap.getPixelRGBA(i,j);
         var final_pixel = this.composite(i,j,old_pixel,new_pixel);
         this.bitmap.setPixelRGBA(i,j,final_pixel);
@@ -208,6 +225,9 @@ class Context {
         pathToLines(this.path).forEach((line)=> this.drawLine(line));
     }
     drawLine(line) {
+        this.imageSmoothingEnabled?this.drawLine_aa(line):this.drawLine_noaa(line)
+    }
+    drawLine_noaa(line) {
         //Bresenham's from Rosetta Code
         // http://rosettacode.org/wiki/Bitmap/Bresenham's_line_algorithm#JavaScript
         var x0 = Math.floor(line.start.x);
@@ -226,6 +246,46 @@ class Context {
             if (e2 < dy) { err += dx; y0 += sy; }
         }
     }
+    // antialiased Bresenham's line with width
+    // http://members.chello.at/~easyfilter/bresenham.html
+    drawLine_aa(line) {
+        let width = this._lineWidth;
+        let x0 = Math.floor(line.start.x);
+        let y0 = Math.floor(line.start.y);
+        let x1 = Math.floor(line.end.x);
+        let y1 = Math.floor(line.end.y);
+        let dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+        let dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+
+        let err = dx - dy, e2, x2, y2;
+        let ed = dx + dy === 0 ? 1 : Math.sqrt(dx * dx + dy * dy);
+        let rgb = uint32.and(this._strokeColor, 0xFFFFFF00);
+        for (width = (width+1)/2; ; ) {
+            let alpha = ~~Math.max(0, 255 * (Math.abs(err - dx + dy) / ed - width + 1));
+            var pixelColor = uint32.or(rgb,255-alpha);
+            this.fillPixelWithColor(x0,y0,pixelColor);
+            e2 = err; x2 = x0;
+            if (2*e2 >= -dx) {
+                for (e2 += dy, y2 = y0; e2 < ed*width && (y1 !== y2 || dx > dy); e2 += dx) {
+                    alpha = ~~Math.max(0, 255 * (Math.abs(e2) / ed - width + 1));
+                    var pixelColor = uint32.or(rgb,255-alpha);
+                    this.fillPixelWithColor(x0, y2 += sy, pixelColor);
+                }
+                if (x0 === x1) break;
+                e2 = err; err -= dy; x0 += sx;
+            }
+            if (2*e2 <= dy) {
+                for (e2 = dx-e2; e2 < ed*width && (x1 !== x2 || dx < dy); e2 += dy) {
+                    alpha = ~~Math.max(0, 255 * (Math.abs(e2) / ed - width + 1));
+                    var pixelColor = uint32.or(rgb,255-alpha);
+                    this.fillPixelWithColor(x2 += sx, y0, pixelColor);
+                }
+                if (y0 === y1) break;
+                err += dx; y0 += sy;
+            }
+        }
+    }
+
     fill() {
         //get just the color part
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);

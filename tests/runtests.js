@@ -405,3 +405,22 @@ test('image cropping', (t)=>{
     });
 });
 
+test('aa polygon', (t) => {
+    var img = PImage.make(100,100);
+    var ctx = img.getContext('2d');
+    ctx.strokeStyle = white;
+    ctx.lineWidth = 1;
+    ctx.imageSmoothingEnabled = false;
+    ctx.beginPath();
+    ctx.moveTo(10,10);
+    ctx.lineTo(80,30);
+    ctx.lineTo(50,90);
+    ctx.lineTo(10,10);
+    ctx.stroke();
+
+    var path = 'build/aa.png';
+    PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
+        console.log("wrote out the png file to",path);
+        t.end();
+    });
+});
