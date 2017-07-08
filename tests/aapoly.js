@@ -4,10 +4,10 @@ var PImage = require('../src/pureimage');
 
 var img = PImage.make(40,40);
 var ctx = img.getContext('2d');
-ctx.setFillStyle('#ffffff');
+ctx.fillStyle = '#ffffff';
 ctx.fillRect(0,0,40,40);
 
-ctx.setFillStyle('#ff0000');
+ctx.fillStyle = '#ff0000';
 ctx.beginPath();
 ctx.moveTo(2.2,2);
 ctx.lineTo(30,15);

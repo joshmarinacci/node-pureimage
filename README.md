@@ -82,7 +82,7 @@ var PImage = require('pureimage');
 var img1 = PImage.make(100,50);
 ```
 
-Fill with a red rectangle, 50% opacity
+Fill with a red rectangle with 50% opacity
 
 ```
 var ctx = img1.getContext('2d');

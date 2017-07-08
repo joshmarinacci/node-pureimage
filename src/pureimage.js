@@ -12,6 +12,7 @@ var uint32 = require('./uint32');
 var Bitmap = require('./bitmap');
 var text = require('./text');
 
+
 exports.make = function(w,h,options) {
     return new Bitmap(w,h,options);
 };
@@ -96,5 +97,6 @@ exports.decodePNGFromStream = function(instream) {
             });
     })
 };
+
 
 exports.registerFont = text.registerFont;
