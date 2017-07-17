@@ -256,7 +256,7 @@ test('fill partial circle (arcTo)', (t)=>{
 
     var path = 'build/arcto.png';
     PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
-        console.log("wrote out the png file to",path);
+        // console.log("wrote out the png file to",path);
         t.end();
     });
 });
@@ -352,7 +352,7 @@ test('font test', (t) => {
         ctx.fillText("ABC", 80, 80);
         var path = 'build/text.png';
         PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
-            console.log("wrote out the png file to",path);
+            // console.log("wrote out the png file to",path);
             t.end();
         });
     });
@@ -372,7 +372,7 @@ function calcCrop(img1, specs) {
     //specs.width / scale
     var ow = specs.width / sc;
     var oh = specs.height / sc;
-    console.log(ow,oh);
+    // console.log(ow,oh);
     var ow2 = img1.width-ow;
     var oh2 = img1.height-oh;
     return {
@@ -390,16 +390,16 @@ function calcCrop(img1, specs) {
 test('image cropping', (t)=>{
     var specs = {width:100, height:133};
     PImage.decodeJPEGFromStream(fs.createReadStream('tests/images/bird.jpg')).then((src)=>{
-        console.log('source image',src.width,src.height, "to",specs);
+        // console.log('source image',src.width,src.height, "to",specs);
         var calcs = calcCrop(src, specs);
-        console.log(calcs);
+        // console.log(calcs);
         var img = PImage.make(specs.width, specs.height);
         var ctx = img.getContext('2d');
         ctx.drawImage(src,
             calcs.sx, calcs.sy, calcs.sw, calcs.sh,
             calcs.dx, calcs.dy, calcs.dw, calcs.dh);
         PImage.encodePNGToStream(img, fs.createWriteStream('build/croptest.png')).then(()=>{
-            console.log('wrote to build/croptest.png');
+            // console.log('wrote to build/croptest.png');
             t.end();
         });
     });
@@ -420,7 +420,7 @@ test('aa polygon', (t) => {
 
     var path = 'build/aa.png';
     PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
-        console.log("wrote out the png file to",path);
+        // console.log("wrote out the png file to",path);
         t.end();
     });
 });
@@ -439,7 +439,7 @@ test('aa polygon fill', (t) => {
 
     var path = 'build/aa_fill.png';
     PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
-        console.log("wrote out the png file to",path);
+        // console.log("wrote out the png file to",path);
         t.end();
     });
 });

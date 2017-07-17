@@ -47,6 +47,6 @@ function renderText(fileName) {
 
 
     PImage.encodePNGToStream(img, fs.createWriteStream('build/text.png')).then(()=>{
-        console.log("wrote out the png file to build/text.png");
+        // console.log("wrote out the png file to build/text.png");
     });
 }

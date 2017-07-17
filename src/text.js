@@ -16,7 +16,6 @@ exports.registerFont = function(binaryPath, family, weight, style, variant) {
         loaded: false,
         font: null,
         load: function(cb) {
-            console.log("PureImage loading", family,weight,style,variant);
             if(this.loaded) {
                 if(cb)cb();
                 return;
@@ -35,12 +34,12 @@ exports.registerFont = function(binaryPath, family, weight, style, variant) {
 exports.debug_list_of_fonts = _fonts;
 
 function findFont(family) {
-    console.log("searching for font",family);
+    // console.log("searching for font",family);
     //console.log(exports.debug_list_of_fonts);
     if(_fonts[family]) return _fonts[family];
-    console.log('font not found:',family);
+    // console.log('font not found:',family);
     family =  Object.keys(_fonts)[0];
-    console.log("instead trying family", family);
+    // console.log("instead trying family", family);
     return _fonts[family];
 }
 
