@@ -61,6 +61,7 @@ class Context {
         });
 
         this.imageSmoothingEnabled = true;
+        this._clip = null;
     }
 
     // transforms and state saving
@@ -110,18 +111,21 @@ class Context {
 
     //set single pixel
     fillPixel(i,j) {
+        if(!this.pixelInsideClip(i,j)) return;
         var new_pixel = this.calculateRGBA(i,j);
         var old_pixel = this.bitmap.getPixelRGBA(i,j);
         var final_pixel = this.composite(i,j,old_pixel,new_pixel);
         this.bitmap.setPixelRGBA(i,j,final_pixel);
     }
     strokePixel(i,j) {
+        if(!this.pixelInsideClip(i,j)) return;
         var new_pixel = this.calculateRGBA_stroke(i,j);
         var old_pixel = this.bitmap.getPixelRGBA(i,j);
         var final_pixel = this.composite(i,j,old_pixel,new_pixel);
         this.bitmap.setPixelRGBA(i,j,final_pixel);
     }
     fillPixelWithColor(i,j,col) {
+        if(!this.pixelInsideClip(i,j)) return;
         var new_pixel = col;
         var old_pixel = this.bitmap.getPixelRGBA(i,j);
         var final_pixel = this.composite(i,j,old_pixel,new_pixel);
@@ -239,7 +243,7 @@ class Context {
         throw new Error("ellipse not yet supported");
     }
     clip() {
-        throw new Error("clip not yet supported");
+        this._clip = pathToLines(this.path);
     }
     measureText() {
         throw new Error("measureText not yet supported");
@@ -382,6 +386,25 @@ class Context {
             }
         }
     }
+
+    pixelInsideClip(i,j) {
+        if(!this._clip) return true;
+        // console.log("checking for clip",i,j,this._clip);
+        //turn into a list of lines
+        // calculate intersections with a horizontal line at j
+        var ints = calcSortedIntersections(this._clip,j);
+        // find the intersections to the left of i (where x < i)
+        var left = ints.filter((inter) => inter<i);
+        // console.log("intersections = ", ints, left);
+        if(left.length%2 === 0) {
+            // console.log("is even");
+            return false;
+        }else {
+            // console.log("is odd");
+            return true;
+        }
+    }
+
 
 
     //stroke and fill text

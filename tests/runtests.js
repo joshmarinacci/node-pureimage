@@ -75,6 +75,34 @@ test('rgba polygon', (t) => {
     });
 });
 
+test('clip path', (t) => {
+
+    const img = PImage.make(100,100);
+    const c = img.getContext('2d');
+    c.fillStyle = 'white';
+    c.fillRect(0,0,100,100);
+
+    c.beginPath();
+    c.moveTo(10,10);
+    c.lineTo(100,30);
+    c.lineTo(50,90);
+    c.lineTo(10,10);
+    c.clip();
+
+    t.false(c.pixelInsideClip(0,0));
+    t.false(c.pixelInsideClip(0,20));
+    t.true(c.pixelInsideClip(40,30));
+
+    c.fillStyle = 'black';
+    c.fillRect(0,0,100,100);
+
+    var path = 'build/clip_path.png';
+    PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
+        console.log("wrote out the png file to",path);
+        t.end();
+    });
+});
+
 test('fill rect', (t) => {
     var img = PImage.make(50,50);
     var c = img.getContext('2d');
