@@ -30,6 +30,7 @@ please check that it still works. Thank you all!  - josh
 * render basic text (no bold or italics yet)
 * anti-aliased strokes and fills
 * transforms
+* standard globalAlpha and rgba() alpha compositing
 
 
 On the roadmap, but still missing
@@ -37,7 +38,8 @@ On the roadmap, but still missing
 
 * gradients fills
 * image fills
-* alpha composites
+* blend modes besides SRC OVER
+* clip shapes
 * bold/italic fonts
 * measure text
 * smooth image interpolation
