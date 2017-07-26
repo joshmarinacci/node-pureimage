@@ -119,8 +119,22 @@ class Context {
         var final_pixel = this.composite(i,j,old_pixel,new_pixel);
         this.bitmap.setPixelRGBA(i,j,final_pixel);
     }
+
     composite(i,j,old_pixel, new_pixel) {
-        return new_pixel;
+        const old_rgba = uint32.getBytesBigEndian(old_pixel);
+        const new_rgba = uint32.getBytesBigEndian(new_pixel);
+
+        const old_alpha = old_rgba[3]/255;
+        const new_alpha = new_rgba[3]/255;
+        const final_a = new_rgba[3];
+        const final_rgba = [
+            lerp(old_rgba[0],new_rgba[0],new_alpha),
+            lerp(old_rgba[1],new_rgba[1],new_alpha),
+            lerp(old_rgba[2],new_rgba[2],new_alpha),
+            old_rgba[3]
+        ];
+        // console.log(old_rgba,new_rgba, final_rgba, old_alpha, new_alpha);
+        return uint32.fromBytesBigEndian(final_rgba[0],final_rgba[1],final_rgba[2],final_rgba[3]);
     }
     calculateRGBA(x,y) {
         return this._fillColor;
@@ -473,3 +487,4 @@ function calcSortedIntersections(lines,y) {
 
 
 
+function lerp(a,b,t) {  return a + (b-a)*t; }

@@ -20,6 +20,49 @@ const BLUE = 0x0000FFFF;
 const green = '#00ff00';
 const GREEN = 0x00FF00FF;
 
+
+
+test('rgba polygon', (t) => {
+    let img = PImage.make(100,100);
+    let ctx = img.getContext('2d');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,1,1);
+    t.equal(img.getPixelRGBA(0,0),0xffffffff);
+
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0,0,1,1);
+    t.equal(img.getPixelRGBA(0,0),0x000000ff);
+
+    ctx.fillStyle = 'rgba(255,0,0,1)';
+    ctx.fillRect(0,0,1,1);
+    t.equal(img.getPixelRGBA(0,0),0xff0000ff);
+
+    ctx.fillStyle = 'rgba(0,0,0,1)';
+    ctx.fillRect(0,0,1,1);
+    t.equal(img.getPixelRGBA(0,0),0x000000ff);
+
+    ctx.fillStyle = 'rgba(255,0,0,0.5)';
+    ctx.fillRect(0,0,1,1);
+    t.equal(img.getPixelRGBA(0,0),0x7f0000ff);
+
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,100,100);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0,25,100,50);
+    ctx.fillStyle = 'rgba(255,0,0,1.0)';
+    ctx.fillRect(50,0,50,50);
+    ctx.fillStyle = 'rgba(255,0,0,0.5)';
+    ctx.fillRect(50,50,50,50);
+
+    var path = 'build/rgba_fill.png';
+    PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
+        console.log("wrote out the png file to",path);
+        t.end();
+    });
+});
+
 test('fill rect', (t) => {
     var img = PImage.make(50,50);
     var c = img.getContext('2d');
