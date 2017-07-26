@@ -33,6 +33,14 @@ class Context {
             }
         });
 
+        this._globalAlpha = 1;
+        Object.defineProperty(this, 'globalAlpha', {
+            get: function() { return this._globalAlpha; },
+            set: function(val) {
+                this._globalAlpha = clamp(val,0,1);
+            }
+        });
+
         this.transform = new trans.Transform();
         this._font = {
             family:'invalid',
@@ -124,17 +132,25 @@ class Context {
         const old_rgba = uint32.getBytesBigEndian(old_pixel);
         const new_rgba = uint32.getBytesBigEndian(new_pixel);
 
-        const old_alpha = old_rgba[3]/255;
-        const new_alpha = new_rgba[3]/255;
-        const final_a = new_rgba[3];
-        const final_rgba = [
-            lerp(old_rgba[0],new_rgba[0],new_alpha),
-            lerp(old_rgba[1],new_rgba[1],new_alpha),
-            lerp(old_rgba[2],new_rgba[2],new_alpha),
-            old_rgba[3]
-        ];
-        // console.log(old_rgba,new_rgba, final_rgba, old_alpha, new_alpha);
-        return uint32.fromBytesBigEndian(final_rgba[0],final_rgba[1],final_rgba[2],final_rgba[3]);
+        //convert to range of 0->1
+        const A = new_rgba.map((b)=>b/255);
+        const B = old_rgba.map((b)=>b/255);
+        //multiply by global alpha
+        A[3] = A[3]*this._globalAlpha;
+
+        //do a standard composite (SRC_OVER)
+        function compit(ca,cb,aa,ab) {
+            return (ca*aa + cb*ab * (1-aa)) / (aa+ab*(1-aa));
+        }
+        const C = A.map((comp,i)=> compit(A[i],B[i],A[3],B[3]));
+
+        //convert back to 0->255 range
+        const Cf = C.map((c)=>c*255);
+        // Cf[3] = old_rgba[3];
+        // console.log(this._globalAlpha, old_rgba,new_rgba, Cf);
+
+        //convert back to int
+        return uint32.fromBytesBigEndian(Cf[0],Cf[1],Cf[2],old_rgba[3]);
     }
     calculateRGBA(x,y) {
         return this._fillColor;
@@ -488,3 +504,8 @@ function calcSortedIntersections(lines,y) {
 
 
 function lerp(a,b,t) {  return a + (b-a)*t; }
+function clamp(v,min,max) {
+    if(v < min) return min;
+    if(v > max) return max;
+    return v;
+}

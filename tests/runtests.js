@@ -15,6 +15,8 @@ const white = '#ffffff';
 const WHITE = 0xFFFFFFFF;
 const black = '#000000';
 const BLACK = 0x000000FF;
+const red   = '#ff0000';
+const RED   = 0xFF0000FF;
 const blue  = '#0000ff';
 const BLUE = 0x0000FFFF;
 const green = '#00ff00';
@@ -47,6 +49,17 @@ test('rgba polygon', (t) => {
     t.equal(img.getPixelRGBA(0,0),0x7f0000ff);
 
 
+
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0,0,1,1);
+    t.equal(img.getPixelRGBA(0,0),WHITE);
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = red;
+    ctx.fillRect(0,0,1,1);
+    t.equal(img.getPixelRGBA(0,0),0xFF7f7fFF);
+    // return t.end();
+
+    ctx.globalAlpha = 1.0;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0,0,100,100);
     ctx.fillStyle = '#000000';
@@ -55,7 +68,6 @@ test('rgba polygon', (t) => {
     ctx.fillRect(50,0,50,50);
     ctx.fillStyle = 'rgba(255,0,0,0.5)';
     ctx.fillRect(50,50,50,50);
-
     var path = 'build/rgba_fill.png';
     PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
         console.log("wrote out the png file to",path);
