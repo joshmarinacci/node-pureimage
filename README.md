@@ -31,6 +31,7 @@ please check that it still works. Thank you all!  - josh
 * anti-aliased strokes and fills
 * transforms
 * standard globalAlpha and rgba() alpha compositing
+* clip shapes
 
 
 On the roadmap, but still missing
@@ -39,7 +40,7 @@ On the roadmap, but still missing
 * gradients fills
 * image fills
 * blend modes besides SRC OVER
-* clip shapes
+* smooth clip shapes
 * bold/italic fonts
 * measure text
 * smooth image interpolation
