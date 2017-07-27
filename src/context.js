@@ -387,6 +387,9 @@ class Context {
         }
     }
 
+    //even/odd rule. https://en.wikipedia.org/wiki/Point_in_polygon
+    //technically this is not correct as the default algorithm for
+    //html canvas is supposed to be the non-zero winding rule instead
     pixelInsideClip(i,j) {
         if(!this._clip) return true;
         // console.log("checking for clip",i,j,this._clip);
