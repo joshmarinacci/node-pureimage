@@ -154,7 +154,7 @@ class Context {
         // console.log(this._globalAlpha, old_rgba,new_rgba, Cf);
 
         //convert back to int
-        return uint32.fromBytesBigEndian(Cf[0],Cf[1],Cf[2],old_rgba[3]);
+        return uint32.fromBytesBigEndian(Cf[0],Cf[1],Cf[2],Cf[3]);
     }
     calculateRGBA(x,y) {
         return this._fillColor;
