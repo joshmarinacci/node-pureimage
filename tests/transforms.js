@@ -13,7 +13,6 @@ function simpleTransforms() {
         ctx.lineTo(10, 10);
         ctx.lineTo(5, 10);
         ctx.closePath();
-        console.log("the path is", ctx.path);
     }
     drawLine();
 
