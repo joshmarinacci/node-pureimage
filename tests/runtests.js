@@ -46,7 +46,7 @@ test('rgba polygon', (t) => {
 
     ctx.fillStyle = 'rgba(255,0,0,0.5)';
     ctx.fillRect(0,0,1,1);
-    t.equal(img.getPixelRGBA(0,0),0x7f0000ff);
+    t.equal(img.getPixelRGBA(0,0),0x7f0000bf);
 
 
 
