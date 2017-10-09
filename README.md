@@ -80,14 +80,14 @@ Examples
 
 Make a new empty image, 100px by 50px. Automatically filled with 100% opaque black.
 
-```
+```js
 var PImage = require('pureimage');
 var img1 = PImage.make(100,50);
 ```
 
 Fill with a red rectangle with 50% opacity
 
-```
+```js
 var ctx = img1.getContext('2d');
 ctx.fillStyle = 'rgba(255,0,0, 0.5)';
 ctx.fillRect(0,0,100,100);
@@ -95,14 +95,14 @@ ctx.fillRect(0,0,100,100);
 
 Fill a green circle wiwth a radius of 40 pixels in the middle of a 100px square black image.
 
-```
-    var img = PImage.make(100,100);
-    var ctx = img.getContext('2d');
-    ctx.fillStyle = '#00ff00';
-    ctx.beginPath();
-    ctx.arc(50,50,40,0,Math.PI*2,true); // Outer circle
-    ctx.closePath();
-    ctx.fill();
+```js
+var img = PImage.make(100,100);
+var ctx = img.getContext('2d');
+ctx.fillStyle = '#00ff00';
+ctx.beginPath();
+ctx.arc(50,50,40,0,Math.PI*2,true); // Outer circle
+ctx.closePath();
+ctx.fill();
 ```
 
 ![image of arcto with some fringing bugs](firstimages/arcto.png)
@@ -110,7 +110,7 @@ Fill a green circle wiwth a radius of 40 pixels in the middle of a 100px square 
 Draw the string 'ABC' in white in the font 'Source Sans Pro', loaded from disk, at a size
 of 48 points. 
 
-```
+```js
 test('font test', (t) => {
     var fnt = PImage.registerFont('tests/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
     fnt.load(function() {
@@ -126,7 +126,7 @@ test('font test', (t) => {
 
 Write out to a PNG file
 
-```
+```js
 PImage.encodePNGToStream(img1, fs.createWriteStream('out.png')).then(()=> {
     console.log("wrote out the png file to out.png");
 }).catch((e)=>{
@@ -136,7 +136,7 @@ PImage.encodePNGToStream(img1, fs.createWriteStream('out.png')).then(()=> {
 
 Read a jpeg, resize it, then save it out
 
-```
+```js
 PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((img)=>{
     console.log("size is",img.width,img.height);
     var img2 = PImage.make(50,50);
@@ -171,4 +171,3 @@ Thanks for patches from:
 * Lethexa [lethexa](https://github.com/lethexa)
 * The Louie [the-louie](https://github.com/the-louie)
 * Jan Marsch [kekscom](https://github.com/kekscom)
-* 
