@@ -17,10 +17,10 @@ const DEFAULT_FONT_FAMILY = 'source';
  * Register Font
  * 
  * @param {string} binaryPath Path to the font binary file
- * @param {string} family The name to give the font
- * @param {number} weight The font weight to use
- * @param {string} style Font style
- * @param {string} variant Font variant
+ * @param {string} family     The name to give the font
+ * @param {number} weight     The font weight to use
+ * @param {string} style      Font style
+ * @param {string} variant    Font variant
  */
 exports.registerFont = function(binaryPath, family, weight, style, variant) {
     _fonts[family] = {
@@ -68,10 +68,10 @@ function findFont(family) {
 /**
  * Process Text Path
  * 
- * @param {Context} ctx The context to write to
- * @param {string} text The text to write to the given Context
- * @param {number} x X position
- * @param {number} y Y position
+ * @param {Context} ctx  The context to write to
+ * @param {string}  text The text to write to the given Context
+ * @param {number}  x    X position
+ * @param {number}  y    Y position
  * @param {boolean} fill Indicates wether or not the font should be filled
  * 
  * @returns {void}

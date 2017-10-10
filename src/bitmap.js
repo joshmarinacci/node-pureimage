@@ -12,9 +12,9 @@ class Bitmap {
 
     /**
      * Creates an instance of Bitmap.
-     * @param {number} w Width
-     * @param {number} h Height
-     * @param {any} options Currently unused
+     * @param {number} w      Width
+     * @param {number} h      Height
+     * @param {any}   options Currently unused
      * @memberof Bitmap
      */
     constructor(w,h, options) {
@@ -63,8 +63,8 @@ class Bitmap {
     /**
      * Set Pixel RGBA
      * 
-     * @param {number} x X position
-     * @param {number} y Y position
+     * @param {number} x    X position
+     * @param {number} y    Y position
      * @param {number} rgba The source to be extracted
      * 
      * @returns {void}

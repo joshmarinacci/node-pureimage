@@ -397,8 +397,8 @@ class Context {
      * *Put Image Data
      * 
      * @param {number} id Image ID
-     * @param {number} x X position
-     * @param {number} y Y position
+     * @param {number} x  X position
+     * @param {number} y  Y position
      * 
      * @returns {void}
      * 
@@ -473,6 +473,7 @@ class Context {
      * Move the "pen" to a given point
      * 
      * @param {object} pt A `point` object representing a set of co-ordinates to move the "pen" to.
+     * 
      * @example this._moveTo({x: 20, y: 40})
      * 
      * @returns {void}
@@ -522,8 +523,8 @@ class Context {
      * 
      * @param {number} cp1x Curve point X position
      * @param {number} cp1y Curve point Y position
-     * @param {number} x Curve X position
-     * @param {number} y Curve Y position
+     * @param {number} x    Curve X position
+     * @param {number} y    Curve Y position
      * 
      * @returns {void}
      * 
@@ -544,8 +545,8 @@ class Context {
      * @param {number} cp1y Curve point 1 Y position
      * @param {number} cp2x Curve point 2 X position
      * @param {number} cp2y Curve point 2 Y position
-     * @param {number} x Curve X position
-     * @param {number} y Curve Y position
+     * @param {number} x    Curve X position
+     * @param {number} y    Curve Y position
      * 
      * @returns {void}
      * 
@@ -576,11 +577,11 @@ class Context {
     /**
      * Arc
      * 
-     * @param {number} x X position
-     * @param {number} y Y position
-     * @param {number} rad Arc radius
-     * @param {number} start Arc start
-     * @param {number} end Arc end
+     * @param {number}  x         X position
+     * @param {number}  y         Y position
+     * @param {number}  rad       Arc radius
+     * @param {number}  start     Arc start
+     * @param {number}  end       Arc end
      * @param {boolean} clockwise Set arc direction (`true` for clockwise, `false` for anti-clockwise)
      * 
      * @returns {void}
@@ -900,8 +901,8 @@ class Context {
      * Fill Text
      * 
      * @param {string} text The text to fill
-     * @param {number} x X position
-     * @param {number} y Y position
+     * @param {number} x    X position
+     * @param {number} y    Y position
      * 
      * @returns {void}
      * 
@@ -913,8 +914,8 @@ class Context {
      * Stroke Text
      * 
      * @param {string} text The text to stroke
-     * @param {number} x X position
-     * @param {number} y Y position
+     * @param {number} x    X position
+     * @param {number} y    Y position
      * 
      * @returns {void}
      * 
