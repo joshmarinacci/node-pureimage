@@ -5,7 +5,7 @@
         "\\.js$"
     ],
     "excludes":[
-        "\\.config\\.js$"
+        "\\uint32.js$"
     ],
     "plugins":[
         {
