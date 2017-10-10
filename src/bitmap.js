@@ -16,9 +16,22 @@ class Bitmap {
      * @memberof Bitmap
      */
     constructor(w,h, options) {
+        
+        /**
+         * @type {number}
+         */
         this.width = Math.floor(w);
+        
+        /**
+         * @type {number}
+         */
         this.height = Math.floor(h);
+        
+        /**
+         * @type {ArrayBuffer}
+         */
         this.data = Buffer.alloc(w*h*4);
+
         var fillval = 0x000000FF;
         for(var j=0; j<h; j++) {
             for (var i = 0; i < w; i++) {
@@ -33,7 +46,9 @@ class Bitmap {
      * 
      * @param {number} x X position
      * @param {number} y Y position
+     * 
      * @returns {number}
+     * 
      * @memberof Bitmap
      */
     calculateIndex (x,y) {
@@ -49,6 +64,9 @@ class Bitmap {
      * @param {number} x X position
      * @param {number} y Y position
      * @param {number} rgba The source to be extracted
+     * 
+     * @returns {void}
+     * 
      * @memberof Bitmap
      */
     setPixelRGBA(x,y,rgba) {
@@ -69,6 +87,9 @@ class Bitmap {
      * @param {number} g Green level
      * @param {number} b Blue level
      * @param {number} a Alpha level
+     * 
+     * @returns {void}
+     * 
      * @memberof Bitmap
      */
     setPixelRGBA_i(x,y,r,g,b,a) {
@@ -84,7 +105,9 @@ class Bitmap {
      * 
      * @param {number} x X potiion
      * @param {number} y Y position
+     * 
      * @returns {number}
+     * 
      * @memberof Bitmap
      */
     getPixelRGBA(x,y) {
@@ -101,7 +124,9 @@ class Bitmap {
      * 
      * @param {number} x X position
      * @param {number} y Y position
-     * @returns 
+     * 
+     * @returns {void}
+     * 
      * @memberof Bitmap
      */
     getPixelRGBA_separate(x,y) {
@@ -114,6 +139,7 @@ class Bitmap {
      * Get a new {Context} object for the current bitmap object
      * 
      * @returns {Context}
+     * 
      * @memberof Bitmap
      */
     getContext() {
