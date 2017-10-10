@@ -1,11 +1,27 @@
+/** @ignore */
 var opentype = require('opentype.js');
 
+
 /**
- * Created by josh on 7/2/17.
+ * @type {object} Map containing all the fonts available for use
  */
 var _fonts = { };
+
+/**
+ * The default font family to use for text
+ * @type {string}
+ */
 const DEFAULT_FONT_FAMILY = 'source';
 
+/**
+ * Register Font
+ * 
+ * @param {string} binaryPath Path to the font binary file
+ * @param {string} family The name to give the font
+ * @param {number} weight The font weight to use
+ * @param {string} style Font style
+ * @param {string} variant Font variant
+ */
 exports.registerFont = function(binaryPath, family, weight, style, variant) {
     _fonts[family] = {
         binary: binaryPath,
@@ -31,14 +47,35 @@ exports.registerFont = function(binaryPath, family, weight, style, variant) {
     };
     return _fonts[family];
 };
+/**@ignore */
 exports.debug_list_of_fonts = _fonts;
 
+/**
+ * Find Font
+ * 
+ * Search the `fonts` array for a given font family name
+ * 
+ * @param {string} family The name of the font family to search for
+ * 
+ * @returns {object}
+ */
 function findFont(family) {
     if(_fonts[family]) return _fonts[family];
     family =  Object.keys(_fonts)[0];
     return _fonts[family];
 }
 
+/**
+ * Process Text Path
+ * 
+ * @param {Context} ctx The context to write to
+ * @param {string} text The text to write to the given Context
+ * @param {number} x X position
+ * @param {number} y Y position
+ * @param {boolean} fill Indicates wether or not the font should be filled
+ * 
+ * @returns {void}
+ */
 exports.processTextPath = function(ctx,text,x,y, fill) {
     let font = findFont(ctx._font.family);
     var size = ctx._font.size;
@@ -77,6 +114,14 @@ exports.processTextPath = function(ctx,text,x,y, fill) {
     }
 };
 
+/**
+ * Process Text Path
+ * 
+ * @param {Context} ctx The canvas context on which to measure the text
+ * @param {string} text The name to give the font
+ * 
+ * @returns {object}
+ */
 exports.measureText = function(ctx,text) {
     var font = _fonts[ctx._settings.font.family];
     if(!font) console.log("WARNING. Can't find font family ", ctx._settings.font.family);
