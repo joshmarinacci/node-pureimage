@@ -31,8 +31,6 @@ class Bitmap {
     /**
      * Calculate Index
      * 
-     * Calculate the 
-     * 
      * @param {number} x X position
      * @param {number} y Y position
      * @returns {number}
