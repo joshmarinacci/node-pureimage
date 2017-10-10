@@ -4,6 +4,8 @@ var NAMED_COLORS = require('./named_colors');
 var trans = require('./transform');
 var TEXT = require('./text');
 
+var Point = require('./Point');
+
 class Context {
     constructor(bitmap) {
         this.bitmap = bitmap;
@@ -190,7 +192,7 @@ class Context {
         this.path = [];
     }
     moveTo(x,y) {
-        return this._moveTo({x:x,y:y});
+        return this._moveTo(new Point(x, y));
     }
     _moveTo(pt) {
         pt = this.transform.transformPoint(pt);
@@ -198,18 +200,18 @@ class Context {
         this.path.push(['m',pt]);
     }
     lineTo(x,y) {
-        return this._lineTo({x:x, y:y});
+        return this._lineTo(new Point(x, y));
     }
     _lineTo(pt) {
         this.path.push(['l',this.transform.transformPoint(pt)]);
     }
     quadraticCurveTo(cp1x, cp1y, x,y) {
-        let cp1 = this.transform.transformPoint({x:cp1x, y:cp1y});
-        let pt = this.transform.transformPoint({x:x, y:y});
+        let cp1 = this.transform.transformPoint(new Point(cp1x, cp1y));
+        let pt = this.transform.transformPoint(new Point(x, y));
         this.path.push(['q', cp1, pt]);
     }
     bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
-        this._bezierCurveTo({x:cp1x,y:cp1y},{x:cp2x,y:cp2y}, {x:x,y:y});
+        this._bezierCurveTo(new Point(cp1x, cp1y), new Point(cp2x, cp2y), new Point(x, y));
     }
     _bezierCurveTo(cp1, cp2, pt) {
         cp1 = this.transform.transformPoint(cp1);
@@ -222,7 +224,7 @@ class Context {
         function calcPoint(ctx,type,angle) {
             let px = x + Math.sin(angle)*rad;
             let py = y + Math.cos(angle)*rad;
-            return {x:px,y:py};
+            return new Point(px, py);
         }
         this._moveTo(calcPoint(this,'m',start));
         for(var a=start; a<=end; a+=Math.PI/16)  {
@@ -484,13 +486,13 @@ function pathToLines(path) {
 function calcQuadraticAtT(p, t) {
     var x = (1-t)*(1-t)*p[0].x + 2*(1-t)*t*p[1].x + t*t*p[2].x;
     var y = (1-t)*(1-t)*p[0].y + 2*(1-t)*t*p[1].y + t*t*p[2].y;
-    return {x:x,y:y};
+    return new Point(x, y);
 }
 
 function calcBezierAtT(p, t) {
     var x = (1-t)*(1-t)*(1-t)*p[0].x + 3*(1-t)*(1-t)*t*p[1].x + 3*(1-t)*t*t*p[2].x + t*t*t*p[3].x;
     var y = (1-t)*(1-t)*(1-t)*p[0].y + 3*(1-t)*(1-t)*t*p[1].y + 3*(1-t)*t*t*p[2].y + t*t*t*p[3].y;
-    return {x:x,y:y};
+    return new Point(x, y);
 }
 
 
