@@ -23,9 +23,9 @@ var text = require('./text');
  * 
  * Create a new bitmap image
  * 
- * @param w Image width
- * @param h Image height
- * @param options Options to be passed to {@link Bitmap}
+ * @param {number} w       Image width
+ * @param {number} h       Image height
+ * @param {object} options Options to be passed to {@link Bitmap}
  * 
  * @returns {Bitmap}
  */
