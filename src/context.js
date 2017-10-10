@@ -1,30 +1,65 @@
 "use strict";
+/**@ignore */
 var uint32 = require('./uint32');
+/**@ignore */
 var NAMED_COLORS = require('./named_colors');
+/**@ignore */
 var trans = require('./transform');
+/**@ignore */
 var TEXT = require('./text');
 
+/**
+ * Context
+ * 
+ * @class Context
+ */
 class Context {
+
+    /**
+     * Creates a new pure image Context
+     * 
+     * @param {Bitmap} bitmap An instance of the {@link Bitmap} class
+     * @memberof Context
+     */
     constructor(bitmap) {
+        /**
+         * @type {Bitmap}
+         */
         this.bitmap = bitmap;
+
+        /**
+         * @type {number}
+         */
         this._fillColor = 0x000000FF;
         Object.defineProperty(this, 'fillStyle', {
             get: function() { return this._fillStyle_text; },
             set: function(val) {
                 this._fillColor = Context.colorStringToUint32(val);
+                /**
+                 * @type {string}
+                 */
                 this._fillStyle_text = val;
             }
         });
 
+        /**
+         * @type {number}
+         */
         this._strokeColor = 0x000000FF;
         Object.defineProperty(this, 'strokeStyle', {
             get: function() { return this._strokeStyle_text; },
             set: function(val) {
                 this._strokeColor = Context.colorStringToUint32(val);
+                /**
+                 * @type {string}
+                 */
                 this._strokeStyle_text = val;
             }
         });
 
+        /**
+         * @type {number}
+         */
         this._lineWidth = 1;
         Object.defineProperty(this, 'lineWidth', {
             get: function() { return this._lineWidth; },
@@ -33,6 +68,9 @@ class Context {
             }
         });
 
+        /**
+         * @type {number}
+         */
         this._globalAlpha = 1;
         Object.defineProperty(this, 'globalAlpha', {
             get: function() { return this._globalAlpha; },
@@ -41,7 +79,14 @@ class Context {
             }
         });
 
+        /**
+         * @type {Transform}
+         */
         this.transform = new trans.Transform();
+        
+        /**
+         * @type {object}
+         */
         this._font = {
             family:'invalid',
             size:12
@@ -60,29 +105,105 @@ class Context {
             }
         });
 
+        /**
+         * @type {boolean}
+         */
         this.imageSmoothingEnabled = true;
+        
+        /**
+         * @type {?any}
+         */
         this._clip = null;
     }
 
-    // transforms and state saving
+    /**
+     * Save
+     * 
+     * Save the current state of the transform
+     * 
+     * @see {@link Transform}
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     save() {
         this.transform.save();
     }
+
+    /**
+     * Translate
+     * 
+     * Translate the context according to the X and Y co-ordinates passed in
+     * 
+     * @param {number} x X position
+     * @param {number} y Y position
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     translate(x,y) {
         this.transform.translate(x,y);
     }
+
+    /**
+     * Rotate
+     * 
+     * Rorate the 
+     * 
+     * @param {number} angle The degrees of rotation (in radians)
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     rotate(angle) {
         this.transform.rotate(angle);
     }
+
+    /**
+     * Scale
+     * 
+     * Scale the current context by the amount given
+     * 
+     * @param {number} sx Scale X amount
+     * @param {number} sy Scale Y amount
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     scale(sx,sy) {
         this.transform.scale(sx,sy);
     }
+
+    /**
+     * Restore
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     restore() {
         this.transform.restore();
     }
 
 
-    //simple rect
+    /**
+     * Fill Rect
+     * 
+     * Draw a simple rectangle
+     * 
+     * @param {number} x X position
+     * @param {number} y Y position
+     * @param {number} w Width
+     * @param {number} h Height
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     fillRect(x,y,w,h) {
         for(var i=x; i<x+w; i++) {
             for(var j=y; j<y+h; j++) {
@@ -90,6 +211,19 @@ class Context {
             }
         }
     }
+
+    /**
+     * Clear Rect
+     * 
+     * @param {number} x X position
+     * @param {number} y Y position
+     * @param {number} w Width
+     * @param {number} h Height
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     clearRect(x,y,w,h) {
         for(var i=x; i<x+w; i++) {
             for(var j=y; j<y+h; j++) {
@@ -97,6 +231,19 @@ class Context {
             }
         }
     }
+
+    /**
+     * Stroke Rect
+     * 
+     * @param {number} x X position
+     * @param {number} y Y position
+     * @param {number} w Width
+     * @param {number} h Height
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     strokeRect(x,y,w,h) {
         for(var i=x; i<x+w; i++) {
             this.bitmap.setPixelRGBA(i, y, this._strokeColor);
@@ -108,8 +255,18 @@ class Context {
         }
     }
 
-
-    //set single pixel
+    /**
+     * Fill Pixel
+     * 
+     * Set a single pixel
+     * 
+     * @param {number} i 
+     * @param {number} j 
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     fillPixel(i,j) {
         if(!this.pixelInsideClip(i,j)) return;
         var new_pixel = this.calculateRGBA(i,j);
@@ -117,6 +274,17 @@ class Context {
         var final_pixel = this.composite(i,j,old_pixel,new_pixel);
         this.bitmap.setPixelRGBA(i,j,final_pixel);
     }
+
+    /**
+     * Stroke Pixel
+     * 
+     * @param {number} i
+     * @param {number} j
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     strokePixel(i,j) {
         if(!this.pixelInsideClip(i,j)) return;
         var new_pixel = this.calculateRGBA_stroke(i,j);
@@ -124,6 +292,18 @@ class Context {
         var final_pixel = this.composite(i,j,old_pixel,new_pixel);
         this.bitmap.setPixelRGBA(i,j,final_pixel);
     }
+
+    /**
+     * Fill Pixel With Color
+     * 
+     * @param {number} i 
+     * @param {number} j
+     * @param {number} col
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     fillPixelWithColor(i,j,col) {
         if(!this.pixelInsideClip(i,j)) return;
         var new_pixel = col;
@@ -132,6 +312,18 @@ class Context {
         this.bitmap.setPixelRGBA(i,j,final_pixel);
     }
 
+    /**
+     * Composite
+     * 
+     * @param {number} i
+     * @param {number} j
+     * @param {number} old_pixel
+     * @param {number} new_pixel
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     composite(i,j,old_pixel, new_pixel) {
         const old_rgba = uint32.getBytesBigEndian(old_pixel);
         const new_rgba = uint32.getBytesBigEndian(new_pixel);
@@ -153,24 +345,86 @@ class Context {
         //convert back to int
         return uint32.fromBytesBigEndian(Cf[0],Cf[1],Cf[2],Cf[3]);
     }
+
+    /**
+     * Calculate RGBA
+     * 
+     * @param {number} x X position
+     * @param {number} y Y position
+     * 
+     * @returns {number}
+     * 
+     * @memberof Context
+     */
     calculateRGBA(x,y) {
         return this._fillColor;
     }
+
+    /**
+     * Calculate RGBA Stroke
+     * 
+     * @param {number} x X position
+     * @param {number} y Y position
+     * 
+     * @returns {number}
+     * 
+     * @memberof Context
+     */
     calculateRGBA_stroke(x,y) {
         return this._strokeColor;
     }
 
 
-    //get set image data
+    /**
+     * Get Image Data
+     * 
+     * @param {number} x X position
+     * @param {number} y Y position
+     * @param {number} w Width
+     * @param {number} h Height
+     * 
+     * @returns {Bitmap}
+     * 
+     * @memberof Context
+     */
     getImageData(x,y,w,h) {
-        // console.log("pretending to do something");
         return this.bitmap;
     }
+
+    /**
+     * @ignore
+     * 
+     * *Put Image Data
+     * 
+     * @param {number} id Image ID
+     * @param {number} x X position
+     * @param {number} y Y position
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     putImageData(id, x, y) {
-        // console.log("pretending to do something");
+        throw new ("Method not yet implemented");
     }
 
-
+    /**
+     * Draw Image
+     * 
+     * @param {Bitmap} bitmap An instance of the {@link Bitmap} class to use for drawing
+     * @param {number} sx
+     * @param {number} sy
+     * @param {number} sw
+     * @param {number} sh
+     * @param {number} dx
+     * @param {number} dy
+     * @param {number} dw
+     * @param {number} dh
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     drawImage(bitmap, sx,sy,sw,sh, dx, dy, dw, dh) {
         for(var i=0; i<dw; i++) {
             var tx = i/dw;
@@ -185,32 +439,133 @@ class Context {
     }
 
 
-    // paths
+    /**
+     * Begin Path
+     * 
+     * Initialize the `path` attribue to hold the path points
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     beginPath() {
+        /**
+         * @type {Array}
+         */
         this.path = [];
     }
+
+    /**
+     * Move the "pen" to a given point specified by `x` and `y`. API sugar for {@link _moveTo}
+     * 
+     * @param {number} x X position
+     * @param {number} y Y position 
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+    * */
     moveTo(x,y) {
         return this._moveTo({x:x,y:y});
     }
+
+    /**
+     * Move the "pen" to a given point
+     * 
+     * @param {object} pt A `point` object representing a set of co-ordinates to move the "pen" to.
+     * @example this._moveTo({x: 20, y: 40})
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+    * */
     _moveTo(pt) {
         pt = this.transform.transformPoint(pt);
+        /**
+         * @type {object}
+         */
         this.pathstart = pt;
         this.path.push(['m',pt]);
     }
+
+    /**
+     * Line To
+     * 
+     * @param {number} x X position
+     * @param {number} y Y position
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     lineTo(x,y) {
         return this._lineTo({x:x, y:y});
     }
+
+    /**
+     * Line To
+     * 
+     * @param {{x: 20, y: 52}} pt A point object to draw a line to from the current set of co-ordinates
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     _lineTo(pt) {
         this.path.push(['l',this.transform.transformPoint(pt)]);
     }
+
+    /**
+     * Quadratic Curve To
+     * 
+     * Create a quadratic curve
+     * 
+     * @param {number} cp1x Curve point X position
+     * @param {number} cp1y Curve point Y position
+     * @param {number} x Curve X position
+     * @param {number} y Curve Y position
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     quadraticCurveTo(cp1x, cp1y, x,y) {
         let cp1 = this.transform.transformPoint({x:cp1x, y:cp1y});
         let pt = this.transform.transformPoint({x:x, y:y});
         this.path.push(['q', cp1, pt]);
     }
+
+    /**
+     * Bezier Curve To
+     * 
+     * Create a bezier curve betweeen two points
+     * 
+     * @param {number} cp1x Curve point 1 X position
+     * @param {number} cp1y Curve point 1 Y position
+     * @param {number} cp2x Curve point 2 X position
+     * @param {number} cp2y Curve point 2 Y position
+     * @param {number} x Curve X position
+     * @param {number} y Curve Y position
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
         this._bezierCurveTo({x:cp1x,y:cp1y},{x:cp2x,y:cp2y}, {x:x,y:y});
     }
+
+    /**
+     * Bezier Curve To
+     * 
+     * @param {number} cp1 Curve point 1
+     * @param {number} cp2 Curve point 2
+     * @param {number} pt 
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+    * */
     _bezierCurveTo(cp1, cp2, pt) {
         cp1 = this.transform.transformPoint(cp1);
         cp2 = this.transform.transformPoint(cp2);
@@ -218,6 +573,20 @@ class Context {
         this.path.push(['b', cp1, cp2, pt]);
     }
 
+    /**
+     * Arc
+     * 
+     * @param {number} x X position
+     * @param {number} y Y position
+     * @param {number} rad Arc radius
+     * @param {number} start Arc start
+     * @param {number} end Arc end
+     * @param {boolean} clockwise Set arc direction (`true` for clockwise, `false` for anti-clockwise)
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     arc(x,y, rad, start, end, clockwise) {
         function calcPoint(ctx,type,angle) {
             let px = x + Math.sin(angle)*rad;
@@ -230,34 +599,109 @@ class Context {
         }
         this._lineTo(calcPoint(this,'l',end));
     }
+
+    /**
+     * Arc To
+     * 
+     * @throws {Error} Method is not yet implemented
+     * 
+     * @memberof Context
+     */
     arcTo() {
         throw new Error("arcTo not yet supported");
     }
+
+    /**
+     * Rect
+     * 
+     * @throws {Error} Method is not yet implemented
+     * 
+     * @memberof Context
+     */
     rect() {
         throw new Error("rect not yet supported");
     }
+
+    /**
+     * Ellipse
+     * 
+     * @throws {Error} Method is not yet implemented
+     * 
+     * @memberof Context
+     */
     ellipse() {
         throw new Error("ellipse not yet supported");
     }
+
+    /**
+     * Clip
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     clip() {
         this._clip = pathToLines(this.path);
     }
+
+    /**
+     * Measure Text
+     * 
+     * @throws {Error} Method is not yet implemented
+     * 
+     * @memberof Context
+     */
     measureText() {
         throw new Error("measureText not yet supported");
     }
 
+    /**
+     * Close Path
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     closePath() {
         this.path.push(['l',this.pathstart]);
     }
 
 
-    //stroke and fill paths
+    /**
+     * Stroke
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     stroke() {
         pathToLines(this.path).forEach((line)=> this.drawLine(line));
     }
+
+    /**
+     * Draw Line
+     * 
+     * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     drawLine(line) {
         this.imageSmoothingEnabled?this.drawLine_aa(line):this.drawLine_noaa(line)
     }
+
+    /**
+     * Draw Line NoAA
+     * 
+     * Draw a line with anti-aliasing disabled
+     * 
+     * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     drawLine_noaa(line) {
         //Bresenham's from Rosetta Code
         // http://rosettacode.org/wiki/Bitmap/Bresenham's_line_algorithm#JavaScript
@@ -277,8 +721,17 @@ class Context {
             if (e2 < dy) { err += dx; y0 += sy; }
         }
     }
-    // antialiased Bresenham's line with width
-    // http://members.chello.at/~easyfilter/bresenham.html
+    
+    /**
+     * Draw Line Anti-aliased
+     * 
+     * Anti-aliased Bressenham's line with width
+     * 
+     * @see http://members.chello.at/~easyfilter/bresenham.html
+     * 
+     * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
+     * @memberof Context
+     */
     drawLine_aa(line) {
         let width = this._lineWidth;
         let x0 = Math.floor(line.start.x);
@@ -317,9 +770,24 @@ class Context {
         }
     }
 
+    /**
+     * Fill
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     fill() {
         this.imageSmoothingEnabled ? this.fill_aa() : this.fill_noaa();
     }
+
+    /**
+     * Fill Anti-aliased
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     fill_aa() {
         //get just the color part
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);
@@ -356,6 +824,14 @@ class Context {
             }
         }
     }
+
+    /**
+     * Fill No Anti-aliased
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     fill_noaa() {
         //get just the color part
         var rgb = uint32.and(this._fillColor, 0xFFFFFF00);
@@ -382,11 +858,24 @@ class Context {
                 }
             }
         }
-    }
+    } 
 
-    //even/odd rule. https://en.wikipedia.org/wiki/Point_in_polygon
-    //technically this is not correct as the default algorithm for
-    //html canvas is supposed to be the non-zero winding rule instead
+    /**
+     * Pixel Inside Clip
+     * 
+     * Even/odd rule. https://en.wikipedia.org/wiki/Point_in_polygon
+     * technically this is not correct as the default algorithm for
+     * html canvas is supposed to be the non-zero winding rule instead
+     * 
+     * @see https://en.wikipedia.org/wiki/Point_in_polygon
+     *  
+     * @param {number} i
+     * @param {number} j
+     * 
+     * @returns {void}
+     *  
+     * @memberof Context
+     */
     pixelInsideClip(i,j) {
         if(!this._clip) return true;
         // console.log("checking for clip",i,j,this._clip);
@@ -407,11 +896,49 @@ class Context {
 
 
 
-    //stroke and fill text
+    /**
+     * Fill Text
+     * 
+     * @param {string} text The text to fill
+     * @param {number} x X position
+     * @param {number} y Y position
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     fillText(text, x ,y) { TEXT.processTextPath(this, text, x,y, true);  }
+
+    /**
+     * Stroke Text
+     * 
+     * @param {string} text The text to stroke
+     * @param {number} x X position
+     * @param {number} y Y position
+     * 
+     * @returns {void}
+     * 
+     * @memberof Context
+     */
     strokeText(text, x ,y) { TEXT.processTextPath(this, text, x,y, false);  }
 
 
+    /**
+     * Color String To Unint32
+     * 
+     * Convert a color string to Uint32 notation
+     * 
+     * @static
+     * @param {number} str The color string to convert
+     * 
+     * @returns {number}
+     * 
+     * @example 
+     * var uInt32 = colorStringToUint32('#FF00FF');
+     * console.log(uInt32); // Prints 4278255615
+     * 
+     * @memberof Context
+     */
     static colorStringToUint32(str) {
         if(!str) return 0x000000;
         //hex values always get 255 for the alpha channel
@@ -442,13 +969,33 @@ class Context {
 }
 module.exports = Context;
 
-
+/**
+ * Fract
+ * 
+ * @param {number} v
+ * 
+ * @returns {number}
+ */
 function fract(v) {  return v-Math.floor(v);   }
 
-
+/**
+ * Make Line
+ * 
+ * @param {number} start
+ * @param {number} end
+ * 
+ * @returns {{start: start, end: end}}
+ */
 function makeLine  (start,end) {  return {start:start, end:end} }
 
-
+/**
+ * Path to Lines
+ * 
+ * Convert a path of points to an array of lines
+ * 
+ * @param {Array} path 
+ * @returns 
+ */
 function pathToLines(path) {
     var lines = [];
     var curr = null;
@@ -481,19 +1028,41 @@ function pathToLines(path) {
     return lines;
 }
 
+/**
+ * Calculate Quadratic
+ * 
+ * @param {number} p
+ * @param {number} t
+ * 
+ * @returns {void} 
+ */
 function calcQuadraticAtT(p, t) {
     var x = (1-t)*(1-t)*p[0].x + 2*(1-t)*t*p[1].x + t*t*p[2].x;
     var y = (1-t)*(1-t)*p[0].y + 2*(1-t)*t*p[1].y + t*t*p[2].y;
     return {x:x,y:y};
 }
 
+/**
+ * Calculate Bezier at T
+ * 
+ * @param {number} p
+ * @param {number} t
+ * 
+ * @returns {void}
+ */
 function calcBezierAtT(p, t) {
     var x = (1-t)*(1-t)*(1-t)*p[0].x + 3*(1-t)*(1-t)*t*p[1].x + 3*(1-t)*t*t*p[2].x + t*t*t*p[3].x;
     var y = (1-t)*(1-t)*(1-t)*p[0].y + 3*(1-t)*(1-t)*t*p[1].y + 3*(1-t)*t*t*p[2].y + t*t*t*p[3].y;
     return {x:x,y:y};
 }
 
-
+/**
+ * Calculate Minimum Bounds
+ * 
+ * @param {Array} lines
+ * 
+ * @returns {{x: Number.MAX_VALUE, y: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE}}
+ */
 function calcMinimumBounds(lines) {
     var bounds = {  x:  Number.MAX_VALUE, y:  Number.MAX_VALUE,  x2: Number.MIN_VALUE, y2: Number.MIN_VALUE }
     function checkPoint(pt) {
@@ -510,7 +1079,18 @@ function calcMinimumBounds(lines) {
 }
 
 
-//adapted from http://alienryderflex.com/polygon
+/**
+ * Calculate Sorted Intersections
+ * 
+ * Adopted from http://alienryderflex.com/polygon
+ * 
+ * @see http://alienryderflex.com/polygon
+ * 
+ * @param {Array} lines An {@link Array} of Lines
+ * @param {number} y 
+ * 
+ * @returns {Array}
+ */
 function calcSortedIntersections(lines,y) {
     var xlist = [];
     for(var i=0; i<lines.length; i++) {
@@ -525,8 +1105,31 @@ function calcSortedIntersections(lines,y) {
 }
 
 
-
+/**
+ * Lerp
+ * 
+ * In mathematics, linear interpolation is a method of curve fitting using linear polynomials to construct new data
+ * points within the range of a discrete set of known data points.
+ * 
+ * @param {number} a 
+ * @param {number} b 
+ * @param {number} t 
+ * 
+ * @see https://en.wikipedia.org/wiki/Linear_interpolation
+ * 
+ * @returns {number}
+ */
 function lerp(a,b,t) {  return a + (b-a)*t; }
+
+/**
+ * Clamp
+ * 
+ * @param {number} v 
+ * @param {number} min 
+ * @param {number} max 
+ * 
+ * @returns {number}
+ */
 function clamp(v,min,max) {
     if(v < min) return min;
     if(v > max) return max;

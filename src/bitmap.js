@@ -1,4 +1,6 @@
+/**@ignore */
 const uint32 = require('./uint32');
+/**@ignore */
 const Context = require('./context');
 
 /**
@@ -136,8 +138,8 @@ class Bitmap {
 
     /**
      * Get Context
-     * Get a new {Context} object for the current bitmap object
-     * 
+     * Get a new {@link Context} object for the current bitmap object
+     * `
      * @returns {Context}
      * 
      * @memberof Bitmap

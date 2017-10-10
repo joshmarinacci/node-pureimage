@@ -1,4 +1,5 @@
 /**
+ * Enumeration containing popular colors
  * @enum {string}
  */
 var NAMED_COLORS = {
