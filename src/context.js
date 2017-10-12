@@ -5,6 +5,8 @@ var trans = require('./transform');
 var TEXT = require('./text');
  /** @ignore  */
 var Point = require('./Point');
+/** @ignore */
+var Line = require('./Line');
 
 /**
  * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)
@@ -458,10 +460,6 @@ module.exports = Context;
 
 function fract(v) {  return v-Math.floor(v);   }
 
-
-function makeLine  (start,end) {  return {start:start, end:end} }
-
-
 function pathToLines(path) {
     var lines = [];
     var curr = null;
@@ -472,14 +470,14 @@ function pathToLines(path) {
         }
         if(cmd[0] == PATH_COMMAND.LINE) {
             var pt = cmd[1];
-            lines.push(makeLine(curr,pt));
+            lines.push(new Line(curr, pt));
             curr = pt;
         }
         if(cmd[0] == PATH_COMMAND.QUADRATIC_CURVE) {
             var pts = [curr, cmd[1], cmd[2]];
             for(var t=0; t<1; t+=0.1) {
                 var pt = calcQuadraticAtT(pts,t);
-                lines.push(makeLine(curr,pt));
+                lines.push(new Line(curr, pt));
                 curr = pt;
             }
         }
@@ -487,7 +485,7 @@ function pathToLines(path) {
             var pts = [curr, cmd[1], cmd[2], cmd[3]];
             for(var t=0; t<1; t+=0.1) {
                 var pt = calcBezierAtT(pts,t);
-                lines.push(makeLine(curr,pt));
+                lines.push(new Line(curr, pt));
                 curr = pt;
             }
         }
