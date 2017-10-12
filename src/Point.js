@@ -1,3 +1,10 @@
+/**
+ * Point
+ * 
+ * Represents a set of co-ordinates in 2D space
+ * 
+ * @class Point
+ */
 class Point {
     /**
      * Creates an instance of Point.
@@ -18,5 +25,5 @@ class Point {
         this.y = y;
     }
 }
-
+/** @ignore */
 module.exports = Point;

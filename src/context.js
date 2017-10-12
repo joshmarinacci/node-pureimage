@@ -3,9 +3,13 @@ var uint32 = require('./uint32');
 var NAMED_COLORS = require('./named_colors');
 var trans = require('./transform');
 var TEXT = require('./text');
-
+ /** @ignore  */
 var Point = require('./Point');
 
+/**
+ * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)
+ * @enum {string}
+ */
 const PATH_COMMAND = {
     MOVE: 'm',
     LINE: 'l',
