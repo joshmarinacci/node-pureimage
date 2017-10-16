@@ -9,7 +9,9 @@
  */
 
 "use strict";
-
+/**
+ * @ignore
+ */
 function Transform(context) {
     this.context = context;
     this.matrix = [1,0,0,1,0,0]; //initialize with the identity matrix
