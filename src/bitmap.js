@@ -5,7 +5,7 @@ const Context = require('./context');
 
 /**
  * Bitmap
- * 
+ *
  * @class Bitmap
  */
 class Bitmap {
@@ -18,17 +18,17 @@ class Bitmap {
      * @memberof Bitmap
      */
     constructor(w,h, options) {
-        
+
         /**
          * @type {number}
          */
         this.width = Math.floor(w);
-        
+
         /**
          * @type {number}
          */
         this.height = Math.floor(h);
-        
+
         /**
          * @type {ArrayBuffer}
          */
@@ -45,12 +45,12 @@ class Bitmap {
 
     /**
      * Calculate Index
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
-     * 
+     *
      * @returns {number}
-     * 
+     *
      * @memberof Bitmap
      */
     calculateIndex (x,y) {
@@ -62,13 +62,13 @@ class Bitmap {
 
     /**
      * Set Pixel RGBA
-     * 
+     *
      * @param {number} x    X position
      * @param {number} y    Y position
      * @param {number} rgba The source to be extracted
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Bitmap
      */
     setPixelRGBA(x,y,rgba) {
@@ -82,16 +82,16 @@ class Bitmap {
 
     /**
      * Set Pixel RGBA_i
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
      * @param {number} r Red level
      * @param {number} g Green level
      * @param {number} b Blue level
      * @param {number} a Alpha level
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Bitmap
      */
     setPixelRGBA_i(x,y,r,g,b,a) {
@@ -104,12 +104,12 @@ class Bitmap {
 
     /**
      * Get Pixel RGBA
-     * 
+     *
      * @param {number} x X potiion
      * @param {number} y Y position
-     * 
+     *
      * @returns {number}
-     * 
+     *
      * @memberof Bitmap
      */
     getPixelRGBA(x,y) {
@@ -123,12 +123,12 @@ class Bitmap {
 
     /**
      * Get Pixel RGBA Seperate
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Bitmap
      */
     getPixelRGBA_separate(x,y) {
@@ -139,9 +139,9 @@ class Bitmap {
     /**
      * Get Context
      * Get a new {@link Context} object for the current bitmap object
-     * `
+     *
      * @returns {Context}
-     * 
+     *
      * @memberof Bitmap
      */
     getContext() {
