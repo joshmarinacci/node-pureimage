@@ -7,6 +7,21 @@ var NAMED_COLORS = require('./named_colors');
 var trans = require('./transform');
 /**@ignore */
 var TEXT = require('./text');
+ /** @ignore  */
+var Point = require('./Point');
+/** @ignore */
+var Line = require('./Line');
+
+/**
+ * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)
+ * @enum {string}
+ */
+const PATH_COMMAND = {
+    MOVE: 'm',
+    LINE: 'l',
+    QUADRATIC_CURVE: 'q',
+    BEZIER_CURVE: 'b'
+};
 
 /**
  * Context
@@ -466,7 +481,7 @@ class Context {
      * @memberof Context
     * */
     moveTo(x,y) {
-        return this._moveTo({x:x,y:y});
+        return this._moveTo(new Point(x, y));
     }
 
     /**
@@ -486,7 +501,7 @@ class Context {
          * @type {object}
          */
         this.pathstart = pt;
-        this.path.push(['m',pt]);
+        this.path.push([PATH_COMMAND.MOVE, pt]);
     }
 
     /**
@@ -500,7 +515,7 @@ class Context {
      * @memberof Context
      */
     lineTo(x,y) {
-        return this._lineTo({x:x, y:y});
+        return this._lineTo(new Point(x, y));
     }
 
     /**
@@ -513,7 +528,7 @@ class Context {
      * @memberof Context
      */
     _lineTo(pt) {
-        this.path.push(['l',this.transform.transformPoint(pt)]);
+        this.path.push([PATH_COMMAND.LINE, this.transform.transformPoint(pt)]);
     }
 
     /**
@@ -531,9 +546,9 @@ class Context {
      * @memberof Context
      */
     quadraticCurveTo(cp1x, cp1y, x,y) {
-        let cp1 = this.transform.transformPoint({x:cp1x, y:cp1y});
-        let pt = this.transform.transformPoint({x:x, y:y});
-        this.path.push(['q', cp1, pt]);
+        let cp1 = this.transform.transformPoint(new Point(cp1x, cp1y));
+        let pt = this.transform.transformPoint(new Point(x, y));
+        this.path.push([PATH_COMMAND.QUADRATIC_CURVE, cp1, pt]);
     }
 
     /**
@@ -553,7 +568,7 @@ class Context {
      * @memberof Context
      */
     bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
-        this._bezierCurveTo({x:cp1x,y:cp1y},{x:cp2x,y:cp2y}, {x:x,y:y});
+        this._bezierCurveTo(new Point(cp1x, cp1y), new Point(cp2x, cp2y), new Point(x, y));
     }
 
     /**
@@ -571,7 +586,7 @@ class Context {
         cp1 = this.transform.transformPoint(cp1);
         cp2 = this.transform.transformPoint(cp2);
         pt  = this.transform.transformPoint(pt);
-        this.path.push(['b', cp1, cp2, pt]);
+        this.path.push([PATH_COMMAND.BEZIER_CURVE, cp1, cp2, pt]);
     }
 
     /**
@@ -592,13 +607,13 @@ class Context {
         function calcPoint(ctx,type,angle) {
             let px = x + Math.sin(angle)*rad;
             let py = y + Math.cos(angle)*rad;
-            return {x:px,y:py};
+            return new Point(px, py);
         }
-        this._moveTo(calcPoint(this,'m',start));
+        this._moveTo(calcPoint(this, PATH_COMMAND.MOVE, start));
         for(var a=start; a<=end; a+=Math.PI/16)  {
-            this._lineTo(calcPoint(this,'l',a));
+            this._lineTo(calcPoint(this, PATH_COMMAND.LINE, a));
         }
-        this._lineTo(calcPoint(this,'l',end));
+        this._lineTo(calcPoint(this, PATH_COMMAND.LINE, end));
     }
 
     /**
@@ -664,7 +679,7 @@ class Context {
      * @memberof Context
      */
     closePath() {
-        this.path.push(['l',this.pathstart]);
+        this.path.push([PATH_COMMAND.LINE, this.pathstart]);
     }
 
 
@@ -1000,28 +1015,29 @@ function makeLine  (start,end) {  return {start:start, end:end} }
 function pathToLines(path) {
     var lines = [];
     var curr = null;
+    
     path.forEach(function(cmd) {
-        if(cmd[0] == 'm') {
+        if(cmd[0] == PATH_COMMAND.MOVE) {
             curr = cmd[1];
         }
-        if(cmd[0] == 'l') {
+        if(cmd[0] == PATH_COMMAND.LINE) {
             var pt = cmd[1];
-            lines.push(makeLine(curr,pt));
+            lines.push(new Line(curr, pt));
             curr = pt;
         }
-        if(cmd[0] == 'q') {
+        if(cmd[0] == PATH_COMMAND.QUADRATIC_CURVE) {
             var pts = [curr, cmd[1], cmd[2]];
             for(var t=0; t<1; t+=0.1) {
                 var pt = calcQuadraticAtT(pts,t);
-                lines.push(makeLine(curr,pt));
+                lines.push(new Line(curr, pt));
                 curr = pt;
             }
         }
-        if(cmd[0] == 'b') {
+        if(cmd[0] == PATH_COMMAND.BEZIER_CURVE) {
             var pts = [curr, cmd[1], cmd[2], cmd[3]];
             for(var t=0; t<1; t+=0.1) {
                 var pt = calcBezierAtT(pts,t);
-                lines.push(makeLine(curr,pt));
+                lines.push(new Line(curr, pt));
                 curr = pt;
             }
         }
@@ -1040,7 +1056,7 @@ function pathToLines(path) {
 function calcQuadraticAtT(p, t) {
     var x = (1-t)*(1-t)*p[0].x + 2*(1-t)*t*p[1].x + t*t*p[2].x;
     var y = (1-t)*(1-t)*p[0].y + 2*(1-t)*t*p[1].y + t*t*p[2].y;
-    return {x:x,y:y};
+    return new Point(x, y);
 }
 
 /**
@@ -1054,7 +1070,7 @@ function calcQuadraticAtT(p, t) {
 function calcBezierAtT(p, t) {
     var x = (1-t)*(1-t)*(1-t)*p[0].x + 3*(1-t)*(1-t)*t*p[1].x + 3*(1-t)*t*t*p[2].x + t*t*t*p[3].x;
     var y = (1-t)*(1-t)*(1-t)*p[0].y + 3*(1-t)*(1-t)*t*p[1].y + 3*(1-t)*t*t*p[2].y + t*t*t*p[3].y;
-    return {x:x,y:y};
+    return new Point(x, y);
 }
 
 /**
