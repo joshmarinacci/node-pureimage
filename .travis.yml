@@ -1,0 +1,7 @@
+language: node_js
+node_js:
+    - "node"
+    - "7"
+    - "8"
+install: npm install --dev
+#after_success: npm run-script docs
