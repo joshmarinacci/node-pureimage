@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/robertmain/node-pureimage.svg?branch=master)](https://travis-ci.org/robertmain/node-pureimage)
+[![Build Status](https://travis-ci.org/joshmarinacci/node-pureimage.svg?branch=master)](https://travis-ci.org/joshmarinacci/node-pureimage)
 
 PureImage
 ==============
