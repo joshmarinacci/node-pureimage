@@ -1,7 +1,19 @@
+sudo: required
 language: node_js
 node_js:
     - "node"
     - "7"
     - "8"
-install: npm install --dev
-#after_success: npm run-script docs
+install: npm install
+script:
+  - npm run-script docs
+deploy:
+  overwrite: true
+  provider: pages
+  file_glob: true
+  file: docs/*
+  local_dir: docs
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  on:
+    branch: master
