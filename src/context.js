@@ -38,61 +38,32 @@ class Context {
      */
     constructor(bitmap) {
         /**
+         * An instance of the {@link Bitmap} class. Used for direct pixel manipulation(for example setting pixel colours)
          * @type {Bitmap}
          */
         this.bitmap = bitmap;
 
         /**
+         *  A 32-bit unsigned integer (uint32) number representing the fill color of the 2D drawing context
+         *
          * @type {number}
          */
-        this._fillColor = 0x000000FF;
-        Object.defineProperty(this, 'fillStyle', {
-            get: function() { return this._fillStyle_text; },
-            set: function(val) {
-                this._fillColor = Context.colorStringToUint32(val);
-                /**
-                 * @type {string}
-                 */
-                this._fillStyle_text = val;
-            }
-        });
+        this._fillColor = NAMED_COLORS.black;
 
         /**
          * @type {number}
          */
-        this._strokeColor = 0x000000FF;
-        Object.defineProperty(this, 'strokeStyle', {
-            get: function() { return this._strokeStyle_text; },
-            set: function(val) {
-                this._strokeColor = Context.colorStringToUint32(val);
-                /**
-                 * @type {string}
-                 */
-                this._strokeStyle_text = val;
-            }
-        });
+        this._strokeColor = NAMED_COLORS.black;
 
         /**
          * @type {number}
          */
         this._lineWidth = 1;
-        Object.defineProperty(this, 'lineWidth', {
-            get: function() { return this._lineWidth; },
-            set: function(val) {
-                this._lineWidth = val;
-            }
-        });
 
         /**
          * @type {number}
          */
         this._globalAlpha = 1;
-        Object.defineProperty(this, 'globalAlpha', {
-            get: function() { return this._globalAlpha; },
-            set: function(val) {
-                this._globalAlpha = clamp(val,0,1);
-            }
-        });
 
         /**
          * @type {Transform}
@@ -100,28 +71,15 @@ class Context {
         this.transform = new trans.Transform();
 
         /**
-         * @type {object}
+         * @type {object} Plain js object wrapping the font name and size
          */
         this._font = {
             family:'invalid',
             size:12
         };
-        Object.defineProperty(this,'font', {
-            get: function() {
-
-            },
-            set: function(val) {
-                val = val.trim();
-                var n = val.indexOf(' ');
-                var size = parseInt(val.slice(0,n));
-                var name = val.slice(n).trim();
-                this._font.family = name;
-                this._font.size = size;
-            }
-        });
 
         /**
-         * @type {boolean}
+         * @type {boolean} Enable or disable image smoothing(anti-aliasing)
          */
         this.imageSmoothingEnabled = true;
 
@@ -129,6 +87,113 @@ class Context {
          * @type {?any}
          */
         this._clip = null;
+
+        /**
+         * @type {string}
+         */
+        this._fillStyle_text = '';
+
+        /**
+         * @type {string}
+         */
+        this._strokeStyle_text = '';
+    }
+
+    /**
+     * The color or style to use inside shapes. The default is #000 (black).
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillStyle
+     * @type {string}
+     */
+    get fillStyle () {
+        return this._fillStyle_text;
+    };
+
+    /**
+     * @param {string} val
+     * @example ctx.fillStyle = 'rgba(0, 25, 234, 0.6)';
+     */
+    set fillStyle (val) {
+        this._fillColor = Context.colorStringToUint32(val);
+        this._fillStyle_text = val;
+    };
+
+    /**
+     * The color or style to use for the lines around shapes. The default is #000 (black).
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/strokeStyle
+     * @type {string}
+     */
+    get strokeStyle () {
+        return this._strokeStyle_text
+    };
+
+    /**
+     * @param {number} val
+     * @example ctx.strokeStyle = 'rgba(0, 25, 234, 0.6)';
+     */
+    set strokeStyle (val) {
+        this._strokeColor = Context.colorStringToUint32(val);
+        this._strokeStyle_text = val;
+    };
+
+    /**
+     * The thickness of lines in space units. When getting, it returns the current value (1.0 by default). When setting, zero, negative, Infinity and NaN values are ignored; otherwise the current value is set to the new value.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineWidth
+     * @type {number}
+     */
+    get lineWidth() {
+        return this._lineWidth;
+    };
+
+    /**
+     * @param {string} val
+     * @example ctx.lineWidth = 15;
+     */
+    set lineWidth(val) {
+        this._lineWidth = val;
+    };
+
+    /**
+     * The alpha value that is applied to shapes and images before they are drawn onto the canvas. The value is in the range from 0.0 (fully transparent) to 1.0 (fully opaque).
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalAlpha
+     * @type {Boolean}
+     */
+    get globalAlpha() {
+        return this._globalAlpha;
+    };
+
+    /**
+     * @param {boolean} val
+     * @example ctx.globalAlpha = 1;
+     */
+    set globalAlpha(val) {
+        this._globalAlpha = clamp(val,0,1);
+    }
+
+    /**
+     * The current text style being used when drawing text. This string uses the same syntax as the CSS font specifier
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font
+     * @type {object}
+     * @property {number} size   The an integer representing the font size to use
+     * @property {string} family The font family to set
+     */
+    get font() {};
+
+    /**
+     * @param {object} font
+     * @example ctx.globalAlpha = 1;
+     */
+    set font(val) {
+        var n         = val.trim().indexOf(' ');
+        var font_size = parseInt(val.slice(0,n));
+        var font_name = val.slice(n).trim();
+
+        this._font.family = font_name;
+        this._font.size   = font_size;
     }
 
     /**
