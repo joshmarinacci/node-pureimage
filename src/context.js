@@ -25,14 +25,14 @@ const PATH_COMMAND = {
 
 /**
  * Context
- * 
+ *
  * @class Context
  */
 class Context {
 
     /**
      * Creates a new pure image Context
-     * 
+     *
      * @param {Bitmap} bitmap An instance of the {@link Bitmap} class
      * @memberof Context
      */
@@ -98,7 +98,7 @@ class Context {
          * @type {Transform}
          */
         this.transform = new trans.Transform();
-        
+
         /**
          * @type {object}
          */
@@ -124,7 +124,7 @@ class Context {
          * @type {boolean}
          */
         this.imageSmoothingEnabled = true;
-        
+
         /**
          * @type {?any}
          */
@@ -133,13 +133,13 @@ class Context {
 
     /**
      * Save
-     * 
+     *
      * Save the current state of the transform
-     * 
+     *
      * @see {@link Transform}
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     save() {
@@ -148,14 +148,14 @@ class Context {
 
     /**
      * Translate
-     * 
+     *
      * Translate the context according to the X and Y co-ordinates passed in
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     translate(x,y) {
@@ -164,13 +164,13 @@ class Context {
 
     /**
      * Rotate
-     * 
-     * Rorate the 
-     * 
+     *
+     * Rorate the
+     *
      * @param {number} angle The degrees of rotation (in radians)
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     rotate(angle) {
@@ -179,14 +179,14 @@ class Context {
 
     /**
      * Scale
-     * 
+     *
      * Scale the current context by the amount given
-     * 
+     *
      * @param {number} sx Scale X amount
      * @param {number} sy Scale Y amount
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     scale(sx,sy) {
@@ -195,9 +195,9 @@ class Context {
 
     /**
      * Restore
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     restore() {
@@ -207,16 +207,16 @@ class Context {
 
     /**
      * Fill Rect
-     * 
+     *
      * Draw a simple rectangle
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
      * @param {number} w Width
      * @param {number} h Height
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fillRect(x,y,w,h) {
@@ -229,14 +229,14 @@ class Context {
 
     /**
      * Clear Rect
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
      * @param {number} w Width
      * @param {number} h Height
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     clearRect(x,y,w,h) {
@@ -249,14 +249,14 @@ class Context {
 
     /**
      * Stroke Rect
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
      * @param {number} w Width
      * @param {number} h Height
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     strokeRect(x,y,w,h) {
@@ -272,14 +272,14 @@ class Context {
 
     /**
      * Fill Pixel
-     * 
+     *
      * Set a single pixel
-     * 
-     * @param {number} i 
-     * @param {number} j 
-     * 
+     *
+     * @param {number} i
+     * @param {number} j
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fillPixel(i,j) {
@@ -292,12 +292,12 @@ class Context {
 
     /**
      * Stroke Pixel
-     * 
+     *
      * @param {number} i
      * @param {number} j
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     strokePixel(i,j) {
@@ -310,13 +310,13 @@ class Context {
 
     /**
      * Fill Pixel With Color
-     * 
-     * @param {number} i 
+     *
+     * @param {number} i
      * @param {number} j
      * @param {number} col
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fillPixelWithColor(i,j,col) {
@@ -329,14 +329,14 @@ class Context {
 
     /**
      * Composite
-     * 
+     *
      * @param {number} i
      * @param {number} j
      * @param {number} old_pixel
      * @param {number} new_pixel
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     composite(i,j,old_pixel, new_pixel) {
@@ -363,12 +363,12 @@ class Context {
 
     /**
      * Calculate RGBA
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
-     * 
+     *
      * @returns {number}
-     * 
+     *
      * @memberof Context
      */
     calculateRGBA(x,y) {
@@ -377,12 +377,12 @@ class Context {
 
     /**
      * Calculate RGBA Stroke
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
-     * 
+     *
      * @returns {number}
-     * 
+     *
      * @memberof Context
      */
     calculateRGBA_stroke(x,y) {
@@ -392,14 +392,14 @@ class Context {
 
     /**
      * Get Image Data
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
      * @param {number} w Width
      * @param {number} h Height
-     * 
+     *
      * @returns {Bitmap}
-     * 
+     *
      * @memberof Context
      */
     getImageData(x,y,w,h) {
@@ -408,15 +408,15 @@ class Context {
 
     /**
      * @ignore
-     * 
+     *
      * *Put Image Data
-     * 
+     *
      * @param {number} id Image ID
      * @param {number} x  X position
      * @param {number} y  Y position
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     putImageData(id, x, y) {
@@ -425,7 +425,7 @@ class Context {
 
     /**
      * Draw Image
-     * 
+     *
      * @param {Bitmap} bitmap An instance of the {@link Bitmap} class to use for drawing
      * @param {number} sx
      * @param {number} sy
@@ -435,9 +435,9 @@ class Context {
      * @param {number} dy
      * @param {number} dw
      * @param {number} dh
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     drawImage(bitmap, sx,sy,sw,sh, dx, dy, dw, dh) {
@@ -456,11 +456,11 @@ class Context {
 
     /**
      * Begin Path
-     * 
+     *
      * Initialize the `path` attribue to hold the path points
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     beginPath() {
@@ -472,12 +472,12 @@ class Context {
 
     /**
      * Move the "pen" to a given point specified by `x` and `y`. API sugar for {@link _moveTo}
-     * 
+     *
      * @param {number} x X position
-     * @param {number} y Y position 
-     * 
+     * @param {number} y Y position
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
     * */
     moveTo(x,y) {
@@ -486,13 +486,13 @@ class Context {
 
     /**
      * Move the "pen" to a given point
-     * 
+     *
      * @param {object} pt A `point` object representing a set of co-ordinates to move the "pen" to.
-     * 
+     *
      * @example this._moveTo({x: 20, y: 40})
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
     * */
     _moveTo(pt) {
@@ -506,12 +506,12 @@ class Context {
 
     /**
      * Line To
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     lineTo(x,y) {
@@ -520,11 +520,11 @@ class Context {
 
     /**
      * Line To
-     * 
+     *
      * @param {{x: 20, y: 52}} pt A point object to draw a line to from the current set of co-ordinates
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     _lineTo(pt) {
@@ -533,16 +533,16 @@ class Context {
 
     /**
      * Quadratic Curve To
-     * 
+     *
      * Create a quadratic curve
-     * 
+     *
      * @param {number} cp1x Curve point X position
      * @param {number} cp1y Curve point Y position
      * @param {number} x    Curve X position
      * @param {number} y    Curve Y position
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     quadraticCurveTo(cp1x, cp1y, x,y) {
@@ -553,18 +553,18 @@ class Context {
 
     /**
      * Bezier Curve To
-     * 
+     *
      * Create a bezier curve betweeen two points
-     * 
+     *
      * @param {number} cp1x Curve point 1 X position
      * @param {number} cp1y Curve point 1 Y position
      * @param {number} cp2x Curve point 2 X position
      * @param {number} cp2y Curve point 2 Y position
      * @param {number} x    Curve X position
      * @param {number} y    Curve Y position
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
@@ -573,13 +573,13 @@ class Context {
 
     /**
      * Bezier Curve To
-     * 
+     *
      * @param {number} cp1 Curve point 1
      * @param {number} cp2 Curve point 2
-     * @param {number} pt 
-     * 
+     * @param {number} pt
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
     * */
     _bezierCurveTo(cp1, cp2, pt) {
@@ -591,16 +591,16 @@ class Context {
 
     /**
      * Arc
-     * 
+     *
      * @param {number}  x         X position
      * @param {number}  y         Y position
      * @param {number}  rad       Arc radius
      * @param {number}  start     Arc start
      * @param {number}  end       Arc end
      * @param {boolean} clockwise Set arc direction (`true` for clockwise, `false` for anti-clockwise)
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     arc(x,y, rad, start, end, clockwise) {
@@ -618,9 +618,9 @@ class Context {
 
     /**
      * Arc To
-     * 
+     *
      * @throws {Error} Method is not yet implemented
-     * 
+     *
      * @memberof Context
      */
     arcTo() {
@@ -629,9 +629,9 @@ class Context {
 
     /**
      * Rect
-     * 
+     *
      * @throws {Error} Method is not yet implemented
-     * 
+     *
      * @memberof Context
      */
     rect() {
@@ -640,9 +640,9 @@ class Context {
 
     /**
      * Ellipse
-     * 
+     *
      * @throws {Error} Method is not yet implemented
-     * 
+     *
      * @memberof Context
      */
     ellipse() {
@@ -651,9 +651,9 @@ class Context {
 
     /**
      * Clip
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     clip() {
@@ -662,9 +662,9 @@ class Context {
 
     /**
      * Measure Text
-     * 
+     *
      * @throws {Error} Method is not yet implemented
-     * 
+     *
      * @memberof Context
      */
     measureText() {
@@ -673,9 +673,9 @@ class Context {
 
     /**
      * Close Path
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     closePath() {
@@ -685,9 +685,9 @@ class Context {
 
     /**
      * Stroke
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     stroke() {
@@ -696,11 +696,11 @@ class Context {
 
     /**
      * Draw Line
-     * 
+     *
      * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     drawLine(line) {
@@ -709,13 +709,13 @@ class Context {
 
     /**
      * Draw Line NoAA
-     * 
+     *
      * Draw a line with anti-aliasing disabled
-     * 
+     *
      * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     drawLine_noaa(line) {
@@ -737,14 +737,14 @@ class Context {
             if (e2 < dy) { err += dx; y0 += sy; }
         }
     }
-    
+
     /**
      * Draw Line Anti-aliased
-     * 
+     *
      * Anti-aliased Bressenham's line with width
-     * 
+     *
      * @see http://members.chello.at/~easyfilter/bresenham.html
-     * 
+     *
      * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
      * @memberof Context
      */
@@ -788,9 +788,9 @@ class Context {
 
     /**
      * Fill
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fill() {
@@ -799,9 +799,9 @@ class Context {
 
     /**
      * Fill Anti-aliased
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fill_aa() {
@@ -843,9 +843,9 @@ class Context {
 
     /**
      * Fill No Anti-aliased
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fill_noaa() {
@@ -874,22 +874,22 @@ class Context {
                 }
             }
         }
-    } 
+    }
 
     /**
      * Pixel Inside Clip
-     * 
+     *
      * Even/odd rule. https://en.wikipedia.org/wiki/Point_in_polygon
      * technically this is not correct as the default algorithm for
      * html canvas is supposed to be the non-zero winding rule instead
-     * 
+     *
      * @see https://en.wikipedia.org/wiki/Point_in_polygon
-     *  
+     *
      * @param {number} i
      * @param {number} j
-     * 
+     *
      * @returns {void}
-     *  
+     *
      * @memberof Context
      */
     pixelInsideClip(i,j) {
@@ -914,26 +914,26 @@ class Context {
 
     /**
      * Fill Text
-     * 
+     *
      * @param {string} text The text to fill
      * @param {number} x    X position
      * @param {number} y    Y position
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fillText(text, x ,y) { TEXT.processTextPath(this, text, x,y, true);  }
 
     /**
      * Stroke Text
-     * 
+     *
      * @param {string} text The text to stroke
      * @param {number} x    X position
      * @param {number} y    Y position
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     strokeText(text, x ,y) { TEXT.processTextPath(this, text, x,y, false);  }
@@ -941,18 +941,18 @@ class Context {
 
     /**
      * Color String To Unint32
-     * 
+     *
      * Convert a color string to Uint32 notation
-     * 
+     *
      * @static
      * @param {number} str The color string to convert
-     * 
+     *
      * @returns {number}
-     * 
-     * @example 
+     *
+     * @example
      * var uInt32 = colorStringToUint32('#FF00FF');
      * console.log(uInt32); // Prints 4278255615
-     * 
+     *
      * @memberof Context
      */
     static colorStringToUint32(str) {
@@ -987,35 +987,35 @@ module.exports = Context;
 
 /**
  * Fract
- * 
+ *
  * @param {number} v
- * 
+ *
  * @returns {number}
  */
 function fract(v) {  return v-Math.floor(v);   }
 
 /**
  * Make Line
- * 
+ *
  * @param {number} start
  * @param {number} end
- * 
+ *
  * @returns {{start: start, end: end}}
  */
 function makeLine  (start,end) {  return {start:start, end:end} }
 
 /**
  * Path to Lines
- * 
+ *
  * Convert a path of points to an array of lines
- * 
- * @param {Array} path 
- * @returns 
+ *
+ * @param {Array} path
+ * @returns
  */
 function pathToLines(path) {
     var lines = [];
     var curr = null;
-    
+
     path.forEach(function(cmd) {
         if(cmd[0] == PATH_COMMAND.MOVE) {
             curr = cmd[1];
@@ -1047,11 +1047,11 @@ function pathToLines(path) {
 
 /**
  * Calculate Quadratic
- * 
+ *
  * @param {number} p
  * @param {number} t
- * 
- * @returns {void} 
+ *
+ * @returns {void}
  */
 function calcQuadraticAtT(p, t) {
     var x = (1-t)*(1-t)*p[0].x + 2*(1-t)*t*p[1].x + t*t*p[2].x;
@@ -1061,10 +1061,10 @@ function calcQuadraticAtT(p, t) {
 
 /**
  * Calculate Bezier at T
- * 
+ *
  * @param {number} p
  * @param {number} t
- * 
+ *
  * @returns {void}
  */
 function calcBezierAtT(p, t) {
@@ -1075,9 +1075,9 @@ function calcBezierAtT(p, t) {
 
 /**
  * Calculate Minimum Bounds
- * 
+ *
  * @param {Array} lines
- * 
+ *
  * @returns {{x: Number.MAX_VALUE, y: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE}}
  */
 function calcMinimumBounds(lines) {
@@ -1098,14 +1098,14 @@ function calcMinimumBounds(lines) {
 
 /**
  * Calculate Sorted Intersections
- * 
+ *
  * Adopted from http://alienryderflex.com/polygon
- * 
+ *
  * @see http://alienryderflex.com/polygon
- * 
+ *
  * @param {Array} lines An {@link Array} of Lines
- * @param {number} y 
- * 
+ * @param {number} y
+ *
  * @returns {Array}
  */
 function calcSortedIntersections(lines,y) {
@@ -1124,27 +1124,27 @@ function calcSortedIntersections(lines,y) {
 
 /**
  * Lerp
- * 
+ *
  * In mathematics, linear interpolation is a method of curve fitting using linear polynomials to construct new data
  * points within the range of a discrete set of known data points.
- * 
- * @param {number} a 
- * @param {number} b 
- * @param {number} t 
- * 
+ *
+ * @param {number} a
+ * @param {number} b
+ * @param {number} t
+ *
  * @see https://en.wikipedia.org/wiki/Linear_interpolation
- * 
+ *
  * @returns {number}
  */
 function lerp(a,b,t) {  return a + (b-a)*t; }
 
 /**
  * Clamp
- * 
- * @param {number} v 
- * @param {number} min 
- * @param {number} max 
- * 
+ *
+ * @param {number} v
+ * @param {number} min
+ * @param {number} max
+ *
  * @returns {number}
  */
 function clamp(v,min,max) {

@@ -15,7 +15,7 @@ const DEFAULT_FONT_FAMILY = 'source';
 
 /**
  * Register Font
- * 
+ *
  * @param {string} binaryPath Path to the font binary file
  * @param {string} family     The name to give the font
  * @param {number} weight     The font weight to use
@@ -52,11 +52,11 @@ exports.debug_list_of_fonts = _fonts;
 
 /**
  * Find Font
- * 
+ *
  * Search the `fonts` array for a given font family name
- * 
+ *
  * @param {string} family The name of the font family to search for
- * 
+ *
  * @returns {object}
  */
 function findFont(family) {
@@ -67,13 +67,13 @@ function findFont(family) {
 
 /**
  * Process Text Path
- * 
+ *
  * @param {Context} ctx  The context to write to
  * @param {string}  text The text to write to the given Context
  * @param {number}  x    X position
  * @param {number}  y    Y position
  * @param {boolean} fill Indicates wether or not the font should be filled
- * 
+ *
  * @returns {void}
  */
 exports.processTextPath = function(ctx,text,x,y, fill) {
@@ -116,10 +116,10 @@ exports.processTextPath = function(ctx,text,x,y, fill) {
 
 /**
  * Process Text Path
- * 
+ *
  * @param {Context} ctx The canvas context on which to measure the text
  * @param {string} text The name to give the font
- * 
+ *
  * @returns {object}
  */
 exports.measureText = function(ctx,text) {
