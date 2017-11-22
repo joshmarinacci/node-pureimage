@@ -1,16 +1,11 @@
 "use strict";
-/**@ignore */
-var uint32 = require('./uint32');
-/**@ignore */
-var NAMED_COLORS = require('./named_colors');
-/**@ignore */
-var trans = require('./transform');
-/**@ignore */
-var TEXT = require('./text');
- /** @ignore  */
-var Point = require('./Point');
-/** @ignore */
-var Line = require('./Line');
+
+const Line         = require('./Line');
+const NAMED_COLORS = require('./named_colors');
+const Point        = require('./Point');
+const TEXT         = require('./text');
+const trans        = require('./transform');
+const uint32       = require('./uint32');
 
 /**
  * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)

@@ -1,4 +1,3 @@
-/** @ignore */
 const Point = require('./Point');
 
 /**

@@ -1,7 +1,6 @@
-/**@ignore */
-const uint32 = require('./uint32');
-/**@ignore */
-const Context = require('./context');
+const Context      = require('./context');
+const NAMED_COLORS = require('./named_colors');
+const uint32       = require('./uint32');
 
 /**
  * Bitmap
@@ -34,7 +33,7 @@ class Bitmap {
          */
         this.data = Buffer.alloc(w*h*4);
 
-        var fillval = 0x000000FF;
+        var fillval = NAMED_COLORS.black;
         for(var j=0; j<h; j++) {
             for (var i = 0; i < w; i++) {
                 this.setPixelRGBA(i, j, fillval);

@@ -1,5 +1,4 @@
-/** @ignore */
-var opentype = require('opentype.js');
+const opentype = require('opentype.js');
 
 
 /**

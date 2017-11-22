@@ -5,18 +5,12 @@
 //2014-11-15  line count: 401, 399, 386, 369, 349,
 
 
-/** @ignore */
-var fs = require('fs');
-/** @ignore */
-var PNG = require('pngjs').PNG;
-/** @ignore */
-var JPEG = require('jpeg-js');
-/** @ignore */
-var uint32 = require('./uint32');
-/** @ignore */
-var Bitmap = require('./bitmap');
-/** @ignore */
-var text = require('./text');
+const Bitmap = require('./bitmap');
+const fs     = require('fs');
+const JPEG   = require('jpeg-js');
+const PNG    = require('pngjs').PNG;
+const text   = require('./text');
+const uint32 = require('./uint32');
 
 /**
  * Make
