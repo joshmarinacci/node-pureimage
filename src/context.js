@@ -679,6 +679,8 @@ class Context {
     /**
      * Arc To
      *
+     * @ignore
+     *
      * @throws {Error} Method is not yet implemented
      *
      * @memberof Context
@@ -690,6 +692,8 @@ class Context {
     /**
      * Rect
      *
+     * @ignore
+     *
      * @throws {Error} Method is not yet implemented
      *
      * @memberof Context
@@ -700,6 +704,8 @@ class Context {
 
     /**
      * Ellipse
+     *
+     * @ignore
      *
      * @throws {Error} Method is not yet implemented
      *
@@ -722,6 +728,8 @@ class Context {
 
     /**
      * Measure Text
+     *
+     * @ignore
      *
      * @throws {Error} Method is not yet implemented
      *
