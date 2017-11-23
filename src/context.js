@@ -549,7 +549,10 @@ class Context {
      *
      * @param {object} pt A `point` object representing a set of co-ordinates to move the "pen" to.
      *
-     * @example this._moveTo({x: 20, y: 40})
+     * @example
+     * //All of the following are valid:
+     * this._moveTo({x: 20, y: 40})
+     * this._moveTo(new Point(20, 40))
      *
      * @returns {void}
      *
@@ -581,7 +584,7 @@ class Context {
     /**
      * Line To
      *
-     * @param {{x: 20, y: 52}} pt A point object to draw a line to from the current set of co-ordinates
+     * @param {Point} pt A point object to draw a line to from the current set of co-ordinates
      *
      * @returns {void}
      *
@@ -765,7 +768,12 @@ class Context {
     /**
      * Draw Line
      *
-     * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
+     * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
+     * @example
+     * //All of the following are valid:
+     * ctx.drawLine({start: {x: 20, y:42}, end: {x: 20, y:90}})
+     * ctx.drawLine(new Line(new Point(20, 42), new Point(20, 90)))
+     * ctx.drawLine(new Line(20, 42, 20, 90))
      *
      * @returns {void}
      *
@@ -778,9 +786,14 @@ class Context {
     /**
      * Draw Line NoAA
      *
-     * Draw a line with anti-aliasing disabled
+     * Draw a line with anti-aliasing disabled using Bresenham's algorithm
      *
-     * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
+     * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
+     * @example
+     * //All of the following are valid:
+     * ctx.drawLine({start: {x: 20, y:42}, end: {x: 20, y:90}})
+     * ctx.drawLine(new Line(new Point(20, 42), new Point(20, 90)))
+     * ctx.drawLine(new Line(20, 42, 20, 90))
      *
      * @returns {void}
      *
@@ -809,11 +822,17 @@ class Context {
     /**
      * Draw Line Anti-aliased
      *
-     * Anti-aliased Bressenham's line with width
+     * Anti-aliased Bressenham's line with width using Bresenham's algorithm
      *
      * @see http://members.chello.at/~easyfilter/bresenham.html
      *
-     * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
+     * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
+     * @example
+     * //All of the following are valid:
+     * ctx.drawLine({start: {x: 20, y:42}, end: {x: 20, y:90}})
+     * ctx.drawLine(new Line(new Point(20, 42), new Point(20, 90)))
+     * ctx.drawLine(new Line(20, 42, 20, 90))
+     *
      * @memberof Context
      */
     drawLine_aa(line) {
@@ -1061,16 +1080,6 @@ module.exports = Context;
  * @returns {number}
  */
 function fract(v) {  return v-Math.floor(v);   }
-
-/**
- * Make Line
- *
- * @param {number} start
- * @param {number} end
- *
- * @returns {{start: start, end: end}}
- */
-function makeLine  (start,end) {  return {start:start, end:end} }
 
 /**
  * Path to Lines
