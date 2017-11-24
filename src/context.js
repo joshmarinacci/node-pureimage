@@ -346,12 +346,16 @@ class Context {
      *
      * @memberof Context
      */
-    fillPixel(i,j) {
-        if(!this.pixelInsideClip(i,j)) return;
-        var new_pixel = this.calculateRGBA(i,j);
-        var old_pixel = this.bitmap.getPixelRGBA(i,j);
-        var final_pixel = this.composite(i,j,old_pixel,new_pixel);
-        this.bitmap.setPixelRGBA(i,j,final_pixel);
+    fillPixel(x,y) {
+        if(!this.pixelInsideClip(x,y)) {
+            return
+        }
+
+        var new_pixel   = this.calculateRGBA(x,y);
+        var old_pixel   = this.bitmap.getPixelRGBA(x,y);
+        var final_pixel = this.composite(x,y,old_pixel,new_pixel);
+
+        this.bitmap.setPixelRGBA(x,y,final_pixel);
     }
 
     /**
@@ -364,12 +368,16 @@ class Context {
      *
      * @memberof Context
      */
-    strokePixel(i,j) {
-        if(!this.pixelInsideClip(i,j)) return;
-        var new_pixel = this.calculateRGBA_stroke(i,j);
-        var old_pixel = this.bitmap.getPixelRGBA(i,j);
-        var final_pixel = this.composite(i,j,old_pixel,new_pixel);
-        this.bitmap.setPixelRGBA(i,j,final_pixel);
+    strokePixel(x,y) {
+        if(!this.pixelInsideClip(x,y)) {
+            return
+        }
+
+        var new_pixel   = this.calculateRGBA_stroke(x,y);
+        var old_pixel   = this.bitmap.getPixelRGBA(x,y);
+        var final_pixel = this.composite(x,y,old_pixel,new_pixel);
+
+        this.bitmap.setPixelRGBA(x,y,final_pixel);
     }
 
     /**
@@ -383,12 +391,16 @@ class Context {
      *
      * @memberof Context
      */
-    fillPixelWithColor(i,j,col) {
-        if(!this.pixelInsideClip(i,j)) return;
-        var new_pixel = col;
-        var old_pixel = this.bitmap.getPixelRGBA(i,j);
-        var final_pixel = this.composite(i,j,old_pixel,new_pixel);
-        this.bitmap.setPixelRGBA(i,j,final_pixel);
+    fillPixelWithColor(x,y,col) {
+        if(!this.pixelInsideClip(x,y)) {
+            return
+        }
+
+        var new_pixel   = col;
+        var old_pixel   = this.bitmap.getPixelRGBA(x,y);
+        var final_pixel = this.composite(x,y,old_pixel,new_pixel);
+
+        this.bitmap.setPixelRGBA(x,y,final_pixel);
     }
 
     /**
@@ -999,20 +1011,16 @@ class Context {
      *
      * @memberof Context
      */
-    pixelInsideClip(i,j) {
+    pixelInsideClip(x,y) {
         if(!this._clip) return true;
-        // console.log("checking for clip",i,j,this._clip);
         //turn into a list of lines
         // calculate intersections with a horizontal line at j
-        var ints = calcSortedIntersections(this._clip,j);
+        var ints = calcSortedIntersections(this._clip,y);
         // find the intersections to the left of i (where x < i)
-        var left = ints.filter((inter) => inter<i);
-        // console.log("intersections = ", ints, left);
+        var left = ints.filter((inter) => inter<x);
         if(left.length%2 === 0) {
-            // console.log("is even");
             return false;
-        }else {
-            // console.log("is odd");
+        } else {
             return true;
         }
     }
@@ -1248,8 +1256,8 @@ function lerp(a,b,t) {  return a + (b-a)*t; }
  *
  * @returns {number}
  */
-function clamp(v,min,max) {
-    if(v < min) return min;
-    if(v > max) return max;
-    return v;
+function clamp(value,min,max) {
+    if(value < min) return min;
+    if(value > max) return max;
+    return value;
 }
