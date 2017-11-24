@@ -1,7 +1,5 @@
 /**
- * Point
- *
- * Represents a set of co-ordinates in 2D space
+ * Represents a set of co-ordinates on a 2D plane
  *
  * @class Point
  */

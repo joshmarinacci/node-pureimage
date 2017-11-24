@@ -15,7 +15,7 @@ const DEFAULT_FONT_FAMILY = 'source';
 /**
  * Register Font
  *
- * @param {string} binaryPath Path to the font binary file
+ * @param {string} binaryPath Path to the font binary file(.eot, .ttf etc.)
  * @param {string} family     The name to give the font
  * @param {number} weight     The font weight to use
  * @param {string} style      Font style
@@ -67,7 +67,7 @@ function findFont(family) {
 /**
  * Process Text Path
  *
- * @param {Context} ctx  The context to write to
+ * @param {Context} ctx  The {@link Context} to paint on
  * @param {string}  text The text to write to the given Context
  * @param {number}  x    X position
  * @param {number}  y    Y position
@@ -116,7 +116,7 @@ exports.processTextPath = function(ctx,text,x,y, fill) {
 /**
  * Process Text Path
  *
- * @param {Context} ctx The canvas context on which to measure the text
+ * @param {Context} ctx The {@link Context} to paint on
  * @param {string} text The name to give the font
  *
  * @returns {object}

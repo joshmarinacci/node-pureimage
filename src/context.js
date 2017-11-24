@@ -337,12 +337,10 @@ class Context {
     }
 
     /**
-     * Fill Pixel
+     * Set the background colour of a single pixel denoted by the `x` and `y` co-ordinates
      *
-     * Set a single pixel
-     *
-     * @param {number} i
-     * @param {number} j
+     * @param {number} x The x axis of the pixel
+     * @param {number} y The y axis of the pixel
      *
      * @returns {void}
      *
@@ -357,10 +355,10 @@ class Context {
     }
 
     /**
-     * Stroke Pixel
+     * Paints a pixel which has an x axis position of `x` and a y axis psotion of `y`
      *
-     * @param {number} i
-     * @param {number} j
+     * @param {number} x The x axis of the pixel to stroke
+     * @param {number} y The y axis of the pixel to stroke
      *
      * @returns {void}
      *
@@ -377,8 +375,8 @@ class Context {
     /**
      * Fill Pixel With Color
      *
-     * @param {number} i
-     * @param {number} j
+     * @param {number} x   The x axis of the pixel to fill
+     * @param {number} y   The y axis of the pixel to fill
      * @param {number} col
      *
      * @returns {void}
@@ -396,8 +394,8 @@ class Context {
     /**
      * Composite
      *
-     * @param {number} i
-     * @param {number} j
+     * @param {number} i Unused
+     * @param {number} j Unused
      * @param {number} old_pixel
      * @param {number} new_pixel
      *
@@ -571,7 +569,8 @@ class Context {
     _moveTo(pt) {
         pt = this.transform.transformPoint(pt);
         /**
-         * @type {object}
+         * Set the starting co-ordinates for the path starting point
+         * @type {Point}
          */
         this.pathstart = pt;
         this.path.push([PATH_COMMAND.MOVE, pt]);
@@ -651,7 +650,7 @@ class Context {
      *
      * @param {number} cp1 Curve point 1
      * @param {number} cp2 Curve point 2
-     * @param {number} pt
+     * @param {Point}  pt
      *
      * @returns {void}
      *
@@ -786,7 +785,7 @@ class Context {
     }
 
     /**
-     * Draw Line
+     * Draw a line using the correct anti-aliased, or non-anti-aliased line drawing function based on the value of {@link imageSmoothingEnabled}
      *
      * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
      * @example
@@ -804,9 +803,8 @@ class Context {
     }
 
     /**
-     * Draw Line NoAA
      *
-     * Draw a line with anti-aliasing disabled using Bresenham's algorithm
+     * Draw a line without anti-aliasing using Bresenham's algorithm
      *
      * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
      * @example
@@ -842,7 +840,7 @@ class Context {
     /**
      * Draw Line Anti-aliased
      *
-     * Anti-aliased Bressenham's line with width using Bresenham's algorithm
+     * Draw anti-aliased line using Bresenham's algorithm
      *
      * @see http://members.chello.at/~easyfilter/bresenham.html
      *
@@ -994,8 +992,8 @@ class Context {
      *
      * @see https://en.wikipedia.org/wiki/Point_in_polygon
      *
-     * @param {number} i
-     * @param {number} j
+     * @param {number} x
+     * @param {number} y
      *
      * @returns {void}
      *
@@ -1095,21 +1093,23 @@ class Context {
 module.exports = Context;
 
 /**
- * Fract
+ * Returns the decimal portion of a given floating point number
  *
- * @param {number} v
+ * @param {number} v The number to return the declimal fration of
+ * @example
+ * console.log(fract(12.35))
+ * // Prints out 0.34999999999999964
  *
  * @returns {number}
  */
 function fract(v) {  return v-Math.floor(v);   }
 
 /**
- * Path to Lines
- *
  * Convert a path of points to an array of lines
  *
- * @param {Array} path
- * @returns
+ * @param {Array} path List of sub-paths
+ *
+ * @returns {Array<Line>}
  */
 function pathToLines(path) {
     var lines = [];
@@ -1222,7 +1222,7 @@ function calcSortedIntersections(lines,y) {
 
 
 /**
- * Lerp
+ * Linear Interpolation
  *
  * In mathematics, linear interpolation is a method of curve fitting using linear polynomials to construct new data
  * points within the range of a discrete set of known data points.
@@ -1238,11 +1238,13 @@ function calcSortedIntersections(lines,y) {
 function lerp(a,b,t) {  return a + (b-a)*t; }
 
 /**
- * Clamp
+ * Clamping is the process of limiting a position to an area
  *
- * @param {number} v
- * @param {number} min
- * @param {number} max
+ * @see https://en.wikipedia.org/wiki/Clamping_(graphics)
+ *
+ * @param {number} value The value to apply the clamp restriction to
+ * @param {number} min   Lower limit
+ * @param {number} max   Upper limit
  *
  * @returns {number}
  */
