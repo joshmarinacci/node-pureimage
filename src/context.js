@@ -114,7 +114,7 @@ class Context {
                 val = val.trim();
                 var n = val.indexOf(' ');
                 var size = parseInt(val.slice(0,n));
-                var name = val.slice(n);
+                var name = val.slice(n).trim();
                 this._font.family = name;
                 this._font.size = size;
             }
