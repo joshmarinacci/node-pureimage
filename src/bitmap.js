@@ -3,7 +3,9 @@ const NAMED_COLORS = require('./named_colors');
 const uint32       = require('./uint32');
 
 /**
- * Bitmap
+ * The Bitmap class is used for direct pixel manipulation(for example setting a pixel colour,
+ * transparency etc). It also provides a factory method for creating new instances of
+ * {@link Context}
  *
  * @class Bitmap
  */

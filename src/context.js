@@ -17,7 +17,8 @@ const PATH_COMMAND = {
     QUADRATIC_CURVE: 'q',
     BEZIER_CURVE: 'b'
 };
-/*
+
+/**
  * Used for drawing rectangles, text, images and other objects onto the canvas element. It provides the 2D rendering context for a drawing surface.
  *
  * It has the same API as [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) from the HTML5 canvas spec
@@ -25,7 +26,6 @@ const PATH_COMMAND = {
  * @class Context
  */
 class Context {
-
     /**
      * Creates a new pure image Context
      *
