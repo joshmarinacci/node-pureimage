@@ -1,10 +1,3 @@
-// Pure Image uses existing libraries for font parsing, jpeg/png encode/decode
-// and borrowed code for transform management and unsigned integer manipulation
-
-//2014-11-14  line count: 418, 411, 407, 376, 379, 367
-//2014-11-15  line count: 401, 399, 386, 369, 349,
-
-
 const Bitmap = require('./bitmap');
 const fs     = require('fs');
 const JPEG   = require('jpeg-js');
@@ -13,8 +6,6 @@ const text   = require('./text');
 const uint32 = require('./uint32');
 
 /**
- * Make
- *
  * Create a new bitmap image
  *
  * @param {number} w       Image width
