@@ -128,6 +128,8 @@ class Bitmap {
      * @param {number} x X axis position
      * @param {number} y Y axis position
      *
+     * @ignore
+     *
      * @returns {Array}
      *
      * @memberof Bitmap

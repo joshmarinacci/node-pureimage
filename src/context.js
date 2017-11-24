@@ -387,6 +387,8 @@ class Context {
      * @param {number} y   The y axis of the pixel to fill
      * @param {number} col
      *
+     * @ignore
+     *
      * @returns {void}
      *
      * @memberof Context
@@ -410,6 +412,8 @@ class Context {
      * @param {number} j Unused
      * @param {number} old_pixel
      * @param {number} new_pixel
+     *
+     * @ignore
      *
      * @returns {void}
      *
@@ -443,6 +447,8 @@ class Context {
      * @param {number} x X position
      * @param {number} y Y position
      *
+     * @ignore
+     *
      * @returns {number}
      *
      * @memberof Context
@@ -456,6 +462,8 @@ class Context {
      *
      * @param {number} x X position
      * @param {number} y Y position
+     *
+     * @ignore
      *
      * @returns {number}
      *
@@ -474,6 +482,8 @@ class Context {
      * @param {number} w Width
      * @param {number} h Height
      *
+     * @ignore
+     *
      * @returns {Bitmap}
      *
      * @memberof Context
@@ -483,13 +493,13 @@ class Context {
     }
 
     /**
-     * @ignore
-     *
      * *Put Image Data
      *
      * @param {number} id Image ID
      * @param {number} x  X position
      * @param {number} y  Y position
+     *
+     * @ignore
      *
      * @returns {void}
      *
@@ -1158,6 +1168,8 @@ function pathToLines(path) {
  * @param {number} p
  * @param {number} t
  *
+ * @ignore
+ *
  * @returns {void}
  */
 function calcQuadraticAtT(p, t) {
@@ -1184,6 +1196,8 @@ function calcBezierAtT(p, t) {
  * Calculate Minimum Bounds
  *
  * @param {Array} lines
+ *
+ * @ignore
  *
  * @returns {{x: Number.MAX_VALUE, y: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE}}
  */
@@ -1213,6 +1227,8 @@ function calcMinimumBounds(lines) {
  * @param {Array} lines An {@link Array} of Lines
  * @param {number} y
  *
+ * @ignore
+ *
  * @returns {Array}
  */
 function calcSortedIntersections(lines,y) {
@@ -1238,6 +1254,8 @@ function calcSortedIntersections(lines,y) {
  * @param {number} a
  * @param {number} b
  * @param {number} t
+ *
+ * @ignore
  *
  * @see https://en.wikipedia.org/wiki/Linear_interpolation
  *
