@@ -62,11 +62,11 @@ class Bitmap {
     }
 
     /**
-     * Set Pixel RGBA
+     * Set the RGBA(Red, Green, Blue, Alpha) values on an individual pixel level
      *
-     * @param {number} x    X position
-     * @param {number} y    Y position
-     * @param {number} rgba The source to be extracted
+     * @param {number} x    X axis position
+     * @param {number} y    Y axis position
+     * @param {number} rgba A hex representation of the RGBA value of the pixel. See {@link NAMED_COLORS} for examples
      *
      * @returns {void}
      *
@@ -82,10 +82,10 @@ class Bitmap {
     }
 
     /**
-     * Set Pixel RGBA_i
+     * Set the individual red, green, blue and alpha levels of an individual pixel
      *
-     * @param {number} x X position
-     * @param {number} y Y position
+     * @param {number} x X axis position
+     * @param {number} y Y axis position
      * @param {number} r Red level
      * @param {number} g Green level
      * @param {number} b Blue level
@@ -104,10 +104,10 @@ class Bitmap {
     }
 
     /**
-     * Get Pixel RGBA
+     * Get the RGBA value of an individual pixel as a hexadecimal number(See {@link NAMED_COLORS} for examples)
      *
-     * @param {number} x X potiion
-     * @param {number} y Y position
+     * @param {number} x X axis potiion
+     * @param {number} y Y axis position
      *
      * @returns {number}
      *
@@ -125,10 +125,10 @@ class Bitmap {
     /**
      * Get Pixel RGBA Seperate
      *
-     * @param {number} x X position
-     * @param {number} y Y position
+     * @param {number} x X axis position
+     * @param {number} y Y axis position
      *
-     * @returns {void}
+     * @returns {Array}
      *
      * @memberof Bitmap
      */
@@ -138,8 +138,7 @@ class Bitmap {
     }
 
     /**
-     * Get Context
-     * Get a new {@link Context} object for the current bitmap object
+     * {@link Context} factory. Creates a new {@link Context} instance object for the current bitmap object
      *
      * @returns {Context}
      *
