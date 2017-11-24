@@ -27,7 +27,13 @@ class Line {
      */
     constructor (){
         if (arguments.length === 4) {
+            /**
+             * @type {object}
+            */
             this.start = {};
+            /**
+             * @type {object}
+            */
             this.end   = {};
             [this.start.x, this.start.y, this.end.x, this.end.y] = arguments;
         } else if(arguments.length === 2) {
