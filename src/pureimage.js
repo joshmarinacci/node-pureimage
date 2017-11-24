@@ -90,14 +90,14 @@ exports.encodeJPEGToStream = function(img, outstream) {
 /**
  * Encode JPEG To Stream
  * 
- * Encode the JPEG image to output stream with q factor
+ * Encode the JPEG image to output stream with quality factor
  *  
  * @param {string} img       An object containing a raw buffer of the image data (`img.buffer`) along with the width(`img.width`) and height (`img.height`) of the image
  * @param {Stream} outstream The stream to write the JPEG file to
  * @param {number} q the wanted quality factor
  * @returns {Promise<object>}
  */
-exports.encodeJPEGToStream = function(img, outstream, q) {
+exports.encodeJPEGToStream = function(img, outstream, quality_factor) {
     return new Promise((res,rej)=> {
         var data = {
             data: img.data,
@@ -105,7 +105,7 @@ exports.encodeJPEGToStream = function(img, outstream, q) {
             height: img.height
         };
         outstream.on('error', (err) => rej(err));
-        outstream.write(JPEG.encode(data, q).data, () => res());
+        outstream.write(JPEG.encode(data, quality_factor).data, () => res());
     });
 };
 
