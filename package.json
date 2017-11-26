@@ -19,13 +19,14 @@
   },
   "devDependencies": {
     "esdoc": "^1.0.3",
+    "esdoc-integrate-test-plugin": "^1.0.0",
     "esdoc-member-plugin": "^1.0.0",
     "esdoc-node": "^1.0.2",
     "esdoc-standard-plugin": "^1.0.0",
-    "tape": "^4.6.3"
+    "jest": "^21.2.1"
   },
   "scripts": {
-    "test": "node tests/runtests.js",
+    "test": "./node_modules/.bin/jest",
     "docs": "./node_modules/.bin/esdoc"
   },
   "license": "MIT"
