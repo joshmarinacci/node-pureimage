@@ -94,7 +94,7 @@ exports.encodeJPEGToStream = function(img, outstream) {
  *  
  * @param {string} img       An object containing a raw buffer of the image data (`img.buffer`) along with the width(`img.width`) and height (`img.height`) of the image
  * @param {Stream} outstream The stream to write the JPEG file to
- * @param {number} q the wanted quality factor
+ * @param {number} quality_factor the wanted quality factor
  * @returns {Promise<object>}
  */
 exports.encodeJPEGToStream = function(img, outstream, quality_factor) {
