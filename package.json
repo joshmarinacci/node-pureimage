@@ -32,7 +32,10 @@
   "jest": {
     "collectCoverage": true,
     "coverageDirectory": "./tests/coverage",
-    "coverageReporters": ["lcov", "text"]
+    "coverageReporters": ["lcov", "text"],
+    "collectCoverageFrom": [
+        "src/**/*.{js}"
+      ]
   },
   "license": "MIT"
 }
