@@ -1,5 +1,5 @@
-const Point = require('../../src/Point');
-const Line  = require('../../src/Line');
+const Point = require('Point');
+const Line  = require('Line');
 
 describe('Line', () => {
 

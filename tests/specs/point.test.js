@@ -1,4 +1,4 @@
-const Point = require('../../src/Point');
+const Point = require('Point');
 
 describe('Point', () => {
     it('represents a set of x and y co-ordinates in 2D space', () => {

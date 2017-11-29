@@ -35,7 +35,11 @@
     "coverageReporters": ["lcov", "text"],
     "collectCoverageFrom": [
         "src/**/*.{js}"
-      ]
+    ],
+    "modulePaths": ["<rootDir>/src/"],
+    "notify": true,
+    "testEnvironment": "node",
+    "verbose": true
   },
   "license": "MIT"
 }
