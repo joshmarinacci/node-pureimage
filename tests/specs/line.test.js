@@ -8,7 +8,6 @@ describe('Line', () => {
         let end   = new Point(12, 6);
 
         expect(() => new Line(start, end)).not.toThrow(TypeError);
-        expect(() => new Line(6, 8)).toThrow();
     });
 
     it('can be created created from 4 numbers and uses them as start and end points', () => {

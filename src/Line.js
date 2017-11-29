@@ -46,9 +46,6 @@ class Line {
             }
         } else if(arguments.length === 2) {
             [this.start, this.end] = arguments;
-            if((this.start instanceof Point === false) || (this.end instanceof Point === false)){
-                throw TypeError('When passing two arguments, a Point object must be used for start and end');
-            }
         } else {
             throw Error('Please pass either two Point objects, or 4 integers to the constructor');
         }
