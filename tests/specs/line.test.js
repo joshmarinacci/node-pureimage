@@ -3,14 +3,14 @@ const Line  = require('Line');
 
 describe('Line', () => {
 
-    it('can be created created from two points and uses them as start and end points', () => {
+    it('can be created from two points and uses them as start and end points', () => {
         let start = new Point(6, 8);
         let end   = new Point(12, 6);
 
         expect(() => new Line(start, end)).not.toThrow(TypeError);
     });
 
-    it('can be created created from 4 numbers and uses them as start and end points', () => {
+    it('can be created from 4 numbers and uses them as start and end points', () => {
         expect(() => new Line(6, 8, 12, 6)).not.toThrow();
         expect(() => new Line({}, "spaghetti", "hello world", [])).toThrow(TypeError);
     });
