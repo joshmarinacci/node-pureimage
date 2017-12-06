@@ -1,16 +1,11 @@
 "use strict";
-/**@ignore */
-var uint32 = require('./uint32');
-/**@ignore */
-var NAMED_COLORS = require('./named_colors');
-/**@ignore */
-var trans = require('./transform');
-/**@ignore */
-var TEXT = require('./text');
- /** @ignore  */
-var Point = require('./Point');
-/** @ignore */
-var Line = require('./Line');
+
+const Line         = require('./Line');
+const NAMED_COLORS = require('./named_colors');
+const Point        = require('./Point');
+const TEXT         = require('./text');
+const trans        = require('./transform');
+const uint32       = require('./uint32');
 
 /**
  * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)
@@ -24,122 +19,187 @@ const PATH_COMMAND = {
 };
 
 /**
- * Context
- * 
+ * Used for drawing rectangles, text, images and other objects onto the canvas element. It provides the 2D rendering context for a drawing surface.
+ *
+ * It has the same API as [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) from the HTML5 canvas spec
+ *
  * @class Context
  */
 class Context {
-
     /**
      * Creates a new pure image Context
-     * 
+     *
      * @param {Bitmap} bitmap An instance of the {@link Bitmap} class
      * @memberof Context
      */
     constructor(bitmap) {
         /**
+         * An instance of the {@link Bitmap} class. Used for direct pixel manipulation(for example setting pixel colours)
          * @type {Bitmap}
          */
         this.bitmap = bitmap;
 
         /**
+         *  A 32-bit unsigned integer (uint32) number representing the fill color of the 2D drawing context
+         *
          * @type {number}
          */
-        this._fillColor = 0x000000FF;
-        Object.defineProperty(this, 'fillStyle', {
-            get: function() { return this._fillStyle_text; },
-            set: function(val) {
-                this._fillColor = Context.colorStringToUint32(val);
-                /**
-                 * @type {string}
-                 */
-                this._fillStyle_text = val;
-            }
-        });
+        this._fillColor = NAMED_COLORS.black;
 
         /**
          * @type {number}
          */
-        this._strokeColor = 0x000000FF;
-        Object.defineProperty(this, 'strokeStyle', {
-            get: function() { return this._strokeStyle_text; },
-            set: function(val) {
-                this._strokeColor = Context.colorStringToUint32(val);
-                /**
-                 * @type {string}
-                 */
-                this._strokeStyle_text = val;
-            }
-        });
+        this._strokeColor = NAMED_COLORS.black;
 
         /**
          * @type {number}
          */
         this._lineWidth = 1;
-        Object.defineProperty(this, 'lineWidth', {
-            get: function() { return this._lineWidth; },
-            set: function(val) {
-                this._lineWidth = val;
-            }
-        });
 
         /**
          * @type {number}
          */
         this._globalAlpha = 1;
-        Object.defineProperty(this, 'globalAlpha', {
-            get: function() { return this._globalAlpha; },
-            set: function(val) {
-                this._globalAlpha = clamp(val,0,1);
-            }
-        });
 
         /**
          * @type {Transform}
          */
         this.transform = new trans.Transform();
-        
+
         /**
-         * @type {object}
+         * @type {object} Plain js object wrapping the font name and size
          */
         this._font = {
             family:'invalid',
             size:12
         };
-        Object.defineProperty(this,'font', {
-            get: function() {
-
-            },
-            set: function(val) {
-                val = val.trim();
-                var n = val.indexOf(' ');
-                var size = parseInt(val.slice(0,n));
-                var name = val.slice(n).trim();
-                this._font.family = name;
-                this._font.size = size;
-            }
-        });
 
         /**
-         * @type {boolean}
+         * @type {boolean} Enable or disable image smoothing(anti-aliasing)
          */
         this.imageSmoothingEnabled = true;
-        
+
         /**
          * @type {?any}
          */
         this._clip = null;
+
+        /**
+         * @type {string}
+         */
+        this._fillStyle_text = '';
+
+        /**
+         * @type {string}
+         */
+        this._strokeStyle_text = '';
     }
 
     /**
-     * Save
-     * 
-     * Save the current state of the transform
-     * 
-     * @see {@link Transform}
-     * 
+     * The color or style to use inside shapes. The default is #000 (black).
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillStyle
+     * @type {string}
+     */
+    get fillStyle () {
+        return this._fillStyle_text;
+    };
+
+    /**
+     * @param {string} val
+     * @example ctx.fillStyle = 'rgba(0, 25, 234, 0.6)';
+     */
+    set fillStyle (val) {
+        this._fillColor = Context.colorStringToUint32(val);
+        this._fillStyle_text = val;
+    };
+
+    /**
+     * The color or style to use for the lines around shapes. The default is #000 (black).
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/strokeStyle
+     * @type {string}
+     */
+    get strokeStyle () {
+        return this._strokeStyle_text
+    };
+
+    /**
+     * @param {number} val
+     * @example ctx.strokeStyle = 'rgba(0, 25, 234, 0.6)';
+     */
+    set strokeStyle (val) {
+        this._strokeColor = Context.colorStringToUint32(val);
+        this._strokeStyle_text = val;
+    };
+
+    /**
+     * The thickness of lines in space units. When getting, it returns the current value (1.0 by default). When setting, zero, negative, `Infinity` and `NaN` values are ignored; otherwise the current value is set to the new value.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineWidth
+     * @type {number}
+     */
+    get lineWidth() {
+        return this._lineWidth;
+    };
+
+    /**
+     * @param {string} val
+     * @example ctx.lineWidth = 15;
+     */
+    set lineWidth(val) {
+        this._lineWidth = val;
+    };
+
+    /**
+     * The alpha value that is applied to shapes and images before they are drawn onto the canvas. The value is in the range from 0.0 (fully transparent) to 1.0 (fully opaque).
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalAlpha
+     * @type {Boolean}
+     */
+    get globalAlpha() {
+        return this._globalAlpha;
+    };
+
+    /**
+     * @param {boolean} val
+     * @example ctx.globalAlpha = 1;
+     */
+    set globalAlpha(val) {
+        this._globalAlpha = clamp(val,0,1);
+    }
+
+    /**
+     * The current text style being used when drawing text. This string uses the same syntax as the CSS font specifier
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font
+     * @type {object}
+     * @property {number} size   The an integer representing the font size to use
+     * @property {string} family The font family to set
+     */
+    get font() {};
+
+    /**
+     * @param {object} font
+     * @example ctx.globalAlpha = 1;
+     */
+    set font(val) {
+        var n         = val.trim().indexOf(' ');
+        var font_size = parseInt(val.slice(0,n));
+        var font_name = val.slice(n).trim();
+
+        this._font.family = font_name;
+        this._font.size   = font_size;
+    }
+
+
+    /**
+     * Saves the entire state of the canvas by pushing the current state onto a stack
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     save() {
@@ -147,15 +207,15 @@ class Context {
     }
 
     /**
-     * Translate
-     * 
-     * Translate the context according to the X and Y co-ordinates passed in
-     * 
+     * Adds a translation transformation by moving the canvas and its origin `x` horizontally and `y` vertically on the grid
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/translate
+     *
      * @param {number} x X position
      * @param {number} y Y position
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     translate(x,y) {
@@ -163,14 +223,14 @@ class Context {
     }
 
     /**
-     * Rotate
-     * 
-     * Rorate the 
-     * 
-     * @param {number} angle The degrees of rotation (in radians)
-     * 
+     * Add a rotation to the transformation matrix. The angle argument represents a clockwise rotation angle and is expressed in adians
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate
+     *
+     * @param {number} angle Degrees of rotation (in radians)
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     rotate(angle) {
@@ -178,15 +238,15 @@ class Context {
     }
 
     /**
-     * Scale
-     * 
-     * Scale the current context by the amount given
-     * 
+     * Adds a scaling transformation to the canvas units by `x` horizontally and by `y` vertically
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate
+     *
      * @param {number} sx Scale X amount
      * @param {number} sy Scale Y amount
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     scale(sx,sy) {
@@ -194,10 +254,12 @@ class Context {
     }
 
     /**
-     * Restore
-     * 
+     * Restores the most recently saved canvas state by popping the top entry in the drawing state stack. If there is no saved state, this method does nothing.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     restore() {
@@ -206,17 +268,17 @@ class Context {
 
 
     /**
-     * Fill Rect
-     * 
-     * Draw a simple rectangle
-     * 
+     * Draws a filled rectangle whose starting point is at the coordinates `(x, y)` with the specified width and height and whose style is determined by the fillStyle attribute.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillRect
+     *
      * @param {number} x X position
      * @param {number} y Y position
      * @param {number} w Width
      * @param {number} h Height
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fillRect(x,y,w,h) {
@@ -228,15 +290,17 @@ class Context {
     }
 
     /**
-     * Clear Rect
-     * 
+     * Sets all pixels in the rectangle defined by starting point `(x, y)` and size `(width, height)` to transparent black, erasing any previously drawn content.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect
+     *
      * @param {number} x X position
      * @param {number} y Y position
      * @param {number} w Width
      * @param {number} h Height
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     clearRect(x,y,w,h) {
@@ -248,15 +312,17 @@ class Context {
     }
 
     /**
-     * Stroke Rect
-     * 
+     * Paints a rectangle which has a starting point at `(x, y)` and has a `w` width and an `h` height onto the canvas, using the current stroke style.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/strokeRect
+     *
      * @param {number} x X position
      * @param {number} y Y position
      * @param {number} w Width
      * @param {number} h Height
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     strokeRect(x,y,w,h) {
@@ -271,72 +337,86 @@ class Context {
     }
 
     /**
-     * Fill Pixel
-     * 
-     * Set a single pixel
-     * 
-     * @param {number} i 
-     * @param {number} j 
-     * 
+     * Set the background colour of a single pixel denoted by the `x` and `y` co-ordinates
+     *
+     * @param {number} x The x axis of the pixel
+     * @param {number} y The y axis of the pixel
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
-    fillPixel(i,j) {
-        if(!this.pixelInsideClip(i,j)) return;
-        var new_pixel = this.calculateRGBA(i,j);
-        var old_pixel = this.bitmap.getPixelRGBA(i,j);
-        var final_pixel = this.composite(i,j,old_pixel,new_pixel);
-        this.bitmap.setPixelRGBA(i,j,final_pixel);
+    fillPixel(x,y) {
+        if(!this.pixelInsideClip(x,y)) {
+            return
+        }
+
+        var new_pixel   = this.calculateRGBA(x,y);
+        var old_pixel   = this.bitmap.getPixelRGBA(x,y);
+        var final_pixel = this.composite(x,y,old_pixel,new_pixel);
+
+        this.bitmap.setPixelRGBA(x,y,final_pixel);
     }
 
     /**
-     * Stroke Pixel
-     * 
-     * @param {number} i
-     * @param {number} j
-     * 
+     * Paints a pixel which has an x axis position of `x` and a y axis psotion of `y`
+     *
+     * @param {number} x The x axis of the pixel to stroke
+     * @param {number} y The y axis of the pixel to stroke
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
-    strokePixel(i,j) {
-        if(!this.pixelInsideClip(i,j)) return;
-        var new_pixel = this.calculateRGBA_stroke(i,j);
-        var old_pixel = this.bitmap.getPixelRGBA(i,j);
-        var final_pixel = this.composite(i,j,old_pixel,new_pixel);
-        this.bitmap.setPixelRGBA(i,j,final_pixel);
+    strokePixel(x,y) {
+        if(!this.pixelInsideClip(x,y)) {
+            return
+        }
+
+        var new_pixel   = this.calculateRGBA_stroke(x,y);
+        var old_pixel   = this.bitmap.getPixelRGBA(x,y);
+        var final_pixel = this.composite(x,y,old_pixel,new_pixel);
+
+        this.bitmap.setPixelRGBA(x,y,final_pixel);
     }
 
     /**
      * Fill Pixel With Color
-     * 
-     * @param {number} i 
-     * @param {number} j
+     *
+     * @param {number} x   The x axis of the pixel to fill
+     * @param {number} y   The y axis of the pixel to fill
      * @param {number} col
-     * 
+     *
+     * @ignore
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
-    fillPixelWithColor(i,j,col) {
-        if(!this.pixelInsideClip(i,j)) return;
-        var new_pixel = col;
-        var old_pixel = this.bitmap.getPixelRGBA(i,j);
-        var final_pixel = this.composite(i,j,old_pixel,new_pixel);
-        this.bitmap.setPixelRGBA(i,j,final_pixel);
+    fillPixelWithColor(x,y,col) {
+        if(!this.pixelInsideClip(x,y)) {
+            return
+        }
+
+        var new_pixel   = col;
+        var old_pixel   = this.bitmap.getPixelRGBA(x,y);
+        var final_pixel = this.composite(x,y,old_pixel,new_pixel);
+
+        this.bitmap.setPixelRGBA(x,y,final_pixel);
     }
 
     /**
      * Composite
-     * 
-     * @param {number} i
-     * @param {number} j
+     *
+     * @param {number} i Unused
+     * @param {number} j Unused
      * @param {number} old_pixel
      * @param {number} new_pixel
-     * 
+     *
+     * @ignore
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     composite(i,j,old_pixel, new_pixel) {
@@ -363,12 +443,14 @@ class Context {
 
     /**
      * Calculate RGBA
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
-     * 
+     *
+     * @ignore
+     *
      * @returns {number}
-     * 
+     *
      * @memberof Context
      */
     calculateRGBA(x,y) {
@@ -377,12 +459,14 @@ class Context {
 
     /**
      * Calculate RGBA Stroke
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
-     * 
+     *
+     * @ignore
+     *
      * @returns {number}
-     * 
+     *
      * @memberof Context
      */
     calculateRGBA_stroke(x,y) {
@@ -392,14 +476,16 @@ class Context {
 
     /**
      * Get Image Data
-     * 
+     *
      * @param {number} x X position
      * @param {number} y Y position
      * @param {number} w Width
      * @param {number} h Height
-     * 
+     *
+     * @ignore
+     *
      * @returns {Bitmap}
-     * 
+     *
      * @memberof Context
      */
     getImageData(x,y,w,h) {
@@ -407,16 +493,16 @@ class Context {
     }
 
     /**
-     * @ignore
-     * 
      * *Put Image Data
-     * 
+     *
      * @param {number} id Image ID
      * @param {number} x  X position
      * @param {number} y  Y position
-     * 
+     *
+     * @ignore
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     putImageData(id, x, y) {
@@ -424,20 +510,22 @@ class Context {
     }
 
     /**
-     * Draw Image
-     * 
+     * Provides different ways to draw an image onto the canvas.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+     *
      * @param {Bitmap} bitmap An instance of the {@link Bitmap} class to use for drawing
-     * @param {number} sx
-     * @param {number} sy
-     * @param {number} sw
-     * @param {number} sh
-     * @param {number} dx
-     * @param {number} dy
-     * @param {number} dw
-     * @param {number} dh
-     * 
+     * @param {number} sx     The X coordinate of the top left corner of the sub-rectangle of the source image to draw into the destination context.
+     * @param {number} sy     The Y coordinate of the top left corner of the sub-rectangle of the source image to draw into the destination context.
+     * @param {number} sw     The width of the sub-rectangle of the source {@link Bitmap} to draw into the destination context. If not specified, the entire rectangle from the coordinates specified by `sx` and `sy` to the bottom-right corner of the image is used.
+     * @param {number} sh     The height of the sub-rectangle of the source {@link Bitmap} to draw into the destination context.
+     * @param {number} dx     The X coordinate in the destination canvas at which to place the top-left corner of the source {@link Bitmap}
+     * @param {number} dy     The Y coordinate in the destination canvas at which to place the top-left corner of the source {@link Bitmap}
+     * @param {number} dw     The width to draw the {@link Bitmap} in the destination canvas. This allows scaling of the drawn image. If not specified, the image is not scaled in width when drawn
+     * @param {number} dh     The height to draw the {@link Bitmap} in the destination canvas. This allows scaling of the drawn image. If not specified, the image is not scaled in height when drawn
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     drawImage(bitmap, sx,sy,sw,sh, dx, dy, dw, dh) {
@@ -455,12 +543,12 @@ class Context {
 
 
     /**
-     * Begin Path
-     * 
-     * Initialize the `path` attribue to hold the path points
-     * 
+     * Starts a new path by emptying the list of sub-paths. Call this method when you want to create a new path.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/beginPath
+     *
      * @returns {void}
-     * 
+     *o
      * @memberof Context
      */
     beginPath() {
@@ -471,13 +559,15 @@ class Context {
     }
 
     /**
-     * Move the "pen" to a given point specified by `x` and `y`. API sugar for {@link _moveTo}
-     * 
-     * @param {number} x X position
-     * @param {number} y Y position 
-     * 
+     * Moves the starting point of a new sub-path to the (x, y) coordinates.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/moveTo
+     *
+     * @param {number} x The x axis of the point.
+     * @param {number} y The y axis of the point.
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
     * */
     moveTo(x,y) {
@@ -485,33 +575,39 @@ class Context {
     }
 
     /**
-     * Move the "pen" to a given point
-     * 
-     * @param {object} pt A `point` object representing a set of co-ordinates to move the "pen" to.
-     * 
-     * @example this._moveTo({x: 20, y: 40})
-     * 
+     * Moves the starting point of a new sub-path to the (x, y) coordinates.
+     *
+     * @param {Point} pt A `point` object representing a set of co-ordinates to move the "pen" to.
+     *
+     * @example
+     * //All of the following are valid:
+     * this._moveTo({x: 20, y: 40})
+     * this._moveTo(new Point(20, 40))
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
     * */
     _moveTo(pt) {
         pt = this.transform.transformPoint(pt);
         /**
-         * @type {object}
+         * Set the starting co-ordinates for the path starting point
+         * @type {Point}
          */
         this.pathstart = pt;
         this.path.push([PATH_COMMAND.MOVE, pt]);
     }
 
     /**
-     * Line To
-     * 
-     * @param {number} x X position
-     * @param {number} y Y position
-     * 
+     * Connects the last point in the sub-path to the x, y coordinates with a straight line (but does not actually draw it).
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineTo
+     *
+     * @param {number} x The x axis of the coordinate for the end of the line.
+     * @param {number} y The y axis of the coordinate for the end of the line.
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     lineTo(x,y) {
@@ -519,12 +615,12 @@ class Context {
     }
 
     /**
-     * Line To
-     * 
-     * @param {{x: 20, y: 52}} pt A point object to draw a line to from the current set of co-ordinates
-     * 
+     * Connects the last point in the sub-path to the x, y coordinates with a straight line (but does not actually draw it).
+     *
+     * @param {Point} pt A point object to draw a line to from the current set of co-ordinates
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     _lineTo(pt) {
@@ -532,39 +628,39 @@ class Context {
     }
 
     /**
-     * Quadratic Curve To
-     * 
-     * Create a quadratic curve
-     * 
-     * @param {number} cp1x Curve point X position
-     * @param {number} cp1y Curve point Y position
-     * @param {number} x    Curve X position
-     * @param {number} y    Curve Y position
-     * 
+     * Adds a quadratic Bézier curve to the path. It requires two points. The first point is a control point and the second one is the end point. The starting point is the last point in the current path, which can be changed using moveTo() before creating the quadratic Bézier curve.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/quadraticCurveTo
+     *
+     * @param {number} cp1x The x axis of the coordinate for the control point.
+     * @param {number} cp1y The y axis of the coordinate for the control point.
+     * @param {number} x    The x axis of the coordinate for the end point.
+     * @param {number} y    The y axis of the coordinate for the end point.
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     quadraticCurveTo(cp1x, cp1y, x,y) {
         let cp1 = this.transform.transformPoint(new Point(cp1x, cp1y));
-        let pt = this.transform.transformPoint(new Point(x, y));
+        let pt  = this.transform.transformPoint(new Point(x, y));
         this.path.push([PATH_COMMAND.QUADRATIC_CURVE, cp1, pt]);
     }
 
     /**
-     * Bezier Curve To
-     * 
-     * Create a bezier curve betweeen two points
-     * 
-     * @param {number} cp1x Curve point 1 X position
-     * @param {number} cp1y Curve point 1 Y position
-     * @param {number} cp2x Curve point 2 X position
-     * @param {number} cp2y Curve point 2 Y position
-     * @param {number} x    Curve X position
-     * @param {number} y    Curve Y position
-     * 
+     * Adds a cubic Bézier curve to the path. It requires three points. The first two points are control points and the third one is the end point. The starting point is the last point in the current path, which can be changed using moveTo() before creating the Bézier curve.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/bezierCurveTo
+     *
+     * @param {number} cp1x The x axis of the coordinate for the first control point.
+     * @param {number} cp1y The y axis of the coordinate for first control point.
+     * @param {number} cp2x The x axis of the coordinate for the second control point.
+     * @param {number} cp2y The y axis of the coordinate for the second control point.
+     * @param {number} x    The x axis of the coordinate for the end point.
+     * @param {number} y    The y axis of the coordinate for the end point.
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
@@ -573,13 +669,13 @@ class Context {
 
     /**
      * Bezier Curve To
-     * 
+     *
      * @param {number} cp1 Curve point 1
      * @param {number} cp2 Curve point 2
-     * @param {number} pt 
-     * 
+     * @param {Point}  pt
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
     * */
     _bezierCurveTo(cp1, cp2, pt) {
@@ -590,17 +686,19 @@ class Context {
     }
 
     /**
-     * Arc
-     * 
-     * @param {number}  x         X position
-     * @param {number}  y         Y position
-     * @param {number}  rad       Arc radius
-     * @param {number}  start     Arc start
-     * @param {number}  end       Arc end
-     * @param {boolean} clockwise Set arc direction (`true` for clockwise, `false` for anti-clockwise)
-     * 
+     * Adds an arc to the path which is centered at (x, y) position with radius r starting at startAngle and ending at endAngle going in the given direction by anticlockwise (defaulting to clockwise).
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/arc
+     *
+     * @param {number}  x         The x coordinate of the arc's center
+     * @param {number}  y         The y coordinate of the arc's center
+     * @param {number}  rad       The arc's radius
+     * @param {number}  start     The angle at which the arc starts, measured clockwise from the positive x axis and expressed in radians
+     * @param {number}  end       The angle at which the arc ends, measured clockwise from the positive x axis and expressed in radians
+     * @param {boolean} clockwise A boolean which, if true, causes the arc to be drawn clockwise between the two angles.
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     arc(x,y, rad, start, end, clockwise) {
@@ -618,9 +716,11 @@ class Context {
 
     /**
      * Arc To
-     * 
+     *
+     * @ignore
+     *
      * @throws {Error} Method is not yet implemented
-     * 
+     *
      * @memberof Context
      */
     arcTo() {
@@ -629,9 +729,11 @@ class Context {
 
     /**
      * Rect
-     * 
+     *
+     * @ignore
+     *
      * @throws {Error} Method is not yet implemented
-     * 
+     *
      * @memberof Context
      */
     rect() {
@@ -640,9 +742,11 @@ class Context {
 
     /**
      * Ellipse
-     * 
+     *
+     * @ignore
+     *
      * @throws {Error} Method is not yet implemented
-     * 
+     *
      * @memberof Context
      */
     ellipse() {
@@ -650,10 +754,12 @@ class Context {
     }
 
     /**
-     * Clip
-     * 
+     * Turns the path currently being built into the current clipping path.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clip
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     clip() {
@@ -662,9 +768,11 @@ class Context {
 
     /**
      * Measure Text
-     * 
+     *
+     * @ignore
+     *
      * @throws {Error} Method is not yet implemented
-     * 
+     *
      * @memberof Context
      */
     measureText() {
@@ -672,10 +780,12 @@ class Context {
     }
 
     /**
-     * Close Path
-     * 
+     * Causes the point of the pen to move back to the start of the current sub-path. It tries to add a straight line (but does not actually draw it) from the current point to the start. If the shape has already been closed or has only one point, this function does nothing.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/closePath
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     closePath() {
@@ -684,10 +794,12 @@ class Context {
 
 
     /**
-     * Stroke
-     * 
+     * Strokes the current or given path with the current stroke style
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/stroke
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     stroke() {
@@ -695,12 +807,17 @@ class Context {
     }
 
     /**
-     * Draw Line
-     * 
-     * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
-     * 
+     * Draw a line using the correct anti-aliased, or non-anti-aliased line drawing function based on the value of {@link imageSmoothingEnabled}
+     *
+     * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
+     * @example
+     * //All of the following are valid:
+     * ctx.drawLine({start: {x: 20, y:42}, end: {x: 20, y:90}})
+     * ctx.drawLine(new Line(new Point(20, 42), new Point(20, 90)))
+     * ctx.drawLine(new Line(20, 42, 20, 90))
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     drawLine(line) {
@@ -708,14 +825,18 @@ class Context {
     }
 
     /**
-     * Draw Line NoAA
-     * 
-     * Draw a line with anti-aliasing disabled
-     * 
-     * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
-     * 
+     *
+     * Draw a line without anti-aliasing using Bresenham's algorithm
+     *
+     * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
+     * @example
+     * //All of the following are valid:
+     * ctx.drawLine({start: {x: 20, y:42}, end: {x: 20, y:90}})
+     * ctx.drawLine(new Line(new Point(20, 42), new Point(20, 90)))
+     * ctx.drawLine(new Line(20, 42, 20, 90))
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     drawLine_noaa(line) {
@@ -737,15 +858,21 @@ class Context {
             if (e2 < dy) { err += dx; y0 += sy; }
         }
     }
-    
+
     /**
      * Draw Line Anti-aliased
-     * 
-     * Anti-aliased Bressenham's line with width
-     * 
+     *
+     * Draw anti-aliased line using Bresenham's algorithm
+     *
      * @see http://members.chello.at/~easyfilter/bresenham.html
-     * 
-     * @param {{start: {x: 42, y: 30}, end: {x: 10, y: 20}}} line A set of co-ordinates representing the start and end of the line
+     *
+     * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
+     * @example
+     * //All of the following are valid:
+     * ctx.drawLine({start: {x: 20, y:42}, end: {x: 20, y:90}})
+     * ctx.drawLine(new Line(new Point(20, 42), new Point(20, 90)))
+     * ctx.drawLine(new Line(20, 42, 20, 90))
+     *
      * @memberof Context
      */
     drawLine_aa(line) {
@@ -787,10 +914,12 @@ class Context {
     }
 
     /**
-     * Fill
-     * 
+     * Fills the current or given path with the current fill style. Uses {@link fill_aa} and {@link fill_noaa} depending on the the value of {@link imageSmoothingEnabled}
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fill
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fill() {
@@ -799,9 +928,9 @@ class Context {
 
     /**
      * Fill Anti-aliased
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fill_aa() {
@@ -843,9 +972,9 @@ class Context {
 
     /**
      * Fill No Anti-aliased
-     * 
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fill_noaa() {
@@ -874,66 +1003,62 @@ class Context {
                 }
             }
         }
-    } 
+    }
 
     /**
      * Pixel Inside Clip
-     * 
+     *
      * Even/odd rule. https://en.wikipedia.org/wiki/Point_in_polygon
      * technically this is not correct as the default algorithm for
      * html canvas is supposed to be the non-zero winding rule instead
-     * 
+     *
      * @see https://en.wikipedia.org/wiki/Point_in_polygon
-     *  
-     * @param {number} i
-     * @param {number} j
-     * 
+     *
+     * @param {number} x
+     * @param {number} y
+     *
      * @returns {void}
-     *  
+     *
      * @memberof Context
      */
-    pixelInsideClip(i,j) {
+    pixelInsideClip(x,y) {
         if(!this._clip) return true;
-        // console.log("checking for clip",i,j,this._clip);
         //turn into a list of lines
         // calculate intersections with a horizontal line at j
-        var ints = calcSortedIntersections(this._clip,j);
+        var ints = calcSortedIntersections(this._clip,y);
         // find the intersections to the left of i (where x < i)
-        var left = ints.filter((inter) => inter<i);
-        // console.log("intersections = ", ints, left);
+        var left = ints.filter((inter) => inter<x);
         if(left.length%2 === 0) {
-            // console.log("is even");
             return false;
-        }else {
-            // console.log("is odd");
+        } else {
             return true;
         }
     }
 
-
-
     /**
-     * Fill Text
-     * 
-     * @param {string} text The text to fill
-     * @param {number} x    X position
-     * @param {number} y    Y position
-     * 
+     *  Draws a text string at the specified coordinates, filling the string's characters with the current foreground color
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillText
+     *
+     * @param {string} text A string specifying the text string to render into the context. The text is rendered using the settings specified by {@link font}.
+     * @param {number} x    The x -coordinate of the point at which to begin drawing the text, in pixels.
+     * @param {number} y    The y-coordinate of the point at which to begin drawing the text, in pixels.
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     fillText(text, x ,y) { TEXT.processTextPath(this, text, x,y, true);  }
 
     /**
-     * Stroke Text
-     * 
-     * @param {string} text The text to stroke
-     * @param {number} x    X position
-     * @param {number} y    Y position
-     * 
+     * Draws the outlines of the characters of a specified text string at the given (x, y) position.
+     *
+     * @param {string} text The text to draw using the current {@link font} values.
+     * @param {number} x    The x axis of the coordinate for the text starting point.
+     * @param {number} y    The y axis of the coordinate for the text starting point.
+     *
      * @returns {void}
-     * 
+     *
      * @memberof Context
      */
     strokeText(text, x ,y) { TEXT.processTextPath(this, text, x,y, false);  }
@@ -941,18 +1066,18 @@ class Context {
 
     /**
      * Color String To Unint32
-     * 
+     *
      * Convert a color string to Uint32 notation
-     * 
+     *
      * @static
      * @param {number} str The color string to convert
-     * 
+     *
      * @returns {number}
-     * 
-     * @example 
+     *
+     * @example
      * var uInt32 = colorStringToUint32('#FF00FF');
      * console.log(uInt32); // Prints 4278255615
-     * 
+     *
      * @memberof Context
      */
     static colorStringToUint32(str) {
@@ -986,36 +1111,28 @@ class Context {
 module.exports = Context;
 
 /**
- * Fract
- * 
- * @param {number} v
- * 
+ * Returns the decimal portion of a given floating point number
+ *
+ * @param {number} v The number to return the declimal fration of
+ * @example
+ * console.log(fract(12.35))
+ * // Prints out 0.34999999999999964
+ *
  * @returns {number}
  */
 function fract(v) {  return v-Math.floor(v);   }
 
 /**
- * Make Line
- * 
- * @param {number} start
- * @param {number} end
- * 
- * @returns {{start: start, end: end}}
- */
-function makeLine  (start,end) {  return {start:start, end:end} }
-
-/**
- * Path to Lines
- * 
  * Convert a path of points to an array of lines
- * 
- * @param {Array} path 
- * @returns 
+ *
+ * @param {Array} path List of sub-paths
+ *
+ * @returns {Array<Line>}
  */
 function pathToLines(path) {
     var lines = [];
     var curr = null;
-    
+
     path.forEach(function(cmd) {
         if(cmd[0] == PATH_COMMAND.MOVE) {
             curr = cmd[1];
@@ -1047,11 +1164,13 @@ function pathToLines(path) {
 
 /**
  * Calculate Quadratic
- * 
+ *
  * @param {number} p
  * @param {number} t
- * 
- * @returns {void} 
+ *
+ * @ignore
+ *
+ * @returns {void}
  */
 function calcQuadraticAtT(p, t) {
     var x = (1-t)*(1-t)*p[0].x + 2*(1-t)*t*p[1].x + t*t*p[2].x;
@@ -1061,10 +1180,10 @@ function calcQuadraticAtT(p, t) {
 
 /**
  * Calculate Bezier at T
- * 
+ *
  * @param {number} p
  * @param {number} t
- * 
+ *
  * @returns {void}
  */
 function calcBezierAtT(p, t) {
@@ -1075,9 +1194,11 @@ function calcBezierAtT(p, t) {
 
 /**
  * Calculate Minimum Bounds
- * 
+ *
  * @param {Array} lines
- * 
+ *
+ * @ignore
+ *
  * @returns {{x: Number.MAX_VALUE, y: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE}}
  */
 function calcMinimumBounds(lines) {
@@ -1098,14 +1219,16 @@ function calcMinimumBounds(lines) {
 
 /**
  * Calculate Sorted Intersections
- * 
+ *
  * Adopted from http://alienryderflex.com/polygon
- * 
+ *
  * @see http://alienryderflex.com/polygon
- * 
+ *
  * @param {Array} lines An {@link Array} of Lines
- * @param {number} y 
- * 
+ * @param {number} y
+ *
+ * @ignore
+ *
  * @returns {Array}
  */
 function calcSortedIntersections(lines,y) {
@@ -1123,32 +1246,36 @@ function calcSortedIntersections(lines,y) {
 
 
 /**
- * Lerp
- * 
+ * Linear Interpolation
+ *
  * In mathematics, linear interpolation is a method of curve fitting using linear polynomials to construct new data
  * points within the range of a discrete set of known data points.
- * 
- * @param {number} a 
- * @param {number} b 
- * @param {number} t 
- * 
+ *
+ * @param {number} a
+ * @param {number} b
+ * @param {number} t
+ *
+ * @ignore
+ *
  * @see https://en.wikipedia.org/wiki/Linear_interpolation
- * 
+ *
  * @returns {number}
  */
 function lerp(a,b,t) {  return a + (b-a)*t; }
 
 /**
- * Clamp
- * 
- * @param {number} v 
- * @param {number} min 
- * @param {number} max 
- * 
+ * Clamping is the process of limiting a position to an area
+ *
+ * @see https://en.wikipedia.org/wiki/Clamping_(graphics)
+ *
+ * @param {number} value The value to apply the clamp restriction to
+ * @param {number} min   Lower limit
+ * @param {number} max   Upper limit
+ *
  * @returns {number}
  */
-function clamp(v,min,max) {
-    if(v < min) return min;
-    if(v > max) return max;
-    return v;
+function clamp(value,min,max) {
+    if(value < min) return min;
+    if(value > max) return max;
+    return value;
 }

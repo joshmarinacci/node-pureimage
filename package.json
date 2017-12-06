@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "esdoc": "^1.0.3",
+    "esdoc-member-plugin": "^1.0.0",
     "esdoc-node": "^1.0.2",
     "esdoc-standard-plugin": "^1.0.0",
     "tape": "^4.6.3"

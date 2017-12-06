@@ -1,5 +1,4 @@
-/** @ignore */
-var opentype = require('opentype.js');
+const opentype = require('opentype.js');
 
 
 /**
@@ -15,8 +14,8 @@ const DEFAULT_FONT_FAMILY = 'source';
 
 /**
  * Register Font
- * 
- * @param {string} binaryPath Path to the font binary file
+ *
+ * @param {string} binaryPath Path to the font binary file(.eot, .ttf etc.)
  * @param {string} family     The name to give the font
  * @param {number} weight     The font weight to use
  * @param {string} style      Font style
@@ -52,11 +51,11 @@ exports.debug_list_of_fonts = _fonts;
 
 /**
  * Find Font
- * 
+ *
  * Search the `fonts` array for a given font family name
- * 
+ *
  * @param {string} family The name of the font family to search for
- * 
+ *
  * @returns {object}
  */
 function findFont(family) {
@@ -67,13 +66,13 @@ function findFont(family) {
 
 /**
  * Process Text Path
- * 
- * @param {Context} ctx  The context to write to
+ *
+ * @param {Context} ctx  The {@link Context} to paint on
  * @param {string}  text The text to write to the given Context
  * @param {number}  x    X position
  * @param {number}  y    Y position
  * @param {boolean} fill Indicates wether or not the font should be filled
- * 
+ *
  * @returns {void}
  */
 exports.processTextPath = function(ctx,text,x,y, fill) {
@@ -116,17 +115,17 @@ exports.processTextPath = function(ctx,text,x,y, fill) {
 
 /**
  * Process Text Path
- * 
- * @param {Context} ctx The canvas context on which to measure the text
+ *
+ * @param {Context} ctx The {@link Context} to paint on
  * @param {string} text The name to give the font
- * 
+ *
  * @returns {object}
  */
 exports.measureText = function(ctx,text) {
     var font = _fonts[ctx._settings.font.family];
     if(!font) console.log("WARNING. Can't find font family ", ctx._settings.font.family);
-    var fsize = ctx._settings.font.size;
-    var glyphs = font.font.stringToGlyphs(text);
+    var fsize   = ctx._settings.font.size;
+    var glyphs  = font.font.stringToGlyphs(text);
     var advance = 0;
     glyphs.forEach(function(g) { advance += g.advanceWidth; });
 

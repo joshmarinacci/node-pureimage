@@ -1,32 +1,17 @@
-// Pure Image uses existing libraries for font parsing, jpeg/png encode/decode
-// and borrowed code for transform management and unsigned integer manipulation
-
-//2014-11-14  line count: 418, 411, 407, 376, 379, 367
-//2014-11-15  line count: 401, 399, 386, 369, 349,
-
-
-/** @ignore */
-var fs = require('fs');
-/** @ignore */
-var PNG = require('pngjs').PNG;
-/** @ignore */
-var JPEG = require('jpeg-js');
-/** @ignore */
-var uint32 = require('./uint32');
-/** @ignore */
-var Bitmap = require('./bitmap');
-/** @ignore */
-var text = require('./text');
+const Bitmap = require('./bitmap');
+const fs     = require('fs');
+const JPEG   = require('jpeg-js');
+const PNG    = require('pngjs').PNG;
+const text   = require('./text');
+const uint32 = require('./uint32');
 
 /**
- * Make
- * 
  * Create a new bitmap image
- * 
+ *
  * @param {number} w       Image width
  * @param {number} h       Image height
  * @param {object} options Options to be passed to {@link Bitmap}
- * 
+ *
  * @returns {Bitmap}
  */
 exports.make = function(w,h,options) {
@@ -35,11 +20,11 @@ exports.make = function(w,h,options) {
 
 /**
  * Encode the PNG image to output stream
- * 
+ *
  * @param {Bitmap} bitmap    An instance of {@link Bitmap} to be encoded to PNG
  * @param {Stream} outstream The stream to write the PNG file to
- * 
- * @returns {Promise}
+ *
+ * @returns {Promise<void>}
  */
 exports.encodePNGToStream = function(bitmap, outstream) {
     return new Promise((res,rej)=>{
@@ -68,12 +53,12 @@ exports.encodePNGToStream = function(bitmap, outstream) {
 
 /**
  * Encode JPEG To Stream
- * 
+ *
  * Encode the JPEG image to output stream
- *  
+ *
  * @param {string} img       An object containing a raw buffer of the image data (`img.buffer`) along with the width(`img.width`) and height (`img.height`) of the image
  * @param {Stream} outstream The stream to write the JPEG file to
- * @returns {Promise<object>}
+ * @returns {Promise<void>}
  */
 exports.encodeJPEGToStream = function(img, outstream) {
     return new Promise((res,rej)=> {
@@ -89,11 +74,11 @@ exports.encodeJPEGToStream = function(img, outstream) {
 
 /**
  * Decode JPEG From Stream
- * 
+ *
  * Decode a JPEG image from an incoming stream of data
- * 
+ *
  * @param {Stream} data A readable stream to decode JPEG data from
- * 
+ *
  * @returns {Promise<Bitmap>}
  */
 exports.decodeJPEGFromStream = function(data) {
@@ -129,11 +114,11 @@ exports.decodeJPEGFromStream = function(data) {
 
 /**
  * Decode PNG From Stream
- * 
+ *
  * Decode a PNG file from an incoming readable stream
- * 
+ *
  * @param {Stream} instream A readable stream containing raw PNG data
- * 
+ *
  * @returns {Promise<Bitmap>}
  */
 exports.decodePNGFromStream = function(instream) {

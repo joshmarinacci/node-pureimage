@@ -1,10 +1,11 @@
-/**@ignore */
-const uint32 = require('./uint32');
-/**@ignore */
-const Context = require('./context');
+const Context      = require('./context');
+const NAMED_COLORS = require('./named_colors');
+const uint32       = require('./uint32');
 
 /**
- * Bitmap
+ * The Bitmap class is used for direct pixel manipulation(for example setting a pixel colour,
+ * transparency etc). It also provides a factory method for creating new instances of
+ * {@link Context}
  *
  * @class Bitmap
  */
@@ -34,7 +35,7 @@ class Bitmap {
          */
         this.data = Buffer.alloc(w*h*4);
 
-        var fillval = 0x000000FF;
+        var fillval = NAMED_COLORS.black;
         for(var j=0; j<h; j++) {
             for (var i = 0; i < w; i++) {
                 this.setPixelRGBA(i, j, fillval);
@@ -61,11 +62,11 @@ class Bitmap {
     }
 
     /**
-     * Set Pixel RGBA
+     * Set the RGBA(Red, Green, Blue, Alpha) values on an individual pixel level
      *
-     * @param {number} x    X position
-     * @param {number} y    Y position
-     * @param {number} rgba The source to be extracted
+     * @param {number} x    X axis position
+     * @param {number} y    Y axis position
+     * @param {number} rgba A hex representation of the RGBA value of the pixel. See {@link NAMED_COLORS} for examples
      *
      * @returns {void}
      *
@@ -81,10 +82,10 @@ class Bitmap {
     }
 
     /**
-     * Set Pixel RGBA_i
+     * Set the individual red, green, blue and alpha levels of an individual pixel
      *
-     * @param {number} x X position
-     * @param {number} y Y position
+     * @param {number} x X axis position
+     * @param {number} y Y axis position
      * @param {number} r Red level
      * @param {number} g Green level
      * @param {number} b Blue level
@@ -103,10 +104,10 @@ class Bitmap {
     }
 
     /**
-     * Get Pixel RGBA
+     * Get the RGBA value of an individual pixel as a hexadecimal number(See {@link NAMED_COLORS} for examples)
      *
-     * @param {number} x X potiion
-     * @param {number} y Y position
+     * @param {number} x X axis potiion
+     * @param {number} y Y axis position
      *
      * @returns {number}
      *
@@ -124,10 +125,12 @@ class Bitmap {
     /**
      * Get Pixel RGBA Seperate
      *
-     * @param {number} x X position
-     * @param {number} y Y position
+     * @param {number} x X axis position
+     * @param {number} y Y axis position
      *
-     * @returns {void}
+     * @ignore
+     *
+     * @returns {Array}
      *
      * @memberof Bitmap
      */
@@ -137,8 +140,7 @@ class Bitmap {
     }
 
     /**
-     * Get Context
-     * Get a new {@link Context} object for the current bitmap object
+     * {@link Context} factory. Creates a new {@link Context} instance object for the current bitmap object
      *
      * @returns {Context}
      *
