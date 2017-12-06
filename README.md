@@ -22,6 +22,8 @@ anyway. We'll have to find a different way to do it.
 I've tried to maintain all of the patches that have been sent in, but if you contributed a patch
 please check that it still works. Thank you all!  - josh
 
+PureImage should now be built with Travis
+
 
 ## supported Canvas Features
 
