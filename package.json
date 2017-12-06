@@ -32,11 +32,16 @@
   "jest": {
     "collectCoverage": true,
     "coverageDirectory": "./tests/coverage",
-    "coverageReporters": ["lcov", "text"],
-    "collectCoverageFrom": [
-        "src/**/*.{js}"
+    "coverageReporters": [
+      "lcov",
+      "text"
     ],
-    "modulePaths": ["<rootDir>/src/"],
+    "collectCoverageFrom": [
+      "src/**/*.{js}"
+    ],
+    "modulePaths": [
+      "<rootDir>/src/"
+    ],
     "notify": true,
     "testEnvironment": "node",
     "verbose": true
