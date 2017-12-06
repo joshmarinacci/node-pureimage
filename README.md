@@ -1,26 +1,26 @@
-[![Build Status](https://travis-ci.org/robertmain/node-pureimage.svg?branch=master)](https://travis-ci.org/robertmain/node-pureimage)
+[![Build Status](https://travis-ci.org/joshmarinacci/node-pureimage.svg?branch=master)](https://travis-ci.org/joshmarinacci/node-pureimage)
 
 PureImage
 ==============
 
-PureImage is a pure JavaScript implementation of the HTML Canvas 2d drawing api for NodeJS. 
+PureImage is a pure JavaScript implementation of the HTML Canvas 2d drawing api for NodeJS.
 It has no native dependencies.
 
 New 0.1.x release
 =================
 
-I've completely refactored the code so that it should be easier to 
+I've completely refactored the code so that it should be easier to
 maintain and implement new features. For the most part there are no API changes (since the API is
  defined by the HTML Canvas spec), but if you
 were using the font or image loading extensions
-you will need to use the new function names and switch to promises. 
+you will need to use the new function names and switch to promises.
 
-I'm also using Node buffers instead of arrays internally, so you can work with large images 
+I'm also using Node buffers instead of arrays internally, so you can work with large images
 faster than before. Rich text is no longer supported, which is fine because it never really worked
 anyway. We'll have to find a different way to do it.
 
-I've tried to maintain all of the patches that have been sent in, but if you contributed a patch 
-please check that it still works. Thank you all!  - josh 
+I've tried to maintain all of the patches that have been sent in, but if you contributed a patch
+please check that it still works. Thank you all!  - josh
 
 
 ## supported Canvas Features
@@ -52,13 +52,13 @@ Why?
 ====
 
 The are more than enough drawing APIs out there. Why do we need another? My
-personal hatred of C/C++ compilers is [widely known](https://joshondesign.com/2014/09/17/rustlang). 
+personal hatred of C/C++ compilers is [widely known](https://joshondesign.com/2014/09/17/rustlang).
 The popular Node modules [Canvas.js](https://github.com/Automattic/node-canvas) does a great
 job, but it's backed by Cairo, a C/C++ layer. I hate having native dependencies
 in Node modules. They often don't compile, or break after a system update. They
 often don't support non-X86 architectures (like the Raspberry Pi). You have
 to have a compiler already installed to use them, along with any other native
-dependencies pre-installed (like Cairo).  
+dependencies pre-installed (like Cairo).
 
 So, I made PureImage. It's goal is to implement the HTML Canvas spec in a headless
 Node buffer. No browser or window required.
@@ -67,11 +67,11 @@ PureImage is meant to be a small and maintainable Canvas library.
 It is *not meant to be fast*.  If there are two choices of algorithm we will
 take the one with the simplest implementation, and preferably the fewest lines.
 We avoid special cases and optimizations to keep the code simple and maintainable.
-It should run everywhere and be always produce the same output. But it will not be 
+It should run everywhere and be always produce the same output. But it will not be
 fast. If you need speed go use something else.
 
 PureImage uses only pure JS dependencies.  [OpenType](https://github.com/nodebox/opentype.js/)
-for font parsing, [PngJS](https://github.com/niegowski/node-pngjs) for PNG import/export, 
+for font parsing, [PngJS](https://github.com/niegowski/node-pngjs) for PNG import/export,
 and [jpeg-js](https://github.com/eugeneware/jpeg-js) for JPG import/export.
 
 
@@ -110,7 +110,7 @@ ctx.fill();
 ![image of arcto with some fringing bugs](firstimages/arcto.png)
 
 Draw the string 'ABC' in white in the font 'Source Sans Pro', loaded from disk, at a size
-of 48 points. 
+of 48 points.
 
 ```js
 test('font test', (t) => {
