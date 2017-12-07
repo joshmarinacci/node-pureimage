@@ -5,6 +5,7 @@ node_js:
     - "8"
 install: npm install
 script:
+  - npm test
   - npm run-script docs
 deploy:
   overwrite: true
