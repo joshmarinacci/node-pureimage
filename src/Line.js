@@ -27,14 +27,17 @@ class Line {
      */
     constructor (){
         if (arguments.length === 4) {
+
             /**
-             * @type {object}
+             * @type {Point}
             */
             this.start = {};
+
             /**
-             * @type {object}
+             * @type {Point}
             */
             this.end   = {};
+
             [this.start.x, this.start.y, this.end.x, this.end.y] = arguments;
             for(let argument_index in arguments) {
                 if(arguments.hasOwnProperty(argument_index)) {

@@ -56,8 +56,8 @@ exports.encodePNGToStream = function(bitmap, outstream) {
  *
  * Encode the JPEG image to output stream
  *
- * @param {string} img       An object containing a raw buffer of the image data (`img.buffer`) along with the width(`img.width`) and height (`img.height`) of the image
- * @param {Stream} outstream The stream to write the JPEG file to
+ * @param {{width: 20, height: 40, data: null}} img       Image data to pass to `JPEG.encode`. Note that `img.data` should be a buffer of raw Jpeg data
+ * @param {Stream}                              outstream The stream to write the raw JPEG buffer to
  * @returns {Promise<void>}
  */
 exports.encodeJPEGToStream = function(img, outstream) {
