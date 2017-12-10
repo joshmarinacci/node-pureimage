@@ -27,12 +27,12 @@
     "jest": "^21.2.1"
   },
   "scripts": {
-    "test": "./node_modules/.bin/jest",
+    "unit": "./node_modules/.bin/jest",
     "docs": "./node_modules/.bin/esdoc"
   },
   "jest": {
     "collectCoverage": true,
-    "coverageDirectory": "./tests/coverage",
+    "coverageDirectory": "./tests/unit/coverage",
     "coverageReporters": [
       "lcov",
       "text"

@@ -44,7 +44,7 @@
         {
             "name": "esdoc-integrate-test-plugin",
             "option": {
-                "source": "./tests/specs/",
+                "source": "./tests/unit/specs/",
                 "interfaces": ["describe", "it"],
                 "includes": ["(spec|test)\\.js$"],
                 "excludes": ["\\.config\\.js$"]

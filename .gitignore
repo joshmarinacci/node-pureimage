@@ -2,5 +2,5 @@ node_modules
 build
 .idea
 docs
-tests/coverage
+tests/unit/coverage
 .vscode
