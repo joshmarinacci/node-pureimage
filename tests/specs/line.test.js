@@ -4,8 +4,8 @@ const Line  = require('Line');
 describe('Line', () => {
 
     it('can be created from two points and uses them as start and end points', () => {
-        let start = new Point(6, 8);
-        let end   = new Point(12, 6);
+        const start = new Point(6, 8);
+        const end   = new Point(12, 6);
 
         expect(() => new Line(start, end)).not.toThrow(TypeError);
     });
@@ -16,7 +16,7 @@ describe('Line', () => {
     });
 
     it('can only be created with either 2 or 4 arguments', () => {
-        let errorMsg = 'Please pass either two Point objects, or 4 integers to the constructor';
+        const errorMsg = 'Please pass either two Point objects, or 4 integers to the constructor';
 
         expect(() => new Line()).toThrow(errorMsg);
         expect(() => new Line(12)).toThrow(errorMsg);
@@ -25,10 +25,10 @@ describe('Line', () => {
     });
 
     it('is the distance between two points', () => {
-        let start = new Point(6, 8);
-        let end   = new Point(0, 0);
+        const start = new Point(6, 8);
+        const end   = new Point(0, 0);
 
-        let line  = new Line(start, end);
+        const line  = new Line(start, end);
 
         expect(line.getLength()).toBe(10);
     })
