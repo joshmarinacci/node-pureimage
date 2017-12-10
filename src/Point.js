@@ -23,5 +23,5 @@ class Point {
         this.y = y;
     }
 }
-/** @ignore */
+
 module.exports = Point;
