@@ -68,7 +68,10 @@ exports.encodeJPEGToStream = function(img, outstream) {
             height: img.height
         };
         outstream.on('error', (err) => rej(err));
-        outstream.write(JPEG.encode(data, 50).data, () => res());
+        outstream.write(JPEG.encode(data, 50).data, () => {
+            outstream.end();
+            res()
+        });
     });
 };
 
