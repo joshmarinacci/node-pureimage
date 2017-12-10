@@ -23,6 +23,7 @@
     "esdoc-member-plugin": "^1.0.0",
     "esdoc-node": "^1.0.2",
     "esdoc-standard-plugin": "^1.0.0",
+    "file-type": "^7.4.0",
     "jest": "^21.2.1"
   },
   "scripts": {
