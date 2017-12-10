@@ -1,6 +1,6 @@
 const fileType = require('file-type');
 
-let toBeOfType = (received, argument) => {
+let toBeOfFileType = (received, argument) => {
 
     const pass = fileType(received).ext.toLowerCase() == argument.toLowerCase();
     if (pass) {
@@ -16,4 +16,4 @@ let toBeOfType = (received, argument) => {
     }
 };
 
-module.exports = {toBeOfType};
+module.exports = {toBeOfFileType};

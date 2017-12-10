@@ -1,7 +1,7 @@
 const pureimage   = require('pureimage');
 const PassThrough = require('stream').PassThrough;
 
-expect.extend(require('../matchers/toBeOfType'));
+expect.extend(require('../matchers/toBeOfFileType'));
 
 /**
  * @test {pureimage}
@@ -32,8 +32,8 @@ describe('PNG image', () => {
 
         passThroughStream.on('data', chunk => PNGData.push(chunk))
         passThroughStream.on('end', () => {
-            expect(Buffer.concat(PNGData)).toBeOfType('png');
-            PNGPromise.then(() => done());
+            expect(Buffer.concat(PNGData)).toBeOfFileType('png');
+            PNGPromise.then(done);
         });
     });
 
