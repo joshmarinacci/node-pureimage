@@ -3,6 +3,9 @@ const PassThrough = require('stream').PassThrough;
 
 expect.extend(require('../matchers/toBeOfType'));
 
+/**
+ * @test {pureimage}
+ */
 describe('PNG image', () => {
 
     var PImage;
@@ -13,6 +16,9 @@ describe('PNG image', () => {
         context = PImage.getContext('2d');
     });
 
+    /**
+     * @test {encodePNGToStream}
+     */
     it('can be encoded to a stream', (done) => {
         expect.assertions(1);
 
@@ -31,6 +37,9 @@ describe('PNG image', () => {
         });
     });
 
+    /**
+     * @test {decodePNGFromStream}
+     */
     it.skip('can be decoded from a stream', () => {
 
     });
@@ -41,7 +50,21 @@ describe('PNG image', () => {
     });
 });
 
+/**
+ * @test {pureimage}
+ */
 describe.skip('JPEG image', () => {
-    it('can be decoded from a stream', () => { });
-    it('can be encoded to a stream', () => { });
+    /**
+     * @test {decodeJPEGFromStream}
+     */
+    it('can be decoded from a stream', () => {
+
+    });
+
+    /**
+     * @test {encodeJPEGToStream}
+     */
+    it('can be encoded to a stream', () => {
+
+    });
 });
