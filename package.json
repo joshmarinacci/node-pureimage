@@ -27,8 +27,8 @@
     "jest": "^21.2.1"
   },
   "scripts": {
-    "unit": "./node_modules/.bin/jest",
-    "docs": "./node_modules/.bin/esdoc"
+    "unit": "jest",
+    "docs": "esdoc"
   },
   "jest": {
     "collectCoverage": true,
