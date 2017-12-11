@@ -35,6 +35,13 @@ describe('PNG image', () => {
     });
 
     /**
+     * @test {encodePNGToStream}
+     */
+    it('must be generated from a valid bitmap buffer', () => {
+        expect(pureimage.encodePNGToStream('this is a string, not a bitmap buffer', new PassThrough())).rejects;
+    });
+
+    /**
      * @test {decodePNGFromStream}
      */
     it.skip('can be decoded from a stream', () => {

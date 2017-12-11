@@ -70,7 +70,7 @@ exports.encodeJPEGToStream = function(img, outstream) {
         outstream.on('error', (err) => rej(err));
         outstream.write(JPEG.encode(data, 50).data, () => {
             outstream.end();
-            res()
+            res();
         });
     });
 };
