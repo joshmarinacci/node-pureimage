@@ -25,9 +25,6 @@ describe('PNG image', () => {
         const passThroughStream = new PassThrough();
         const PNGData           = [];
 
-        context.fillStyle = 'rgba(255,0,0, 0.5)';
-        context.fillRect(0, 0, 100, 100);
-
         const PNGPromise = pureimage.encodePNGToStream(PImage, passThroughStream)
 
         passThroughStream.on('data', chunk => PNGData.push(chunk))
@@ -78,9 +75,6 @@ describe('JPEG image', () => {
 
         const passThroughStream = new PassThrough();
         const JPEGData          = [];
-
-        context.fillStyle = 'rgba(255,0,0, 0.5)';
-        context.fillRect(0, 0, 100, 100);
 
         const JPEGPromise = pureimage.encodeJPEGToStream(PImage, passThroughStream)
 
