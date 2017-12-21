@@ -45,6 +45,9 @@
     ],
     "notify": true,
     "testEnvironment": "node",
+    "globals": {
+      "FIXTURES_DIR": "./tests/unit/fixtures/"
+    },
     "verbose": true
   },
   "license": "MIT"

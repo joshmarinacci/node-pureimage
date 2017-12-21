@@ -1,3 +1,4 @@
+const fs          = require('fs');
 const pureimage   = require('pureimage');
 const PassThrough = require('stream').PassThrough;
 
@@ -25,9 +26,9 @@ describe('PNG image', () => {
         const passThroughStream = new PassThrough();
         const PNGData           = [];
 
-        const PNGPromise = pureimage.encodePNGToStream(PImage, passThroughStream)
+        const PNGPromise = pureimage.encodePNGToStream(PImage, passThroughStream);
 
-        passThroughStream.on('data', chunk => PNGData.push(chunk))
+        passThroughStream.on('data', chunk => PNGData.push(chunk));
         passThroughStream.on('end', () => {
             expect(Buffer.concat(PNGData)).toBeOfFileType('png');
             PNGPromise.then(done);
@@ -44,7 +45,16 @@ describe('PNG image', () => {
     /**
      * @test {decodePNGFromStream}
      */
-    it.skip('can be decoded from a stream', () => {
+    it('can be decoded from a stream', (done) => {
+        expect.assertions(3);
+
+        pureimage.decodePNGFromStream(fs.createReadStream(FIXTURES_DIR + 'images/bird.png')).then((png) => {
+            expect(png.width).toBe(200);
+            expect(png.height).toBe(133);
+            expect(png.getPixelRGBA(3, 3)).toBe(0xEAE9EEFF);
+
+            done();
+        });
 
     });
 
