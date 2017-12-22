@@ -78,13 +78,6 @@ describe('JPEG image', () => {
     });
 
     /**
-     * @test {decodeJPEGFromStream}
-     */
-    it.skip('can be decoded from a stream', () => {
-
-    });
-
-    /**
      * @test {encodeJPEGToStream}
      */
     it('can be encoded to a stream', (done) => {
@@ -99,6 +92,19 @@ describe('JPEG image', () => {
         passThroughStream.on('end', () => {
             expect(Buffer.concat(JPEGData)).toBeOfFileType('jpg');
             JPEGPromise.then(done);
+        });
+    });
+
+    /**
+     * @test {decodeJPEGFromStream}
+     */
+    it('can be decoded from a stream', (done) => {
+        pureimage.decodeJPEGFromStream(fs.createReadStream(FIXTURES_DIR + 'images/bird.jpg')).then((jpeg) => {
+            expect(jpeg.width).toBe(200);
+            expect(jpeg.height).toBe(133);
+            expect(jpeg.getPixelRGBA(3, 3)).toBe(0xE8EAEDFF);
+
+            done();
         });
     });
 
