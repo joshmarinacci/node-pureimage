@@ -96,6 +96,13 @@ describe('JPEG image', () => {
     });
 
     /**
+    * @test {encodeJPEGToStream}
+    */
+    it('must be generated from a valid bitmap buffer', () => {
+        expect(pureimage.encodeJPEGToStream('this is a string, not a bitmap buffer', new PassThrough())).rejects;
+    });
+
+    /**
      * @test {decodeJPEGFromStream}
      */
     it('can be decoded from a stream', (done) => {
