@@ -88,17 +88,15 @@ exports.decodeJPEGFromStream = function(data) {
     return new Promise((res,rej)=>{
         try {
             var chunks = [];
-            data.on('data',(chunk)=>{
-                chunks.push(chunk);
-            });
-            data.on('end',()=>{
+            data.on('data', chunk => chunks.push(chunk));
+            data.on('end',() => {
                 var buf = Buffer.concat(chunks);
                 var rawImageData = JPEG.decode(buf);
                 var bitmap = new Bitmap(rawImageData.width, rawImageData.height);
-                for (var i = 0; i < rawImageData.width; i++) {
-                    for (var j = 0; j < rawImageData.height; j++) {
-                        var n = (j * rawImageData.width + i) * 4;
-                        bitmap.setPixelRGBA_i(i, j,
+                for (var x_axis = 0; x_axis < rawImageData.width; x_axis++) {
+                    for (var y_axis = 0; y_axis < rawImageData.height; y_axis++) {
+                        var n = (y_axis * rawImageData.width + x_axis) * 4;
+                        bitmap.setPixelRGBA_i(x_axis, y_axis,
                             rawImageData.data[n + 0],
                             rawImageData.data[n + 1],
                             rawImageData.data[n + 2],

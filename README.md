@@ -119,7 +119,7 @@ of 48 points.
 ```js
 test('font test', (t) => {
     var fnt = PImage.registerFont('tests/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
-    fnt.load(function() {
+    fnt.load(() => {
         var img = PImage.make(200,200);
         var ctx = img.getContext('2d');
         ctx.fillStyle = '#ffffff';
@@ -133,7 +133,7 @@ test('font test', (t) => {
 Write out to a PNG file
 
 ```js
-PImage.encodePNGToStream(img1, fs.createWriteStream('out.png')).then(()=> {
+PImage.encodePNGToStream(img1, fs.createWriteStream('out.png')).then(() => {
     console.log("wrote out the png file to out.png");
 }).catch((e)=>{
     console.log("there was an error writing");
@@ -143,18 +143,19 @@ PImage.encodePNGToStream(img1, fs.createWriteStream('out.png')).then(()=> {
 Read a jpeg, resize it, then save it out
 
 ```js
-PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((img)=>{
+PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((img) => {
     console.log("size is",img.width,img.height);
     var img2 = PImage.make(50,50);
     var c = img2.getContext('2d');
     c.drawImage(img,
         0, 0, img.width, img.height, // source dimensions
-        0, 0, 50, 50   // destination dimensions
+        0, 0, 50, 50                 // destination dimensions
     );
     var pth = path.join(BUILD_DIR,"resized_bird.jpg");
-    PImage.encodeJPEGToStream(img2,fs.createWriteStream(pth)).then(()=> {
+    PImage.encodeJPEGToStream(img2,fs.createWriteStream(pth)).then(() => {
         console.log("done writing");
     });
+});
 ```
 
 
