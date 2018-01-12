@@ -6,6 +6,7 @@ PureImage
 PureImage is a pure JavaScript implementation of the HTML Canvas 2d drawing api for NodeJS.
 It has no native dependencies.
 
+
 New 0.1.x release
 =================
 
@@ -13,7 +14,7 @@ I've completely refactored the code so that it should be easier to
 maintain and implement new features. For the most part there are no API changes (since the API is
  defined by the HTML Canvas spec), but if you
 were using the font or image loading extensions
-you will need to use the new function names and switch to promises.
+you will need to use the new function names and switch to promises. For more information, please see [the API docs](http://joshmarinacci.github.io/node-pureimage)
 
 I'm also using Node buffers instead of arrays internally, so you can work with large images
 faster than before. Rich text is no longer supported, which is fine because it never really worked
@@ -22,7 +23,6 @@ anyway. We'll have to find a different way to do it.
 I've tried to maintain all of the patches that have been sent in, but if you contributed a patch
 please check that it still works. Thank you all!  - josh
 
-PureImage should now be built with Travis
 
 
 ## supported Canvas Features
@@ -76,7 +76,9 @@ PureImage uses only pure JS dependencies.  [OpenType](https://github.com/nodebox
 for font parsing, [PngJS](https://github.com/niegowski/node-pngjs) for PNG import/export,
 and [jpeg-js](https://github.com/eugeneware/jpeg-js) for JPG import/export.
 
-
+Documentation
+=============
+Documentation can now be found at: http://joshmarinacci.github.io/node-pureimage
 
 Examples
 =========
