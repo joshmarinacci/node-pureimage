@@ -38,8 +38,8 @@ describe('PNG image', () => {
     /**
      * @test {encodePNGToStream}
      */
-    it('must be generated from a valid bitmap buffer', async () => {
-        await expect(
+    it('must be generated from a valid bitmap buffer', () => {
+        return expect(
             pureimage.encodePNGToStream('this is a string, not a bitmap buffer', new PassThrough())
         ).rejects.toThrow(TypeError);
     });
@@ -100,8 +100,8 @@ describe('JPEG image', () => {
     /**
     * @test {encodeJPEGToStream}
     */
-    it('must be generated from a valid bitmap buffer', async () => {
-        await expect(
+    it('must be generated from a valid bitmap buffer', () => {
+        return expect(
             pureimage.encodeJPEGToStream('this is a string, not a bitmap buffer', new PassThrough())
         ).rejects.toThrow(TypeError);
     });
