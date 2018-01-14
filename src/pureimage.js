@@ -28,6 +28,9 @@ exports.make = function(w,h,options) {
  */
 exports.encodePNGToStream = function(bitmap, outstream) {
     return new Promise((res,rej)=>{
+        if(!bitmap.hasOwnProperty('data') || !bitmap.hasOwnProperty('width') || !bitmap.hasOwnProperty('height')) {
+            rej(new TypeError('Invalid bitmap image provided'));
+        }
         var png = new PNG({
             width:bitmap.width,
             height:bitmap.height
