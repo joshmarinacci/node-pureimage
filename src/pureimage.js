@@ -21,7 +21,7 @@ exports.make = function(w,h,options) {
 /**
  * Encode the PNG image to output stream
  *
- * @param {Bitmap} bitmap    An instance of {@link Bitmap} to be encoded to PNG
+ * @param {Bitmap} bitmap    An instance of {@link Bitmap} to be encoded to PNG, `bitmap.data` must be a buffer of raw PNG data
  * @param {Stream} outstream The stream to write the PNG file to
  *
  * @returns {Promise<void>}
@@ -59,8 +59,8 @@ exports.encodePNGToStream = function(bitmap, outstream) {
  *
  * Encode the JPEG image to output stream
  *
- * @param {{width: 20, height: 40, data: null}} img       Image data to pass to `JPEG.encode`. Note that `img.data` should be a buffer of raw Jpeg data
- * @param {Stream}                              outstream The stream to write the raw JPEG buffer to
+ * @param {Bitmap} img       An instance of {@link Bitmap} to be encoded to JPEG, `img.data` must be a buffer of raw JPEG data
+ * @param {Stream} outstream The stream to write the raw JPEG buffer to
  * @returns {Promise<void>}
  */
 exports.encodeJPEGToStream = function(img, outstream) {
