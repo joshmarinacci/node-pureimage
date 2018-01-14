@@ -7,6 +7,7 @@ node_js:
 install: npm install
 script:
   - npm run unit
+after_success:
   - npm run-script docs
 deploy:
   overwrite: true
