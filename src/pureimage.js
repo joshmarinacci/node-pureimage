@@ -62,6 +62,9 @@ exports.encodePNGToStream = function(bitmap, outstream) {
  */
 exports.encodeJPEGToStream = function(img, outstream) {
     return new Promise((res,rej)=> {
+        if(!img.hasOwnProperty('data') || !img.hasOwnProperty('width') || !img.hasOwnProperty('height')) {
+            rej(new TypeError('Invalid bitmap image provided'));
+        }
         var data = {
             data: img.data,
             width: img.width,
