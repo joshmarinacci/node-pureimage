@@ -15,4 +15,8 @@ deploy:
   skip_cleanup: true
   github_token: $GITHUB_TOKEN
   on:
-    branch: master
+    repo: joshmarinacci/node-pureimage
+    branches:
+      only:
+        - master
+    node_js: '8'
