@@ -20,6 +20,8 @@ const DEFAULT_FONT_FAMILY = 'source';
  * @param {number} weight     The font weight to use
  * @param {string} style      Font style
  * @param {string} variant    Font variant
+ *
+ * @returns {void}
  */
 exports.registerFont = function(binaryPath, family, weight, style, variant) {
     _fonts[family] = {

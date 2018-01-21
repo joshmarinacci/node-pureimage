@@ -1,10 +1,13 @@
 language: node_js
 node_js:
     - "node"
-    - "7"
     - "8"
+    - "7"
+    - "6"
 install: npm install
 script:
+  - npm run unit
+after_success:
   - npm run-script docs
 deploy:
   overwrite: true

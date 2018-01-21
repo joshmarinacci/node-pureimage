@@ -40,6 +40,15 @@
         },
         {
             "name": "esdoc-member-plugin"
+        },
+        {
+            "name": "esdoc-integrate-test-plugin",
+            "option": {
+                "source": "./tests/unit/specs/",
+                "interfaces": ["describe", "it"],
+                "includes": ["(spec|test)\\.js$"],
+                "excludes": ["\\.config\\.js$"]
+            }
         }
     ]
 }

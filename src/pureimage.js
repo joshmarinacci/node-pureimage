@@ -21,13 +21,16 @@ exports.make = function(w,h,options) {
 /**
  * Encode the PNG image to output stream
  *
- * @param {Bitmap} bitmap    An instance of {@link Bitmap} to be encoded to PNG
+ * @param {Bitmap} bitmap    An instance of {@link Bitmap} to be encoded to PNG, `bitmap.data` must be a buffer of raw PNG data
  * @param {Stream} outstream The stream to write the PNG file to
  *
  * @returns {Promise<void>}
  */
 exports.encodePNGToStream = function(bitmap, outstream) {
     return new Promise((res,rej)=>{
+        if(!bitmap.hasOwnProperty('data') || !bitmap.hasOwnProperty('width') || !bitmap.hasOwnProperty('height')) {
+            rej(new TypeError('Invalid bitmap image provided'));
+        }
         var png = new PNG({
             width:bitmap.width,
             height:bitmap.height
@@ -56,19 +59,25 @@ exports.encodePNGToStream = function(bitmap, outstream) {
  *
  * Encode the JPEG image to output stream
  *
- * @param {string} img       An object containing a raw buffer of the image data (`img.buffer`) along with the width(`img.width`) and height (`img.height`) of the image
- * @param {Stream} outstream The stream to write the JPEG file to
+ * @param {Bitmap} img       An instance of {@link Bitmap} to be encoded to JPEG, `img.data` must be a buffer of raw JPEG data
+ * @param {Stream} outstream The stream to write the raw JPEG buffer to
  * @returns {Promise<void>}
  */
 exports.encodeJPEGToStream = function(img, outstream) {
     return new Promise((res,rej)=> {
+        if(!img.hasOwnProperty('data') || !img.hasOwnProperty('width') || !img.hasOwnProperty('height')) {
+            rej(new TypeError('Invalid bitmap image provided'));
+        }
         var data = {
             data: img.data,
             width: img.width,
             height: img.height
         };
         outstream.on('error', (err) => rej(err));
-        outstream.write(JPEG.encode(data, 50).data, () => res());
+        outstream.write(JPEG.encode(data, 50).data, () => {
+            outstream.end();
+            res();
+        });
     });
 };
 
@@ -85,17 +94,15 @@ exports.decodeJPEGFromStream = function(data) {
     return new Promise((res,rej)=>{
         try {
             var chunks = [];
-            data.on('data',(chunk)=>{
-                chunks.push(chunk);
-            });
-            data.on('end',()=>{
+            data.on('data', chunk => chunks.push(chunk));
+            data.on('end',() => {
                 var buf = Buffer.concat(chunks);
                 var rawImageData = JPEG.decode(buf);
                 var bitmap = new Bitmap(rawImageData.width, rawImageData.height);
-                for (var i = 0; i < rawImageData.width; i++) {
-                    for (var j = 0; j < rawImageData.height; j++) {
-                        var n = (j * rawImageData.width + i) * 4;
-                        bitmap.setPixelRGBA_i(i, j,
+                for (var x_axis = 0; x_axis < rawImageData.width; x_axis++) {
+                    for (var y_axis = 0; y_axis < rawImageData.height; y_axis++) {
+                        var n = (y_axis * rawImageData.width + x_axis) * 4;
+                        bitmap.setPixelRGBA_i(x_axis, y_axis,
                             rawImageData.data[n + 0],
                             rawImageData.data[n + 1],
                             rawImageData.data[n + 2],

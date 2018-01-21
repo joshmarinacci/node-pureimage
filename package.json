@@ -19,14 +19,36 @@
   },
   "devDependencies": {
     "esdoc": "^1.0.3",
+    "esdoc-integrate-test-plugin": "^1.0.0",
     "esdoc-member-plugin": "^1.0.0",
     "esdoc-node": "^1.0.2",
     "esdoc-standard-plugin": "^1.0.0",
-    "tape": "^4.6.3"
+    "file-type": "^7.4.0",
+    "jest": "^22.0.6"
   },
   "scripts": {
-    "test": "node tests/runtests.js",
-    "docs": "./node_modules/.bin/esdoc"
+    "unit": "jest",
+    "docs": "esdoc"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageDirectory": "./tests/unit/coverage",
+    "coverageReporters": [
+      "lcov",
+      "text"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.{js}"
+    ],
+    "modulePaths": [
+      "<rootDir>/src/"
+    ],
+    "notify": true,
+    "testEnvironment": "node",
+    "globals": {
+      "FIXTURES_DIR": "./tests/unit/fixtures/"
+    },
+    "verbose": true
   },
   "license": "MIT"
 }

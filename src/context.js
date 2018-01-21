@@ -548,7 +548,7 @@ class Context {
      * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/beginPath
      *
      * @returns {void}
-     *o
+     *
      * @memberof Context
      */
     beginPath() {

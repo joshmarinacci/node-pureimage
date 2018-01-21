@@ -27,15 +27,26 @@ class Line {
      */
     constructor (){
         if (arguments.length === 4) {
+
             /**
-             * @type {object}
+             * @type {Point}
             */
             this.start = {};
+
             /**
-             * @type {object}
+             * @type {Point}
             */
             this.end   = {};
+
             [this.start.x, this.start.y, this.end.x, this.end.y] = arguments;
+            for(let argument_index in arguments) {
+                if(arguments.hasOwnProperty(argument_index)) {
+                    let argument = arguments[argument_index];
+                    if(typeof argument !== 'number'){
+                        throw TypeError('When passing 4 arguments, only numbers may be passed');
+                    }
+                }
+            }
         } else if(arguments.length === 2) {
             [this.start, this.end] = arguments;
         } else {
