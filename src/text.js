@@ -124,9 +124,9 @@ exports.processTextPath = function(ctx,text,x,y, fill) {
  * @returns {object}
  */
 exports.measureText = function(ctx,text) {
-    var font = _fonts[ctx._settings.font.family];
-    if(!font) console.log("WARNING. Can't find font family ", ctx._settings.font.family);
-    var fsize   = ctx._settings.font.size;
+    var font = _fonts[ctx._font.family];
+    if(!font) console.log("WARNING. Can't find font family ", ctx._font.family);
+    var fsize   = ctx._font.size;
     var glyphs  = font.font.stringToGlyphs(text);
     var advance = 0;
     glyphs.forEach(function(g) { advance += g.advanceWidth; });
