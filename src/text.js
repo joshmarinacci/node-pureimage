@@ -79,6 +79,9 @@ function findFont(family) {
  */
 exports.processTextPath = function(ctx,text,x,y, fill) {
     let font = findFont(ctx._font.family);
+    if(!font) {
+        console.warn("Font missing",ctx._font)
+    }
     var size = ctx._font.size;
     if(ctx.USE_FONT_GLYPH_CACHING) {
         var off = 0;
@@ -124,8 +127,8 @@ exports.processTextPath = function(ctx,text,x,y, fill) {
  * @returns {object}
  */
 exports.measureText = function(ctx,text) {
-    var font = _fonts[ctx._font.family];
-    if(!font) console.log("WARNING. Can't find font family ", ctx._font.family);
+    let font = findFont(ctx._font.family);
+    if(!font) console.warn("WARNING. Can't find font family ", ctx._font);
     var fsize   = ctx._font.size;
     var glyphs  = font.font.stringToGlyphs(text);
     var advance = 0;

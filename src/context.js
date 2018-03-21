@@ -775,8 +775,8 @@ class Context {
      *
      * @memberof Context
      */
-    measureText() {
-        throw new Error("measureText not yet supported");
+    measureText(string) {
+        return TEXT.measureText(this,string)
     }
 
     /**

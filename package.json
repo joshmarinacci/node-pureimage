@@ -18,13 +18,13 @@
     "pngjs": "^3.3.1"
   },
   "devDependencies": {
-    "esdoc": "^1.0.3",
+    "esdoc": "^1.0.4",
     "esdoc-integrate-test-plugin": "^1.0.0",
     "esdoc-member-plugin": "^1.0.0",
-    "esdoc-node": "^1.0.2",
+    "esdoc-node": "^1.0.3",
     "esdoc-standard-plugin": "^1.0.0",
-    "file-type": "^7.4.0",
-    "jest": "^22.0.6"
+    "file-type": "^7.6.0",
+    "jest": "^22.4.2"
   },
   "scripts": {
     "unit": "jest",
