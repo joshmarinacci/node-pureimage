@@ -887,25 +887,29 @@ class Context {
         let err = dx - dy, e2, x2, y2;
         let ed = dx + dy === 0 ? 1 : Math.sqrt(dx * dx + dy * dy);
         let rgb = uint32.and(this._strokeColor, 0xFFFFFF00);
+        let a1 = uint32.and(this._strokeColor,0x000000FF);
         for (width = (width+1)/2; ; ) {
-            let alpha = ~~Math.max(0, 255 * (Math.abs(err - dx + dy) / ed - width + 1));
-            var pixelColor = uint32.or(rgb,255-alpha);
-            this.fillPixelWithColor(x0,y0,pixelColor);
+            const alpha = ~~Math.max(0, 255 * (Math.abs(err - dx + dy) / ed - width + 1));
+            const a2 = 255-alpha
+            const color = uint32.or(rgb,(a1*a2)/255);
+            this.fillPixelWithColor(x0,y0,color);
             e2 = err; x2 = x0;
             if (2*e2 >= -dx) {
                 for (e2 += dy, y2 = y0; e2 < ed*width && (y1 !== y2 || dx > dy); e2 += dx) {
-                    alpha = ~~Math.max(0, 255 * (Math.abs(e2) / ed - width + 1));
-                    var pixelColor = uint32.or(rgb,255-alpha);
-                    this.fillPixelWithColor(x0, y2 += sy, pixelColor);
+                    const alpha = ~~Math.max(0, 255 * (Math.abs(e2) / ed - width + 1));
+                    const a2 = 255-alpha
+                    const color = uint32.or(rgb,(a1*a2)/255);
+                    this.fillPixelWithColor(x0, y2 += sy, color);
                 }
                 if (x0 === x1) break;
                 e2 = err; err -= dy; x0 += sx;
             }
             if (2*e2 <= dy) {
                 for (e2 = dx-e2; e2 < ed*width && (x1 !== x2 || dx < dy); e2 += dy) {
-                    alpha = ~~Math.max(0, 255 * (Math.abs(e2) / ed - width + 1));
-                    var pixelColor = uint32.or(rgb,255-alpha);
-                    this.fillPixelWithColor(x2 += sx, y0, pixelColor);
+                    const alpha = ~~Math.max(0, 255 * (Math.abs(e2) / ed - width + 1));
+                    const a2 = 255-alpha
+                    const color = uint32.or(rgb,(a1*a2)/255);
+                    this.fillPixelWithColor(x2 += sx, y0, color);
                 }
                 if (y0 === y1) break;
                 err += dx; y0 += sy;
