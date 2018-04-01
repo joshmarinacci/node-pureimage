@@ -529,6 +529,10 @@ class Context {
      * @memberof Context
      */
     drawImage(bitmap, sx,sy,sw,sh, dx, dy, dw, dh) {
+        // two argument form
+        if(typeof sw === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, bitmap.width, bitmap.height)
+        // four argument form
+        if(typeof dx === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, sw, sh)
         for(var i=0; i<dw; i++) {
             var tx = i/dw;
             var ssx = Math.floor(tx*sw)+sx;
