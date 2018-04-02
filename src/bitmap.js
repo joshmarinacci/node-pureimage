@@ -35,7 +35,7 @@ class Bitmap {
          */
         this.data = Buffer.alloc(w*h*4);
 
-        var fillval = NAMED_COLORS.black;
+        const fillval = NAMED_COLORS.transparent
         for(var j=0; j<h; j++) {
             for (var i = 0; i < w; i++) {
                 this.setPixelRGBA(i, j, fillval);

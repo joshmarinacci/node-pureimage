@@ -16,6 +16,11 @@ describe('drawImage',() => {
         c.fillRect(25,0,25,50)
     })
 
+    it('canvas is empty and clear', (done) => {
+        expect(image.getPixelRGBA(0,0)).toBe(0x00000000)
+        done()
+    })
+
     it('can draw a full image', (done) => {
         context.drawImage(src,0,0,50,50,0,0,50,50)
         expect(image.getPixelRGBA(0, 0)).toBe(0xFFFFFFFF)
