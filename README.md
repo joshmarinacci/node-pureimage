@@ -99,7 +99,7 @@ ctx.fillStyle = 'rgba(255,0,0, 0.5)';
 ctx.fillRect(0,0,100,100);
 ```
 
-Fill a green circle wiwth a radius of 40 pixels in the middle of a 100px square black image.
+Fill a green circle with a radius of 40 pixels in the middle of a 100px square black image.
 
 ```js
 var img = PImage.make(100,100);
