@@ -74,8 +74,11 @@ class Context {
             size:12
         };
 
-        /** @type {string} horizontal text alignment, one of start, end, left, center, right */
+        /** @type {string} horizontal text alignment, one of start, end, left, center, right. start is the default */
         this.textAlign = 'start'
+
+        /** @type {string} vertical text alignment, relative to the baseline. one of top, middle, alphabetic(default) and bottom. */
+        this.textBaseline = 'alphabetic'
 
 
         /**
@@ -510,7 +513,7 @@ class Context {
      * @memberof Context
      */
     putImageData(id, x, y) {
-        throw new ("Method not yet implemented");
+        throw new Error ("Method not yet implemented");
     }
 
     /**
@@ -1060,7 +1063,7 @@ class Context {
      *
      * @memberof Context
      */
-    fillText(text, x ,y) { TEXT.processTextPath(this, text, x,y, true, this.textAlign);  }
+    fillText(text, x ,y) { TEXT.processTextPath(this, text, x,y, true, this.textAlign, this.textBaseline);  }
 
     /**
      * Draws the outlines of the characters of a specified text string at the given (x, y) position.
@@ -1073,7 +1076,7 @@ class Context {
      *
      * @memberof Context
      */
-    strokeText(text, x ,y) { TEXT.processTextPath(this, text, x,y, false, this.textAlign);  }
+    strokeText(text, x ,y) { TEXT.processTextPath(this, text, x,y, false, this.textAlign, this.textBaseline);  }
 
 
     /**
