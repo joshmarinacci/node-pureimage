@@ -363,7 +363,7 @@ class Context {
     }
 
     /**
-     * Paints a pixel which has an x axis position of `x` and a y axis psotion of `y`
+     * Paints a pixel which has an x axis position of `x` and a y axis position of `y`
      *
      * @param {number} x The x axis of the pixel to stroke
      * @param {number} y The y axis of the pixel to stroke
