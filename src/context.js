@@ -74,6 +74,10 @@ class Context {
             size:12
         };
 
+        /** @type {string} horizontal text alignment, one of start, end, left, center, right */
+        this.textAlign = 'start'
+
+
         /**
          * @type {boolean} Enable or disable image smoothing(anti-aliasing)
          */
@@ -1056,7 +1060,7 @@ class Context {
      *
      * @memberof Context
      */
-    fillText(text, x ,y) { TEXT.processTextPath(this, text, x,y, true);  }
+    fillText(text, x ,y) { TEXT.processTextPath(this, text, x,y, true, this.textAlign);  }
 
     /**
      * Draws the outlines of the characters of a specified text string at the given (x, y) position.
@@ -1069,7 +1073,7 @@ class Context {
      *
      * @memberof Context
      */
-    strokeText(text, x ,y) { TEXT.processTextPath(this, text, x,y, false);  }
+    strokeText(text, x ,y) { TEXT.processTextPath(this, text, x,y, false, this.textAlign);  }
 
 
     /**

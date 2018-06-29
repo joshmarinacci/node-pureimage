@@ -77,11 +77,15 @@ function findFont(family) {
  *
  * @returns {void}
  */
-exports.processTextPath = function(ctx,text,x,y, fill) {
+exports.processTextPath = function(ctx,text,x,y, fill, hAlign) {
     let font = findFont(ctx._font.family);
     if(!font) {
         console.warn("Font missing",ctx._font)
     }
+    const metrics = exports.measureText(ctx,text)
+    if(hAlign === 'start' || hAlign === 'left') /* x = x*/ ;
+    if(hAlign === 'end'   || hAlign === 'right')  x = x - metrics.width
+    if(hAlign === 'center')  x = x - metrics.width/2
     var size = ctx._font.size;
     if(ctx.USE_FONT_GLYPH_CACHING) {
         var off = 0;
