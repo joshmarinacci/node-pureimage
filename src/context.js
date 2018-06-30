@@ -6,6 +6,7 @@ const Point        = require('./Point');
 const TEXT         = require('./text');
 const trans        = require('./transform');
 const uint32       = require('./uint32');
+const G = require('./Gradient')
 
 /**
  * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)
@@ -117,8 +118,12 @@ class Context {
      * @example ctx.fillStyle = 'rgba(0, 25, 234, 0.6)';
      */
     set fillStyle (val) {
-        this._fillColor = Context.colorStringToUint32(val);
-        this._fillStyle_text = val;
+        if(val instanceof G.CanvasGradient) {
+            this._fillColor = val
+        } else {
+            this._fillColor = Context.colorStringToUint32(val);
+            this._fillStyle_text = val;
+        }
     };
 
     /**
@@ -197,6 +202,14 @@ class Context {
 
         this._font.family = font_name;
         this._font.size   = font_size;
+    }
+
+
+    createLinearGradient(x0,y0, x1,y1) {
+        return new G.LinearGradient(x0,y0,x1,y1)
+    }
+    createRadialGradient(x0,y0) {
+        return new G.RadialGradient(x0,y0)
     }
 
 
@@ -461,6 +474,9 @@ class Context {
      * @memberof Context
      */
     calculateRGBA(x,y) {
+        if(this._fillColor instanceof G.CanvasGradient) {
+            return this._fillColor.colorAt(x,y)
+        }
         return this._fillColor;
     }
 
