@@ -6,8 +6,15 @@ class CanvasGradient {
     constructor() {
         this.stops = []
     }
-    addColorStop(t,color) {
+    addColorStop(t,colorstring) {
+        const color = util.colorStringToUint32(colorstring)
         this.stops.push({t:t,color:color})
+    }
+    _lerpStops(t) {
+        const first = uint32.getBytesBigEndian(this.stops[0].color).map(b=>b/255);
+        const second = uint32.getBytesBigEndian(this.stops[1].color).map(b=>b/255);
+        const fc = first.map((f,i) => util.lerp(f,second[i],t)).map(c=>c*255)
+        return uint32.fromBytesBigEndian(fc[0],fc[1],fc[2],0xFF)
     }
 }
 
@@ -31,11 +38,7 @@ class LinearGradient extends CanvasGradient {
         let t = V0.dotProduct(V)
         //convert to t value and clamp
         t = util.clamp(t/d,0,1)
-        return uint32.fromBytesBigEndian(
-            Math.floor(t*255),
-            Math.floor(t*255),
-            Math.floor(t*255),
-            255);
+        return this._lerpStops(t)
     }
 }
 
@@ -50,11 +53,7 @@ class RadialGradient extends CanvasGradient {
         const pc = new Point(x, y) //convert to a point
         const dist =  pc.distance(this.start)
         let t = util.clamp(dist/10,0,1)
-        return uint32.fromBytesBigEndian(
-            Math.floor(t*255),
-            Math.floor(t*255),
-            Math.floor(t*255),
-            255);
+        return this._lerpStops(t)
     }
 }
 
