@@ -1181,13 +1181,12 @@ function pathToLines(path) {
                 curr = pt;
             }
         }
-        if(cmd[0] == PATH_COMMAND.BEZIER_CURVE) {
+        if(cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
             var pts = [curr, cmd[1], cmd[2], cmd[3]];
-            for(var t=0; t<1; t+=0.1) {
-                var pt = calcBezierAtT(pts,t);
-                lines.push(new Line(curr, pt));
-                curr = pt;
-            }
+            bezierToLines(pts,10).forEach(pt => {
+                lines.push(new Line(curr,pt))
+                curr = pt
+            })
         }
     });
     return lines;
@@ -1221,6 +1220,53 @@ function calcBezierAtT(p, t) {
     var x = (1-t)*(1-t)*(1-t)*p[0].x + 3*(1-t)*(1-t)*t*p[1].x + 3*(1-t)*t*t*p[2].x + t*t*t*p[3].x;
     var y = (1-t)*(1-t)*(1-t)*p[0].y + 3*(1-t)*(1-t)*t*p[1].y + 3*(1-t)*t*t*p[2].y + t*t*t*p[3].y;
     return new Point(x, y);
+}
+
+function bezierToLines(curve, THRESHOLD) {
+    function recurse(curve) {
+        if(flatness(curve) < THRESHOLD) return [curve[0],curve[3]]
+        const split = splitCurveAtT(curve,0.5,false)
+        return recurse(split[0]).concat(recurse(split[1]))
+    }
+    return recurse(curve)
+}
+
+function splitCurveAtT(p,t, debug) {
+    let p1 = p[0]
+    let p2 = p[1]
+    let p3 = p[2]
+    let p4 = p[3]
+
+    let p12 = midpoint(p1,p2,t)
+    let p23 = midpoint(p2,p3,t)
+    let p34 = midpoint(p4,p3,t)
+
+
+    let p123 = midpoint(p12,p23,t)
+    let p234 = midpoint(p23, p34,t)
+    let p1234 = { x: (p234.x-p123.x)*t+p123.x, y: (p234.y-p123.y)*t+p123.y}
+
+    return [[p1, p12, p123, p1234],[p1234,p234,p34,p4]]
+}
+
+function flatness(curve) {
+    const pointA = curve[0]
+    const controlPointA = curve[1]
+    const controlPointB = curve[2]
+    const pointB = curve[3]
+    let ux = Math.pow( 3 * controlPointA.x - 2 * pointA.x - pointB.x, 2 );
+    let uy = Math.pow( 3 * controlPointA.y - 2 * pointA.y - pointB.y, 2 );
+    let vx = Math.pow( 3 * controlPointB.x - 2 * pointB.x - pointA.x, 2 );
+    let vy = Math.pow( 3 * controlPointB.y - 2 * pointB.y - pointA.y, 2 );
+    if( ux < vx )
+        ux = vx;
+    if( uy < vy )
+        uy = vy;
+    return ux + uy;
+}
+
+function midpoint(p1,p2,t) {
+    return { x: (p2.x-p1.x)*t+p1.x, y: (p2.y-p1.y)*t+p1.y}
 }
 
 /**
