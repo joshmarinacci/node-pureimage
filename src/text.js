@@ -91,7 +91,6 @@ exports.processTextPath = function(ctx,text,x,y, fill, hAlign, vAlign) {
     if(vAlign === 'top') y = y + metrics.emHeightAscent
     if(vAlign === 'middle') y = y + metrics.emHeightAscent/2+metrics.emHeightDescent/2
     if(vAlign === 'bottom') y = y + metrics.emHeightDescent
-    console.log(metrics)
     var size = ctx._font.size;
     if(ctx.USE_FONT_GLYPH_CACHING) {
         var off = 0;
