@@ -108,21 +108,23 @@ exports.processTextPath = function(ctx,text,x,y, fill, hAlign, vAlign) {
             off += glyph.advance;
         }
     } else {
-        var path = font.font.getPath(text, x, y, size);
-        ctx.beginPath();
-        path.commands.forEach(function(cmd) {
-            switch(cmd.type) {
-                case 'M': ctx.moveTo(cmd.x,cmd.y); break;
-                case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
-                case 'L': ctx.lineTo(cmd.x,cmd.y); break;
-                case 'Z':
-                {
-                    ctx.closePath();
-                    fill ? ctx.fill() : ctx.stroke();
-                    ctx.beginPath();
-                    break;
+        font.load(function(){
+            var path = font.font.getPath(text, x, y, size);
+            ctx.beginPath();
+            path.commands.forEach(function(cmd) {
+                switch(cmd.type) {
+                    case 'M': ctx.moveTo(cmd.x,cmd.y); break;
+                    case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
+                    case 'L': ctx.lineTo(cmd.x,cmd.y); break;
+                    case 'Z':
+                    {
+                        ctx.closePath();
+                        fill ? ctx.fill() : ctx.stroke();
+                        ctx.beginPath();
+                        break;
+                    }
                 }
-            }
+            });
         });
     }
 };
