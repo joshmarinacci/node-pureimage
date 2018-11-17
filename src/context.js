@@ -722,7 +722,7 @@ class Context {
      * @param {number}  rad       The arc's radius
      * @param {number}  start     The angle at which the arc starts, measured clockwise from the positive x axis and expressed in radians
      * @param {number}  end       The angle at which the arc ends, measured clockwise from the positive x axis and expressed in radians
-     * @param {boolean} clockwise A boolean which, if true, causes the arc to be drawn clockwise between the two angles.
+     * @param {boolean} anticlockwise A boolean which, if true, causes the arc to be drawn anticlockwise between the two angles.
      *
      * @returns {void}
      *
@@ -730,14 +730,19 @@ class Context {
      */
     arc(x,y, rad, start, end, clockwise) {
         function calcPoint(ctx,type,angle) {
-            let px = x + Math.sin(angle)*rad;
-            let py = y + Math.cos(angle)*rad;
+            let px = x + Math.cos(angle)*rad;
+            let py = y + Math.sin(angle)*rad;
             return new Point(px, py);
         }
         this._moveTo(calcPoint(this, PATH_COMMAND.MOVE, start));
-        for(var a=start; a<=end; a+=Math.PI/16)  {
-            this._lineTo(calcPoint(this, PATH_COMMAND.LINE, a));
-        }
+        if (anticlockwise)
+            for(var a=start; a>=end; a-=Math.PI/16) {
+                this._lineTo(calcPoint(this, PATH_COMMAND.LINE, a));
+            }
+        else
+            for(var a=start; a<=end; a+=Math.PI/16) {
+                this._lineTo(calcPoint(this, PATH_COMMAND.LINE, a));
+            }
         this._lineTo(calcPoint(this, PATH_COMMAND.LINE, end));
     }
 
