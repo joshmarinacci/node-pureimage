@@ -562,7 +562,8 @@ class Context {
             for(var j=0; j<dh; j++) {
                 var ty = j/dh;
                 var ssy = sy+Math.floor(ty * sh);
-                var rgba = bitmap.getPixelRGBA(ssx,ssy);
+                //var rgba = bitmap.getPixelRGBA(ssx,ssy);
+                var rgba = bitmap.getPixelRGBA_bilinear(sx+tx*sw,sy+ty*sh);
                 this.bitmap.setPixelRGBA(dx+i, dy+j, rgba);
             }
         }

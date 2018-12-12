@@ -123,6 +123,40 @@ class Bitmap {
     }
 
     /**
+     * Get the bilinear interpolated RGBA value at a given pixel position and returns it as a hexadecimal number(See {@link NAMED_COLORS} for examples)
+     *
+     * @param {number} x fractional X axis potiion
+     * @param {number} y fractional Y axis position
+     *
+     * @returns {number}
+     *
+     * @memberof Bitmap
+     */
+    getPixelRGBA_bilinear(x,y) {
+        let floorx = Math.floor(x), 
+            floory = Math.floor(y),
+            fractx = x-floorx, 
+            fracty = y-floory,
+
+            i00 = this.calculateIndex(floorx, floory),
+            i01 = this.calculateIndex(floorx, floory+1),
+            i10 = this.calculateIndex(floorx+1, floory),
+            i11 = this.calculateIndex(floorx+1, floory+1),
+            
+            r00 = this.data[i00],   r01 = this.data[i01],   r10 = this.data[i10],   r11 = this.data[i11],
+            g00 = this.data[i00+1], g01 = this.data[i01+1], g10 = this.data[i10+1], g11 = this.data[i11+1],
+            b00 = this.data[i00+2], b01 = this.data[i01+2], b10 = this.data[i10+2], b11 = this.data[i11+2],
+            a00 = this.data[i00+3], a01 = this.data[i01+3], a10 = this.data[i10+3], a11 = this.data[i11+3];
+
+            r00 += (r01-r00)*fracty; r10 += (r11-r10)*fracty; r00 += (r10-r00)*fractx;
+            g00 += (g01-g00)*fracty; g10 += (g11-g10)*fracty; g00 += (g10-g00)*fractx;
+            b00 += (b01-b00)*fracty; b10 += (b11-b10)*fracty; b00 += (b10-b00)*fractx;
+            a00 += (a01-a00)*fracty; a10 += (a11-a10)*fracty; a00 += (a10-a00)*fractx;
+
+        return uint32.fromBytesBigEndian(r00,g00,b00,a00);
+    }
+
+    /**
      * Get Pixel RGBA Seperate
      *
      * @param {number} x X axis position
