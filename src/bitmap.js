@@ -139,9 +139,9 @@ class Bitmap {
             fracty = y-floory,
 
             i00 = this.calculateIndex(floorx, floory),
-            i01 = this.calculateIndex(floorx, floory+1),
-            i10 = this.calculateIndex(floorx+1, floory),
-            i11 = this.calculateIndex(floorx+1, floory+1),
+            i01 = this.calculateIndex(floorx, Math.min(this.height-1,floory+1)),
+            i10 = this.calculateIndex(Math.min(this.width-1,floorx+1), floory),
+            i11 = this.calculateIndex(Math.min(this.width-1,floorx+1), Math.min(this.height-1,floory+1)),
             
             r00 = this.data[i00],   r01 = this.data[i01],   r10 = this.data[i10],   r11 = this.data[i11],
             g00 = this.data[i00+1], g01 = this.data[i01+1], g10 = this.data[i10+1], g11 = this.data[i11+1],
