@@ -47,10 +47,11 @@ exports.encodePNGToStream = function(bitmap, outstream) {
             }
         }
 
-        png.pack()
-            .pipe(outstream)
-            .on('finish', ()=>{  res(); })
+        png.on('finish', ()=>{  res(); })
             .on('error', (err) => { rej(err); })
+            .pack()
+            .pipe(outstream)
+            
     });
 }
 
