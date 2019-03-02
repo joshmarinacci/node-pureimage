@@ -12,7 +12,7 @@
             "name":"esdoc-standard-plugin",
             "option":{
                 "lint":{
-                    "enable":true
+                    "enable":false
                 },
                 "coverage":{
                     "enable":true

@@ -11,7 +11,7 @@ const NAMED_COLORS = require('./named_colors');
  *
  * @returns {number}
  */
-module.exports.clamp = function (value,min,max) {
+exports.clamp = function (value,min,max) {
     if(value < min) return min;
     if(value > max) return max;
     return value;
@@ -34,10 +34,10 @@ module.exports.clamp = function (value,min,max) {
  *
  * @returns {number}
  */
-module.exports.lerp = function(a,b,t) {  return a + (b-a)*t; }
+exports.lerp = function(a,b,t) {  return a + (b-a)*t; }
 
 
-module.exports.colorStringToUint32 = function(str) {
+exports.colorStringToUint32 = function(str) {
     if(!str) return 0x000000;
     //hex values always get 255 for the alpha channel
     if(str.indexOf('#')===0) {

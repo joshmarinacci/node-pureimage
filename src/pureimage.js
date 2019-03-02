@@ -1,7 +1,8 @@
 const Bitmap = require('./bitmap');
 const fs     = require('fs');
 const JPEG   = require('jpeg-js');
-const PNG    = require('pngjs').PNG;
+const PNG_LIB    = require('pngjs')
+const PNG = PNG_LIB.PNG;
 const text   = require('./text');
 const uint32 = require('./uint32');
 

@@ -1,6 +1,5 @@
 const fs          = require('fs');
 const pureimage   = require('pureimage');
-const PassThrough = require('stream').PassThrough;
 
 
 describe('text drawing',() => {

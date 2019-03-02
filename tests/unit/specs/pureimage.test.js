@@ -1,7 +1,7 @@
 const fs          = require('fs');
 const pureimage   = require('pureimage');
-const PassThrough = require('stream').PassThrough;
-
+const STREAM = require('stream');
+const PassThrough = STREAM.PassThrough;
 expect.extend(require('../matchers/toBeOfFileType'));
 
 /**
