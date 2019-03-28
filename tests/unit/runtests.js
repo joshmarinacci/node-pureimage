@@ -194,7 +194,7 @@ test('save png', (t)=>{
 test('save jpg', (t)=>{
     var img = makeTestImage();
     var pth = path.join(BUILD_DIR,"test.jpg");
-    PImage.encodeJPEGToStream(img,fs.createWriteStream(pth)).then(()=>{
+    PImage.encodeJPEGToStream(img, 60, fs.createWriteStream(pth)).then(()=>{
         PImage.decodeJPEGFromStream(fs.createReadStream(pth)).then((img)=>{
             t.equal(img.width,50);
             t.equal(img.height,50);
@@ -217,7 +217,7 @@ test('resize jpg', (t) => {
             0, 0, 50, 50   // destination dimensions
         );
         var pth = path.join(BUILD_DIR,"resized_bird.jpg");
-        PImage.encodeJPEGToStream(img2,fs.createWriteStream(pth)).then(()=> {
+        PImage.encodeJPEGToStream(img2, 60, fs.createWriteStream(pth)).then(()=> {
             PImage.decodeJPEGFromStream(fs.createReadStream(pth)).then((img)=> {
                 t.equal(img.width,50);
                 t.equal(img.height,50);
