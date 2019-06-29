@@ -1,0 +1,6 @@
+{
+  "extends": "@bluelovers/tsconfig/esm/esModuleInterop.json",
+  "compilerOptions": {
+    "noImplicitAny": true
+  }
+}
