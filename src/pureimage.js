@@ -115,6 +115,9 @@ exports.decodeJPEGFromStream = function(data) {
                 }
                 res(bitmap);
             });
+            data.on("error", (err) => {
+                rej(err);
+            });
         } catch (e) {
             console.log(e);
             rej(e);
@@ -140,6 +143,8 @@ exports.decodePNGFromStream = function(instream) {
                     bitmap.data[i] = this.data[i];
                 };
                 res(bitmap);
+            }).on("error", function(err) {
+                rej(err);
             });
     })
 };
