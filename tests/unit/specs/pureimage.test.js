@@ -87,8 +87,9 @@ describe('JPEG image', () => {
 
         const passThroughStream = new PassThrough();
         const JPEGData          = [];
+        const JPEGQuality       = 60;
 
-        const JPEGPromise = pureimage.encodeJPEGToStream(PImage, passThroughStream)
+        const JPEGPromise = pureimage.encodeJPEGToStream(PImage, JPEGQuality, passThroughStream)
 
         passThroughStream.on('data', chunk => JPEGData.push(chunk))
         passThroughStream.on('end', () => {
@@ -102,7 +103,7 @@ describe('JPEG image', () => {
     */
     it('must be generated from a valid bitmap buffer', () => {
         return expect(
-            pureimage.encodeJPEGToStream('this is a string, not a bitmap buffer', new PassThrough())
+            pureimage.encodeJPEGToStream('this is a string, not a bitmap buffer', 60, new PassThrough())
         ).rejects.toThrow(TypeError);
     });
 
