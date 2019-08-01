@@ -1106,7 +1106,7 @@ class Context {
      * Convert a color string to Uint32 notation
      *
      * @static
-     * @param {number} str The color string to convert
+     * @param {string} str The color string to convert
      *
      * @returns {number}
      *
