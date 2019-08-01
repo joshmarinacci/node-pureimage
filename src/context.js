@@ -728,7 +728,7 @@ class Context {
      *
      * @memberof Context
      */
-    arc(x,y, rad, start, end, clockwise) {
+    arc(x,y, rad, start, end, anticlockwise) {
         function calcPoint(ctx,type,angle) {
             let px = x + Math.cos(angle)*rad;
             let py = y + Math.sin(angle)*rad;
