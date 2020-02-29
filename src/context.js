@@ -729,21 +729,22 @@ class Context {
      * @memberof Context
      */
     arc(x,y, rad, start, end, anticlockwise) {
-        function calcPoint(ctx,type,angle) {
+        function calcPoint(angle) {
             let px = x + Math.cos(angle)*rad;
             let py = y + Math.sin(angle)*rad;
             return new Point(px, py);
         }
-        this._moveTo(calcPoint(this, PATH_COMMAND.MOVE, start));
-        if (anticlockwise)
-            for(var a=start; a>=end; a-=Math.PI/16) {
-                this._lineTo(calcPoint(this, PATH_COMMAND.LINE, a));
-            }
-        else
-            for(var a=start; a<=end; a+=Math.PI/16) {
-                this._lineTo(calcPoint(this, PATH_COMMAND.LINE, a));
-            }
-        this._lineTo(calcPoint(this, PATH_COMMAND.LINE, end));
+        let step = Math.PI / 16
+        if (anticlockwise) {
+            let temp = end;
+            end = start + Math.PI * 2;
+            start = temp;
+        }
+        this._moveTo(calcPoint(start));
+        for (let a = start; a <= end; a += step) {
+            this._lineTo(calcPoint(a));
+        }
+        this._lineTo(calcPoint(end));
     }
 
     /**
@@ -1361,3 +1362,8 @@ function clamp(value,min,max) {
     if(value > max) return max;
     return value;
 }
+const PI_2 = Math.PI * 2
+function normalize(radians) {
+    return radians - PI_2 * Math.floor(radians / PI_2)
+}
+
