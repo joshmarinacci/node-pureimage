@@ -734,6 +734,9 @@ class Context {
             let py = y + Math.sin(angle)*rad;
             return new Point(px, py);
         }
+
+        if(start > end) end += Math.PI*2;
+
         let step = Math.PI / 16
         if (anticlockwise) {
             let temp = end;
