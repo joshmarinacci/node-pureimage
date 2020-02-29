@@ -21,7 +21,7 @@ const DEFAULT_FONT_FAMILY = 'source';
  * @param {string} style      Font style
  * @param {string} variant    Font variant
  *
- * @returns {void}
+ * @returns {font} Font instance
  */
 exports.registerFont = function(binaryPath, family, weight, style, variant) {
     _fonts[family] = {
