@@ -95,6 +95,26 @@ describe('draw curve',() => {
             done()
         })
     })
+    it('north going polygon', (done) => {
+        let img = pureimage.make(200, 200);
+        let ctx = img.getContext('2d');
+        ctx.beginPath();
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, 200, 200);
+        ctx.fillStyle = "black";
+        ctx.moveTo(100,100)
+        ctx.lineTo(100,120)
+        ctx.lineTo(20,120)
+        ctx.lineTo(20,50)
+        ctx.fill();
+        pureimage.encodePNGToStream(img, fs.createWriteStream('northgoing.png')).then(()=>{
+            console.log('wrote out northgoing.png')
+            expect(img.getPixelRGBA(25, 110)).toBe(BLACK)
+            expect(img.getPixelRGBA(25, 90)).toBe(BLACK)
+            done()
+        })
+
+    })
 
 
 })
