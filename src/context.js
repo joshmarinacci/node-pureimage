@@ -583,6 +583,7 @@ class Context {
          * @type {Array}
          */
         this.path = [];
+        this._closed = false;
     }
 
     /**
@@ -825,7 +826,10 @@ class Context {
      * @memberof Context
      */
     closePath() {
-        this.path.push([PATH_COMMAND.LINE, this.pathstart]);
+        if(!this._closed) {
+            this.path.push([PATH_COMMAND.LINE, this.pathstart]);
+            this._closed = true
+        }
     }
 
 
@@ -974,6 +978,7 @@ class Context {
      * @memberof Context
      */
     fill_aa() {
+        if(!this._closed) this.closePath()
         //get just the color part
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);
         var lines = pathToLines(this.path);
@@ -985,6 +990,7 @@ class Context {
         for(var j=startY; j>=endY; j--) {
             var ints = calcSortedIntersections(lines,j);
             //fill between each pair of intersections
+            // if(ints.length %2 !==0) console.log("warning. uneven number of intersections");
             for(var i=0; i<ints.length; i+=2) {
                 var fstartf = fract(ints[i]);
                 var fendf   = fract(ints[i+1]);
