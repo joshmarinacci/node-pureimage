@@ -48,8 +48,8 @@ describe('draw curve',() => {
         c.fill()
         pureimage.encodePNGToStream(image, fs.createWriteStream('bezier1.png')).then(() => {
             console.log('wrote out bezier1.png')
-            // expect(image.getPixelRGBA(0, 0)).toBe(0xFFFFFFFF)
-            // expect(image.getPixelRGBA(19, 19)).toBe(0x0C0CFFFF)
+            expect(image.getPixelRGBA(0, 0)).toBe(WHITE)
+            expect(image.getPixelRGBA(19, 39)).toBe(BLACK)
             done()
         })
 
