@@ -443,22 +443,27 @@ class Context {
         const old_rgba = uint32.getBytesBigEndian(old_pixel);
         const new_rgba = uint32.getBytesBigEndian(new_pixel);
 
-        //convert to range of 0->1
-        const A = new_rgba.map((b)=>b/255);
-        const B = old_rgba.map((b)=>b/255);
-        //multiply by global alpha
-        A[3] = A[3]*this._globalAlpha;
+        // convert to range of 0->1
+        const A = new_rgba.map((b) => b / 255);
+        const B = old_rgba.map((b) => b / 255);
 
-        //do a standard composite (SRC_OVER)
-        function compit(ca,cb,aa,ab) {
+        // multiply by global alpha
+        A[3] = A[3] * this._globalAlpha;
+
+        // do a standard composite (SRC_OVER) on RGB values
+        function compit(ca, cb, aa, ab) {
             return (ca*aa + cb*ab * (1-aa)) / (aa+ab*(1-aa));
         }
-        const C = A.map((comp,i)=> compit(A[i],B[i],A[3],B[3]));
+        const C = A.slice(0, 3).map((comp, i) => compit(A[i], B[i], A[3], B[3]));
 
-        //convert back to 0->255 range
-        const Cf = C.map((c)=>c*255);
-        //convert back to int
-        return uint32.fromBytesBigEndian(Cf[0],Cf[1],Cf[2],Cf[3]);
+        // convert back to 0->255 range
+        const Cf = C.map((c) => c * 255);
+
+        // convert back to int
+        return uint32.fromBytesBigEndian(
+            Cf[0], Cf[1], Cf[2], // R, G, B,
+            Math.max(old_rgba[3], new_rgba[3]) // alpha
+        );
     }
 
     /**
