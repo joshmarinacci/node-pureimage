@@ -152,7 +152,7 @@ PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((
         0, 0, 50, 50                 // destination dimensions
     );
     var pth = path.join(BUILD_DIR,"resized_bird.jpg");
-    PImage.encodeJPEGToStream(img2,fs.createWriteStream(pth)).then(() => {
+    PImage.encodeJPEGToStream(img2,fs.createWriteStream(pth), 50).then(() => {
         console.log("done writing");
     });
 });
