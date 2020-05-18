@@ -64,9 +64,11 @@ exports.encodePNGToStream = function(bitmap, outstream) {
  *
  * @param {Bitmap} img       An instance of {@link Bitmap} to be encoded to JPEG, `img.data` must be a buffer of raw JPEG data
  * @param {Stream} outstream The stream to write the raw JPEG buffer to
+ * @param {Int} Number between 0 and 100 setting the JPEG quality
  * @returns {Promise<void>}
  */
-exports.encodeJPEGToStream = function(img, outstream) {
+exports.encodeJPEGToStream = function(img, outstream, quality) {
+    quality = quality || 90;
     return new Promise((res,rej)=> {
         if(!img.hasOwnProperty('data') || !img.hasOwnProperty('width') || !img.hasOwnProperty('height')) {
             rej(new TypeError('Invalid bitmap image provided'));
@@ -77,7 +79,7 @@ exports.encodeJPEGToStream = function(img, outstream) {
             height: img.height
         };
         outstream.on('error', (err) => rej(err));
-        outstream.write(JPEG.encode(data, 50).data, () => {
+        outstream.write(JPEG.encode(data, quality).data, () => {
             outstream.end();
             res();
         });
