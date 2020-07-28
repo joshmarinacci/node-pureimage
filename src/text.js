@@ -44,6 +44,18 @@ exports.registerFont = function(binaryPath, family, weight, style, variant) {
                 self.font = font;
                 if(cb)cb();
             });
+        },
+        loadSync: function() {
+            if(this.loaded) {
+                return;
+            }
+            try {
+                this.font = opentype.loadSync(binaryPath);
+                this.loaded = true;
+                return this;
+            } catch (err) {
+                throw new Error('Could not load font: ' + err);
+            }
         }
     };
     return _fonts[family];
