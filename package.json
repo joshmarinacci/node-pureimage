@@ -50,5 +50,8 @@
     },
     "verbose": true
   },
+  "engines": {
+    "node": ">=0.8"
+  },
   "license": "MIT"
 }
