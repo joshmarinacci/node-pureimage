@@ -115,6 +115,24 @@ describe('draw curve',() => {
         })
 
     })
+    it('transparent polygon',(done)=>{
+        c.beginPath()
+        c.moveTo(10,10)
+        c.lineTo(100,10)
+        c.lineTo(100,100)
+        c.lineTo(10,100)
+        c.lineTo(10,10)
+        c.fillStyle = 'transparent'
+        c.fill()
+        expect(image.getPixelRGBA(0,0)).toBe(WHITE)
+        expect(image.getPixelRGBA(11,11)).toBe(WHITE)
+        expect(image.getPixelRGBA(50,50)).toBe(WHITE)
+        expect(image.getPixelRGBA(100,100)).toBe(WHITE)
+
+
+
+        done()
+    })
 
 
 })
