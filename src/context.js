@@ -1134,8 +1134,6 @@ class Context {
     static colorStringToUint32(str) {
         if(!str) return 0x000000;
         if(str.indexOf('#')==0) {
-            let int;
-            
             if(str.length==4) {
                 //Color format is #RGB
                 //Will get 255 for the alpha channel
@@ -1146,7 +1144,7 @@ class Context {
                 let blueNibble = parseInt(str[3], 16);
                 let blue = (blueNibble << 4) | blueNibble;
                 
-                int = uint32.toUint32(red << 16 | green << 8 | blue);
+                let int = uint32.toUint32(red << 16 | green << 8 | blue);
                 int = uint32.shiftLeft(int,8);
                 return uint32.or(int,0xff);
             } else if(str.length==5) {
@@ -1160,13 +1158,13 @@ class Context {
                 let alphaNibble = parseInt(str[4], 16);
                 let alpha = (alphaNibble << 4) | alphaNibble;
                 
-                int = uint32.toUint32(red << 16 | green << 8 | blue);
+                let int = uint32.toUint32(red << 16 | green << 8 | blue);
                 int = uint32.shiftLeft(int,8);
                 return uint32.or(int,alpha);
             } else if(str.length==7) {
                 //Color format is #RRGGBB
                 //Will get 255 for the alpha channel
-                int = uint32.toUint32(parseInt(str.substring(1),16));
+                let int = uint32.toUint32(parseInt(str.substring(1),16));
                 int = uint32.shiftLeft(int,8);
                 return uint32.or(int,0xff);
             } else if(str.length==9) {
