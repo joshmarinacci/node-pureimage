@@ -1133,12 +1133,46 @@ class Context {
      */
     static colorStringToUint32(str) {
         if(!str) return 0x000000;
-        //hex values always get 255 for the alpha channel
         if(str.indexOf('#')==0) {
-            var int = uint32.toUint32(parseInt(str.substring(1),16));
-            int = uint32.shiftLeft(int,8);
-            int = uint32.or(int,0xff);
-            return int;
+            let int;
+            
+            if(str.length==4) {
+                //Color format is #RGB
+                //Will get 255 for the alpha channel
+                let redNibble = parseInt(str[1], 16);
+                let red = (redNibble << 4) | redNibble;
+                let greenNibble = parseInt(str[2], 16);
+                let green = (greenNibble << 4) | greenNibble;
+                let blueNibble = parseInt(str[3], 16);
+                let blue = (blueNibble << 4) | blueNibble;
+                
+                int = uint32.toUint32(red << 16 | green << 8 | blue);
+                int = uint32.shiftLeft(int,8);
+                return uint32.or(int,0xff);
+            } else if(str.length==5) {
+                //Color format is #RGBA
+                let redNibble = parseInt(str[1], 16);
+                let red = (redNibble << 4) | redNibble;
+                let greenNibble = parseInt(str[2], 16);
+                let green = (greenNibble << 4) | greenNibble;
+                let blueNibble = parseInt(str[3], 16);
+                let blue = (blueNibble << 4) | blueNibble;
+                let alphaNibble = parseInt(str[4], 16);
+                let alpha = (alphaNibble << 4) | alphaNibble;
+                
+                int = uint32.toUint32(red << 16 | green << 8 | blue);
+                int = uint32.shiftLeft(int,8);
+                return uint32.or(int,alpha);
+            } else if(str.length==7) {
+                //Color format is #RRGGBB
+                //Will get 255 for the alpha channel
+                int = uint32.toUint32(parseInt(str.substring(1),16));
+                int = uint32.shiftLeft(int,8);
+                return uint32.or(int,0xff);
+            } else if(str.length==9) {
+                //Color format is #RRGGBBAA
+                return uint32.toUint32(parseInt(str.substring(1),16));
+            }
         }
         if(str.indexOf('rgba')==0) {
             var parts = str.trim().substring(4).replace('(','').replace(')','').split(',');
