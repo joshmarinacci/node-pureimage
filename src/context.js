@@ -1184,7 +1184,7 @@ class Context {
             var parts = str.trim().substring(3).replace('(','').replace(')','').split(',');
             return uint32.fromBytesBigEndian(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]), 255);
         }
-        if(str in NAMED_COLORS) {
+        if(NAMED_COLORS.hasOwnProperty(str)) {
             return NAMED_COLORS[str];
         }
         throw new Error("unknown style format: " + str );
