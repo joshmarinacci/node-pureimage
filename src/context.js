@@ -770,16 +770,28 @@ class Context {
     }
 
     /**
-     * Rect
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rect
+     * Draws a rectangle with the upper left corner at the specified (x, y)
      *
-     * @ignore
+     * @returns {void}
      *
-     * @throws {Error} Method is not yet implemented
+     * @memberof Context
+     *
+     *
+     * @param {number}  x         The x coordinate of the rectangle
+     * @param {number}  y         The y coordinate of the rectangle
+     * @param {number}  width     The width of the rectangle
+     * @param {number}  height    The height of the rectangle
+     *
      *
      * @memberof Context
      */
-    rect() {
-        throw new Error("rect not yet supported");
+    rect(x,y,width,height) {
+        this.moveTo(x,y);
+        this.lineTo(x+width,y);
+        this.lineTo(x+width,y+height);
+        this.lineTo(x,y+height);
+        this.lineTo(x,y);
     }
 
     /**
@@ -1143,7 +1155,7 @@ class Context {
                 let green = (greenNibble << 4) | greenNibble;
                 let blueNibble = parseInt(str[3], 16);
                 let blue = (blueNibble << 4) | blueNibble;
-                
+
                 let int = uint32.toUint32(red << 16 | green << 8 | blue);
                 int = uint32.shiftLeft(int,8);
                 return uint32.or(int,0xff);
@@ -1157,7 +1169,7 @@ class Context {
                 let blue = (blueNibble << 4) | blueNibble;
                 let alphaNibble = parseInt(str[4], 16);
                 let alpha = (alphaNibble << 4) | alphaNibble;
-                
+
                 let int = uint32.toUint32(red << 16 | green << 8 | blue);
                 int = uint32.shiftLeft(int,8);
                 return uint32.or(int,alpha);

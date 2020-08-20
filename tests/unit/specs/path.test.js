@@ -18,14 +18,25 @@ describe('draw curve',() => {
         done()
     })
 
-    //draw square
-    it('making a square', (done) => {
+    it('making a square with lines', (done) => {
         c.beginPath()
         c.moveTo(10,10)
         c.lineTo(100,10)
         c.lineTo(100,100)
         c.lineTo(10,100)
         c.lineTo(10,10)
+        c.fillStyle = 'black'
+        c.fill()
+        expect(image.getPixelRGBA(0,0)).toBe(WHITE)
+        expect(image.getPixelRGBA(11,11)).toBe(BLACK)
+        expect(image.getPixelRGBA(50,50)).toBe(BLACK)
+        expect(image.getPixelRGBA(100,100)).toBe(WHITE)
+        done()
+    })
+
+    it('making a square with rect', (done) => {
+        c.beginPath()
+        c.rect(10,10,90,90)
         c.fillStyle = 'black'
         c.fill()
         expect(image.getPixelRGBA(0,0)).toBe(WHITE)
