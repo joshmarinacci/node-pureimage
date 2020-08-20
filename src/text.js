@@ -104,41 +104,24 @@ exports.processTextPath = function(ctx,text,x,y, fill, hAlign, vAlign) {
     if(vAlign === 'middle') y = y + metrics.emHeightAscent/2+metrics.emHeightDescent/2
     if(vAlign === 'bottom') y = y + metrics.emHeightDescent
     var size = ctx._font.size;
-    if(ctx.USE_FONT_GLYPH_CACHING) {
-        var off = 0;
-        for(var i=0; i<text.length; i++) {
-            var ch = text[i];
-            if(!cache.contains(font,size,ch)) {
-                var glyph = renderGlyphToBitmap(font,ch,size);
-                cache.insert(font,size,ch,glyph);
-            }
-            var glyph = cache.get(font,size,ch);
-            var fx = x+off;
-            var fy = y-glyph.ascent;
-            var fpt = ctx.transform.transformPoint(fx,fy);
-            ctx.copyImage(glyph.bitmap, Math.floor(fpt.x), Math.floor(fpt.y), ctx._fillColor);
-            off += glyph.advance;
-        }
-    } else {
-        font.load(function(){
-            var path = font.font.getPath(text, x, y, size);
-            ctx.beginPath();
-            path.commands.forEach(function(cmd) {
-                switch(cmd.type) {
-                    case 'M': ctx.moveTo(cmd.x,cmd.y); break;
-                    case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
-                    case 'L': ctx.lineTo(cmd.x,cmd.y); break;
-                    case 'Z':
-                    {
-                        ctx.closePath();
-                        fill ? ctx.fill() : ctx.stroke();
-                        ctx.beginPath();
-                        break;
-                    }
+    font.load(function(){
+        var path = font.font.getPath(text, x, y, size);
+        ctx.beginPath();
+        path.commands.forEach(function(cmd) {
+            switch(cmd.type) {
+                case 'M': ctx.moveTo(cmd.x,cmd.y); break;
+                case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
+                case 'L': ctx.lineTo(cmd.x,cmd.y); break;
+                case 'Z':
+                {
+                    ctx.closePath();
+                    fill ? ctx.fill() : ctx.stroke();
+                    ctx.beginPath();
+                    break;
                 }
-            });
+            }
         });
-    }
+    });
 };
 
 /**
