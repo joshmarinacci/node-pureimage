@@ -102,7 +102,12 @@ exports.decodeJPEGFromStream = function(data) {
             data.on('data', chunk => chunks.push(chunk));
             data.on('end',() => {
                 var buf = Buffer.concat(chunks);
-                var rawImageData = JPEG.decode(buf);
+                try {
+                    var rawImageData = JPEG.decode(buf);
+                } catch(err) {
+                    rej(err);
+                    return
+                }
                 var bitmap = new Bitmap(rawImageData.width, rawImageData.height);
                 for (var x_axis = 0; x_axis < rawImageData.width; x_axis++) {
                     for (var y_axis = 0; y_axis < rawImageData.height; y_axis++) {
