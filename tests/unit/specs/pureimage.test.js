@@ -119,6 +119,15 @@ describe('JPEG image', () => {
         });
     });
 
+    /**
+     * @test {decodeJPEGFromStream}
+     */
+    it('rejects invalid JPEG data', () => {
+        return expect(
+            pureimage.decodeJPEGFromStream(fs.createReadStream(__dirname + '/pureimage.test.js'))
+        ).rejects.toThrow("SOI not found");
+    });
+
     afterEach(() => {
         PImage  = undefined;
         context = undefined;
