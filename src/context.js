@@ -998,6 +998,7 @@ class Context {
         if(!this._closed) this.closePath()
         //get just the color part
         var rgb = uint32.and(this._fillColor,0xFFFFFF00);
+        var alpha = uint32.and(this._fillColor,0xFF);
         var lines = pathToLines(this.path);
         var bounds = calcMinimumBounds(lines);
 
@@ -1016,13 +1017,13 @@ class Context {
                 for(var ii=start; ii<=end; ii++) {
                     if(ii == start) {
                         //first
-                        var int = uint32.or(rgb,(1-fstartf)*255);
+                        var int = uint32.or(rgb,(1-fstartf)*alpha);
                         this.fillPixelWithColor(ii,j, int);
                         continue;
                     }
                     if(ii == end) {
                         //last
-                        var int = uint32.or(rgb,fendf*255);
+                        var int = uint32.or(rgb,fendf*alpha);
                         this.fillPixelWithColor(ii,j, int);
                         continue;
                     }
