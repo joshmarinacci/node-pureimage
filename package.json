@@ -8,6 +8,7 @@
     "url": "http://joshondesign.com/"
   },
   "main": "./src/pureimage.js",
+  "browser": "./src/browser.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/joshmarinacci/node-pureimage.git"

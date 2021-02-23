@@ -4,3 +4,4 @@ build
 docs
 tests/unit/coverage
 .vscode
+output

@@ -1,6 +1,18 @@
 const pureimage = require('pureimage')
 const fs = require('fs')
+const path = require("path")
+const DIR = "output"
+const mkdir = (pth) => {
+    return new Promise((res,rej)=>{
+        fs.mkdir(pth,(e)=>{
+            // console.log("done with mkdir",e)
+            res()
+        })
+    })
+}
+mkdir(DIR)
 describe('draw curve',() => {
+
     let image;
     let c;
     const WHITE = 0xFFFFFFFF
@@ -57,7 +69,7 @@ describe('draw curve',() => {
         c.bezierCurveTo(50,50, 100,50, 10,100)
         c.lineTo(10,10)
         c.fill()
-        pureimage.encodePNGToStream(image, fs.createWriteStream('bezier1.png')).then(() => {
+        pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'bezier1.png'))).then(() => {
             console.log('wrote out bezier1.png')
             expect(image.getPixelRGBA(0, 0)).toBe(WHITE)
             expect(image.getPixelRGBA(19, 39)).toBe(BLACK)
@@ -101,7 +113,7 @@ describe('draw curve',() => {
                 }
             }
         }
-        pureimage.encodePNGToStream(img, fs.createWriteStream('arc.png')).then(()=>{
+        pureimage.encodePNGToStream(img, fs.createWriteStream(path.join(DIR,'arc.png'))).then(()=>{
             console.log('wrote out arc.png')
             done()
         })
@@ -118,7 +130,7 @@ describe('draw curve',() => {
         ctx.lineTo(20,120)
         ctx.lineTo(20,50)
         ctx.fill();
-        pureimage.encodePNGToStream(img, fs.createWriteStream('northgoing.png')).then(()=>{
+        pureimage.encodePNGToStream(img, fs.createWriteStream(path.join(DIR,'northgoing.png'))).then(()=>{
             console.log('wrote out northgoing.png')
             expect(img.getPixelRGBA(25, 110)).toBe(BLACK)
             expect(img.getPixelRGBA(25, 90)).toBe(BLACK)
@@ -144,6 +156,5 @@ describe('draw curve',() => {
 
         done()
     })
-
 
 })
