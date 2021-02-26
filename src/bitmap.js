@@ -149,5 +149,32 @@ class Bitmap {
     getContext() {
         return new Context(this);
     }
+
+    _copySubBitmap(x,y,w,h) {
+        let dst = new Bitmap(w,h)
+        for(let i=0; i<w; i++) {
+            for(let j=0; j<h; j++) {
+                let indexA = this.calculateIndex(x+i,y+j)
+                let indexB = dst.calculateIndex(i,j)
+                for(let k=0; k<4; k++) {
+                    dst.data[indexB+k] = this.data[indexA+k]
+                }
+            }
+        }
+        return dst
+    }
+
+    _pasteSubBitmap(src,x,y) {
+        for(let i=0; i<src.width; i++) {
+            for(let j=0; j<src.height; j++) {
+                let indexA = this.calculateIndex(x+i,y+j)
+                let indexB = src.calculateIndex(i,j)
+                for(let k=0; k<4; k++) {
+                    this.data[indexA+k] = src.data[indexB+k]
+                }
+            }
+        }
+    }
+
 }
 module.exports = Bitmap;

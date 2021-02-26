@@ -517,7 +517,7 @@ class Context {
      * @memberof Context
      */
     getImageData(x,y,w,h) {
-        return this.bitmap;
+        return this.bitmap._copySubBitmap(x,y,w,h)
     }
 
     /**
@@ -534,7 +534,7 @@ class Context {
      * @memberof Context
      */
     putImageData(id, x, y) {
-        throw new Error ("Method not yet implemented");
+        this.bitmap._pasteSubBitmap(id,x,y)
     }
 
     /**
