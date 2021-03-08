@@ -1,4 +1,4 @@
-var PImage = require('../src/pureimage');
+var PImage = require('../../src/pureimage');
 
 var fs = require('fs');
 var assert = require('assert');

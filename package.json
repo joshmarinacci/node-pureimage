@@ -25,7 +25,8 @@
     "esdoc-node": "^1.0.3",
     "esdoc-standard-plugin": "^1.0.0",
     "file-type": "^7.6.0",
-    "jest": "^22.4.2"
+    "jest": "^22.4.2",
+    "tape": "^5.2.2"
   },
   "scripts": {
     "unit": "jest",

@@ -6,7 +6,7 @@ var test = require('tape');
 var fs = require('fs');
 var path = require('path');
 var assert = require('assert');
-var PImage = require('../src/pureimage');
+var PImage = require('../../src/pureimage');
 
 var BUILD_DIR = "build";
 mkdir(BUILD_DIR);
@@ -147,8 +147,10 @@ test('clear rect', (t)=>{
 
 /* image loading and saving tests */
 
+const BIRD_PNG = "tests/unit/fixtures/images/bird.png"
+const BIRD_JPG = 'tests/unit/fixtures/images/bird.jpg'
 test('load png', (t)=>{
-    PImage.decodePNGFromStream(fs.createReadStream("tests/images/bird.png")).then((img)=>{
+    PImage.decodePNGFromStream(fs.createReadStream(BIRD_PNG)).then((img)=>{
         t.equal(img.width,200);
         t.equal(img.height,133);
         t.end();
@@ -156,7 +158,7 @@ test('load png', (t)=>{
 });
 
 test('load jpg', (t)=>{
-    PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((img)=>{
+    PImage.decodeJPEGFromStream(fs.createReadStream(BIRD_JPG)).then((img)=>{
         t.equal(img.width,200);
         t.equal(img.height,133);
         t.end();
@@ -206,7 +208,7 @@ test('save jpg', (t)=>{
 });
 
 test('resize jpg', (t) => {
-    PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((img)=>{
+    PImage.decodeJPEGFromStream(fs.createReadStream(BIRD_JPG)).then((img)=>{
         t.equal(img.width,200);
         t.equal(img.height,133);
 
@@ -425,7 +427,7 @@ test('stroke cubic curves', (t) => {
 
 
 test('font test', (t) => {
-    var fnt = PImage.registerFont('tests/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
+    var fnt = PImage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
     fnt.load(function() {
         var img = PImage.make(200,200);
         var ctx = img.getContext('2d');
@@ -471,7 +473,7 @@ function calcCrop(img1, specs) {
 
 test('image cropping', (t)=>{
     var specs = {width:100, height:133};
-    PImage.decodeJPEGFromStream(fs.createReadStream('tests/images/bird.jpg')).then((src)=>{
+    PImage.decodeJPEGFromStream(fs.createReadStream(BIRD_JPG)).then((src)=>{
         // console.log('source image',src.width,src.height, "to",specs);
         var calcs = calcCrop(src, specs);
         // console.log(calcs);
