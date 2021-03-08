@@ -1,11 +1,11 @@
 "use strict";
 
-import {Line} from "./Line.js"
+import {Lines} from "./lines.js"
 import {NAMED_COLORS} from './named_colors.js'
-import {Point} from "./Point.js"
+import {Points} from "./points.js"
 import * as TEXT from "./text.js"
 import * as trans from "./transform.js"
-import * as G from "./Gradient.js"
+import * as G from "./gradients.js"
 import {and, fromBytesBigEndian, getBytesBigEndian, or, shiftLeft, toUint32} from './uint32.js'
 import {clamp} from './util.js'
 
@@ -605,18 +605,18 @@ export class Context {
      * @memberof Context
     * */
     moveTo(x,y) {
-        return this._moveTo(new Point(x, y));
+        return this._moveTo(new Points(x, y));
     }
 
     /**
      * Moves the starting point of a new sub-path to the (x, y) coordinates.
      *
-     * @param {Point} pt A `point` object representing a set of co-ordinates to move the "pen" to.
+     * @param {Points} pt A `point` object representing a set of co-ordinates to move the "pen" to.
      *
      * @example
      * //All of the following are valid:
      * this._moveTo({x: 20, y: 40})
-     * this._moveTo(new Point(20, 40))
+     * this._moveTo(new Points(20, 40))
      *
      * @returns {void}
      *
@@ -626,7 +626,7 @@ export class Context {
         pt = this.transform.transformPoint(pt);
         /**
          * Set the starting co-ordinates for the path starting point
-         * @type {Point}
+         * @type {Points}
          */
         this.pathstart = pt;
         this.path.push([PATH_COMMAND.MOVE, pt]);
@@ -645,13 +645,13 @@ export class Context {
      * @memberof Context
      */
     lineTo(x,y) {
-        return this._lineTo(new Point(x, y));
+        return this._lineTo(new Points(x, y));
     }
 
     /**
      * Connects the last point in the sub-path to the x, y coordinates with a straight line (but does not actually draw it).
      *
-     * @param {Point} pt A point object to draw a line to from the current set of co-ordinates
+     * @param {Points} pt A point object to draw a line to from the current set of co-ordinates
      *
      * @returns {void}
      *
@@ -676,8 +676,8 @@ export class Context {
      * @memberof Context
      */
     quadraticCurveTo(cp1x, cp1y, x,y) {
-        let cp1 = this.transform.transformPoint(new Point(cp1x, cp1y));
-        let pt  = this.transform.transformPoint(new Point(x, y));
+        let cp1 = this.transform.transformPoint(new Points(cp1x, cp1y));
+        let pt  = this.transform.transformPoint(new Points(x, y));
         this.path.push([PATH_COMMAND.QUADRATIC_CURVE, cp1, pt]);
     }
 
@@ -698,7 +698,7 @@ export class Context {
      * @memberof Context
      */
     bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
-        this._bezierCurveTo(new Point(cp1x, cp1y), new Point(cp2x, cp2y), new Point(x, y));
+        this._bezierCurveTo(new Points(cp1x, cp1y), new Points(cp2x, cp2y), new Points(x, y));
     }
 
     /**
@@ -706,7 +706,7 @@ export class Context {
      *
      * @param {number} cp1 Curve point 1
      * @param {number} cp2 Curve point 2
-     * @param {Point}  pt
+     * @param {Points}  pt
      *
      * @returns {void}
      *
@@ -739,7 +739,7 @@ export class Context {
         function calcPoint(angle) {
             let px = x + Math.cos(angle)*rad;
             let py = y + Math.sin(angle)*rad;
-            return new Point(px, py);
+            return new Points(px, py);
         }
 
         if(start > end) end += Math.PI*2;
@@ -867,12 +867,12 @@ export class Context {
     /**
      * Draw a line using the correct anti-aliased, or non-anti-aliased line drawing function based on the value of {@link imageSmoothingEnabled}
      *
-     * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
+     * @param {Lines} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
      * @example
      * //All of the following are valid:
      * ctx.drawLine({start: {x: 20, y:42}, end: {x: 20, y:90}})
-     * ctx.drawLine(new Line(new Point(20, 42), new Point(20, 90)))
-     * ctx.drawLine(new Line(20, 42, 20, 90))
+     * ctx.drawLine(new Lines(new Points(20, 42), new Points(20, 90)))
+     * ctx.drawLine(new Lines(20, 42, 20, 90))
      *
      * @returns {void}
      *
@@ -886,12 +886,12 @@ export class Context {
      *
      * Draw a line without anti-aliasing using Bresenham's algorithm
      *
-     * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
+     * @param {Lines} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
      * @example
      * //All of the following are valid:
      * ctx.drawLine({start: {x: 20, y:42}, end: {x: 20, y:90}})
-     * ctx.drawLine(new Line(new Point(20, 42), new Point(20, 90)))
-     * ctx.drawLine(new Line(20, 42, 20, 90))
+     * ctx.drawLine(new Lines(new Points(20, 42), new Points(20, 90)))
+     * ctx.drawLine(new Lines(20, 42, 20, 90))
      *
      * @returns {void}
      *
@@ -918,18 +918,18 @@ export class Context {
     }
 
     /**
-     * Draw Line Anti-aliased
+     * Draw Lines Anti-aliased
      *
      * Draw anti-aliased line using Bresenham's algorithm
      *
      * @see http://members.chello.at/~easyfilter/bresenham.html
      *
-     * @param {Line} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
+     * @param {Lines} line A set of co-ordinates representing the start and end of the line. You can also pass a plain js object if you wish
      * @example
      * //All of the following are valid:
      * ctx.drawLine({start: {x: 20, y:42}, end: {x: 20, y:90}})
-     * ctx.drawLine(new Line(new Point(20, 42), new Point(20, 90)))
-     * ctx.drawLine(new Line(20, 42, 20, 90))
+     * ctx.drawLine(new Lines(new Points(20, 42), new Points(20, 90)))
+     * ctx.drawLine(new Lines(20, 42, 20, 90))
      *
      * @memberof Context
      */
@@ -1223,7 +1223,7 @@ function fract(v) {  return v-Math.floor(v);   }
  *
  * @param {Array} path List of sub-paths
  *
- * @returns {Array<Line>}
+ * @returns {Array<Lines>}
  */
 function pathToLines(path) {
     const lines = []
@@ -1235,21 +1235,21 @@ function pathToLines(path) {
         }
         if(cmd[0] === PATH_COMMAND.LINE) {
             const pt = cmd[1]
-            lines.push(new Line(curr, pt));
+            lines.push(new Lines(curr, pt));
             curr = pt;
         }
         if(cmd[0] === PATH_COMMAND.QUADRATIC_CURVE) {
             const pts = [curr, cmd[1], cmd[2]];
             for(let t=0; t<1; t+=0.1) {
                 let pt = calcQuadraticAtT(pts,t);
-                lines.push(new Line(curr, pt));
+                lines.push(new Lines(curr, pt));
                 curr = pt;
             }
         }
         if(cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
             const pts = [curr, cmd[1], cmd[2], cmd[3]];
             bezierToLines(pts,10).forEach(pt => {
-                lines.push(new Line(curr,pt))
+                lines.push(new Lines(curr,pt))
                 curr = pt
             })
         }
@@ -1265,12 +1265,12 @@ function pathToLines(path) {
  *
  * @ignore
  *
- * @returns {Point}
+ * @returns {Points}
  */
 function calcQuadraticAtT(p, t) {
     const x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x
     const y = (1 - t) * (1 - t) * p[0].y + 2 * (1 - t) * t * p[1].y + t * t * p[2].y
-    return new Point(x, y);
+    return new Points(x, y);
 }
 
 /**
@@ -1279,12 +1279,12 @@ function calcQuadraticAtT(p, t) {
  * @param {number} p
  * @param {number} t
  *
- * @returns {Point}
+ * @returns {Points}
  */
 function calcBezierAtT(p, t) {
     const x = (1 - t) * (1 - t) * (1 - t) * p[0].x + 3 * (1 - t) * (1 - t) * t * p[1].x + 3 * (1 - t) * t * t * p[2].x + t * t * t * p[3].x
     const y = (1 - t) * (1 - t) * (1 - t) * p[0].y + 3 * (1 - t) * (1 - t) * t * p[1].y + 3 * (1 - t) * t * t * p[2].y + t * t * t * p[3].y
-    return new Point(x, y);
+    return new Points(x, y);
 }
 
 function bezierToLines(curve, THRESHOLD) {

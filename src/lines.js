@@ -1,40 +1,40 @@
-import {Point} from "./Point.js"
+import {Points} from "./points.js"
 
 /**
  * Create a line object represnting a set of two points in 2D space.
  *
- * Line objects can be constructed by passing in either 4 numbers (startX, startY, endX, endY) - or
- * two {@link Point} objects representing `start` and `end` respectively
+ * Lines objects can be constructed by passing in either 4 numbers (startX, startY, endX, endY) - or
+ * two {@link Points} objects representing `start` and `end` respectively
  *
- * @class Line
+ * @class Lines
  */
-export class Line {
+export class Lines {
     /**
-     * Construct a Line using two {@link Point} objects
+     * Construct a Lines using two {@link Points} objects
      * .
-     * @param {Point} start An instance of {@link Point} containing X and Y co-ordinates
-     * @param {Point} end   An instance of {@link Point} containing X and Y co-ordinates
-     * @memberof Line
+     * @param {Points} start An instance of {@link Points} containing X and Y co-ordinates
+     * @param {Points} end   An instance of {@link Points} containing X and Y co-ordinates
+     * @memberof Lines
      */
     /**
-     * Construct a Line using 4 {@link number}s
+     * Construct a Lines using 4 {@link number}s
      *
      * @param {number} startX Starting position on the X axis
      * @param {number} startY Starting position on the Y axis
      * @param {number} endX   Ending position on the X axis
      * @param {number} endY   Ending position on the Y acis
-     * @memberof Line
+     * @memberof Lines
      */
     constructor (){
         if (arguments.length === 4) {
 
             /**
-             * @type {Point}
+             * @type {Points}
             */
             this.start = {};
 
             /**
-             * @type {Point}
+             * @type {Points}
             */
             this.end   = {};
 
@@ -50,7 +50,7 @@ export class Line {
         } else if(arguments.length === 2) {
             [this.start, this.end] = arguments;
         } else {
-            throw Error('Please pass either two Point objects, or 4 integers to the constructor');
+            throw Error('Please pass either two Points objects, or 4 integers to the constructor');
         }
     }
 
@@ -59,7 +59,7 @@ export class Line {
      *
      * @returns {number}
      *
-     * @memberof Line
+     * @memberof Lines
      */
     getLength() {
         return Math.sqrt(

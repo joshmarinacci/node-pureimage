@@ -1,7 +1,7 @@
 import {Bitmap} from './bitmap.js'
 import {PNG} from "pngjs"
 import * as JPEG from "jpeg-js"
-import * as uint32 from "./uint32.js"
+import {getBytesBigEndian} from './uint32.js'
 
 export {registerFont} from './text.js'
 
@@ -32,7 +32,7 @@ export function encodePNGToStream(bitmap, outstream) {
             for(let j=0; j<bitmap.height; j++) {
                 const rgba = bitmap.getPixelRGBA(i, j)
                 const n = (j * bitmap.width + i) * 4
-                const bytes = uint32.getBytesBigEndian(rgba)
+                const bytes = getBytesBigEndian(rgba)
                 for(let k=0; k<4; k++) {
                     png.data[n+k] = bytes[k];
                 }

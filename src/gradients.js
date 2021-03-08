@@ -1,32 +1,32 @@
-import {Point} from "./Point.js"
-import * as util from "./util.js"
-import * as uint32 from "./uint32.js"
+import {Points} from "./points.js"
+import {fromBytesBigEndian, getBytesBigEndian} from './uint32.js'
+import {clamp, colorStringToUint32, lerp} from './util.js'
 
 export class CanvasGradient {
     constructor() {
         this.stops = []
     }
     addColorStop(t,colorstring) {
-        const color = util.colorStringToUint32(colorstring)
+        const color = colorStringToUint32(colorstring)
         this.stops.push({t:t,color:color})
     }
     _lerpStops(t) {
-        const first = uint32.getBytesBigEndian(this.stops[0].color).map(b=>b/255);
-        const second = uint32.getBytesBigEndian(this.stops[1].color).map(b=>b/255);
-        const fc = first.map((f,i) => util.lerp(f,second[i],t)).map(c=>c*255)
-        return uint32.fromBytesBigEndian(fc[0],fc[1],fc[2],0xFF)
+        const first = getBytesBigEndian(this.stops[0].color).map(b=>b/255);
+        const second = getBytesBigEndian(this.stops[1].color).map(b=>b/255);
+        const fc = first.map((f,i) => lerp(f,second[i],t)).map(c=>c*255)
+        return fromBytesBigEndian(fc[0],fc[1],fc[2],0xFF)
     }
 }
 
 export class LinearGradient extends CanvasGradient {
     constructor(x0,y0,x1,y1) {
         super()
-        this.start = new Point(x0,y0)
-        this.end = new Point(x1,y1)
+        this.start = new Points(x0,y0)
+        this.end = new Points(x1,y1)
     }
 
     colorAt(x,y) {
-        const pc = new Point(x,y) //convert to a point
+        const pc = new Points(x,y) //convert to a point
         //calculate V
         let V = this.end.subtract(this.start) // subtract
         const d = V.magnitude() // get magnitude
@@ -37,7 +37,7 @@ export class LinearGradient extends CanvasGradient {
         //project V0 onto V
         let t = V0.dotProduct(V)
         //convert to t value and clamp
-        t = util.clamp(t/d,0,1)
+        t = clamp(t/d,0,1)
         return this._lerpStops(t)
     }
 }
@@ -46,13 +46,13 @@ export class LinearGradient extends CanvasGradient {
 export class RadialGradient extends CanvasGradient {
     constructor(x0, y0, x1, y1) {
         super()
-        this.start = new Point(x0,y0)
+        this.start = new Points(x0,y0)
     }
 
     colorAt(x,y) {
-        const pc = new Point(x, y) //convert to a point
+        const pc = new Points(x, y) //convert to a point
         const dist =  pc.distance(this.start)
-        let t = util.clamp(dist/10,0,1)
+        let t = clamp(dist/10,0,1)
         return this._lerpStops(t)
     }
 }

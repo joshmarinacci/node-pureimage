@@ -1,15 +1,15 @@
 import chai, {expect} from "chai"
-import {Point} from "../src/Point.js"
+import {Points} from "../src/points.js"
 
 /**
- * @test {Point}
+ * @test {Points}
  */
 describe('Point', () => {
     /**
-     * @test {Point#constructor}
+     * @test {Points#constructor}
      */
     it('represents a set of x and y co-ordinates in 2D space', () => {
-        const point = new Point(20, 60);
+        const point = new Points(20, 60);
 
         expect(point.x).to.eq(20);
         expect(point.y).to.eq(60);
