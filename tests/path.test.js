@@ -1,6 +1,7 @@
-const pureimage = require('pureimage')
-const fs = require('fs')
-const path = require("path")
+import chai, {expect} from "chai"
+import * as pureimage from "../src/index.js"
+import fs from "fs"
+import path from "path"
 const DIR = "output"
 const mkdir = (pth) => {
     return new Promise((res,rej)=>{
@@ -26,7 +27,7 @@ describe('draw curve',() => {
     })
 
     it('canvas is empty and clear', (done) => {
-        expect(image.getPixelRGBA(0,0)).toBe(WHITE)
+        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
         done()
     })
 
@@ -39,10 +40,10 @@ describe('draw curve',() => {
         c.lineTo(10,10)
         c.fillStyle = 'black'
         c.fill()
-        expect(image.getPixelRGBA(0,0)).toBe(WHITE)
-        expect(image.getPixelRGBA(11,11)).toBe(BLACK)
-        expect(image.getPixelRGBA(50,50)).toBe(BLACK)
-        expect(image.getPixelRGBA(100,100)).toBe(WHITE)
+        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(11,11)).to.eq(BLACK)
+        expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
+        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
         done()
     })
 
@@ -51,10 +52,10 @@ describe('draw curve',() => {
         c.rect(10,10,90,90)
         c.fillStyle = 'black'
         c.fill()
-        expect(image.getPixelRGBA(0,0)).toBe(WHITE)
-        expect(image.getPixelRGBA(11,11)).toBe(BLACK)
-        expect(image.getPixelRGBA(50,50)).toBe(BLACK)
-        expect(image.getPixelRGBA(100,100)).toBe(WHITE)
+        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(11,11)).to.eq(BLACK)
+        expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
+        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
         done()
     })
 
@@ -71,13 +72,13 @@ describe('draw curve',() => {
         c.fill()
         pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'bezier1.png'))).then(() => {
             console.log('wrote out bezier1.png')
-            expect(image.getPixelRGBA(0, 0)).toBe(WHITE)
-            expect(image.getPixelRGBA(19, 39)).toBe(BLACK)
+            expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
+            expect(image.getPixelRGBA(19, 39)).to.eq(BLACK)
             done()
         })
 
-        // expect(image.getPixelRGBA(0,0)).toBe(WHITE)
-        // expect(image.getPixelRGBA(20,15)).toBe(BLACK)
+        // expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
+        // expect(image.getPixelRGBA(20,15)).to.eq(BLACK)
         // done()
     })
 
@@ -132,8 +133,8 @@ describe('draw curve',() => {
         ctx.fill();
         pureimage.encodePNGToStream(img, fs.createWriteStream(path.join(DIR,'northgoing.png'))).then(()=>{
             console.log('wrote out northgoing.png')
-            expect(img.getPixelRGBA(25, 110)).toBe(BLACK)
-            expect(img.getPixelRGBA(25, 90)).toBe(BLACK)
+            expect(img.getPixelRGBA(25, 110)).to.eq(BLACK)
+            expect(img.getPixelRGBA(25, 90)).to.eq(BLACK)
             done()
         })
 
@@ -147,10 +148,10 @@ describe('draw curve',() => {
         c.lineTo(10,10)
         c.fillStyle = 'transparent'
         c.fill()
-        expect(image.getPixelRGBA(0,0)).toBe(WHITE)
-        expect(image.getPixelRGBA(11,11)).toBe(WHITE)
-        expect(image.getPixelRGBA(50,50)).toBe(WHITE)
-        expect(image.getPixelRGBA(100,100)).toBe(WHITE)
+        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(11,11)).to.eq(WHITE)
+        expect(image.getPixelRGBA(50,50)).to.eq(WHITE)
+        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
 
 
 
