@@ -1,4 +1,6 @@
-const pureimage = require('pureimage')
+import chai, {expect} from "chai"
+import * as pureimage from "../src/index.js"
+
 describe('drawImage',() => {
     let image;
     let context;
@@ -17,37 +19,37 @@ describe('drawImage',() => {
     })
 
     it('canvas is empty and clear', (done) => {
-        expect(image.getPixelRGBA(0,0)).toBe(0x00000000)
+        expect(image.getPixelRGBA(0,0)).to.eq(0x00000000)
         done()
     })
 
     it('can draw a full image', (done) => {
         context.drawImage(src,0,0,50,50,0,0,50,50)
-        expect(image.getPixelRGBA(0, 0)).toBe(0xFFFFFFFF)
-        expect(image.getPixelRGBA(25,0)).toBe(0x000000FF)
+        expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(25,0)).to.eq(0x000000FF)
         done()
     })
 
     it('can stretch a full image', (done) => {
         context.drawImage(src,0,0,50,50,0,0,200,200)
-        expect(image.getPixelRGBA(0, 0)).toBe(0xFFFFFFFF)
-        expect(image.getPixelRGBA(25,0)).toBe(0xFFFFFFFF)
-        expect(image.getPixelRGBA(100,0)).toBe(0x000000FF)
-        expect(image.getPixelRGBA(199,0)).toBe(0x000000FF)
+        expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(25,0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(100,0)).to.eq(0x000000FF)
+        expect(image.getPixelRGBA(199,0)).to.eq(0x000000FF)
         done()
     })
 
     it('can draw a plain image',(done) => {
         context.drawImage(src,0,0)
-        expect(image.getPixelRGBA(0, 0)).toBe(0xFFFFFFFF)
-        expect(image.getPixelRGBA(25,0)).toBe(0x000000FF)
+        expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(25,0)).to.eq(0x000000FF)
         done()
     })
 
     it('can draw a scaled image',(done) => {
         context.drawImage(src,0,0,200,200)
-        expect(image.getPixelRGBA(0, 0)).toBe(0xFFFFFFFF)
-        expect(image.getPixelRGBA(100,0)).toBe(0x000000FF)
+        expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(100,0)).to.eq(0x000000FF)
         done()
     })
 })
