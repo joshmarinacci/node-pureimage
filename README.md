@@ -118,7 +118,7 @@ of 48 points.
 
 ```js
 test('font test', (t) => {
-    var fnt = PImage.registerFont('tests/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
+    var fnt = PImage.registerFont('test/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
     fnt.load(() => {
         var img = PImage.make(200,200);
         var ctx = img.getContext('2d');
@@ -143,7 +143,7 @@ PImage.encodePNGToStream(img1, fs.createWriteStream('out.png')).then(() => {
 Read a jpeg, resize it, then save it out
 
 ```js
-PImage.decodeJPEGFromStream(fs.createReadStream("tests/images/bird.jpg")).then((img) => {
+PImage.decodeJPEGFromStream(fs.createReadStream("test/images/bird.jpg")).then((img) => {
     console.log("size is",img.width,img.height);
     var img2 = PImage.make(50,50);
     var c = img2.getContext('2d');

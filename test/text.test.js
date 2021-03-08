@@ -16,7 +16,7 @@ describe('text drawing',() => {
 
 
     it('can draw some text',(done) => {
-        const fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
+        const fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
         fnt.load(()=>{
             context.fillStyle = 'blue'
             context.font = "48pt 'Source Sans Pro'";
@@ -28,7 +28,7 @@ describe('text drawing',() => {
 
 
     it('can measure text',(done) => {
-        const fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
+        const fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
         fnt.load(()=> {
             context.font = "48pt 'Source Sans Pro'";
             var metrics = context.measureText('some text')
@@ -49,7 +49,7 @@ describe('text drawing',() => {
     }
 
     it('can draw horizontal aligned text', (done) => {
-        const fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
+        const fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
         fnt.load(() => {
             clear()
             write('U',50,50,'start')
@@ -79,7 +79,7 @@ describe('text drawing',() => {
     }
 
     it('can draw verticl aligned text', (done) => {
-        var fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro');
+        var fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro');
         fnt.load(() => {
             clear()
             context.fillStyle = 'red'

@@ -1,1 +1,0 @@
-export const FIXTURES_DIR = "tests/unit/fixtures/"

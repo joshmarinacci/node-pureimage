@@ -145,10 +145,10 @@ test('clear rect', (t)=>{
     t.end();
 });*/
 
-/* image loading and saving tests */
+/* image loading and saving test */
 
-const BIRD_PNG = "tests/unit/fixtures/images/bird.png"
-const BIRD_JPG = 'tests/unit/fixtures/images/bird.jpg'
+const BIRD_PNG = "test/unit/fixtures/images/bird.png"
+const BIRD_JPG = 'test/unit/fixtures/images/bird.jpg'
 test('load png', (t)=>{
     PImage.decodePNGFromStream(fs.createReadStream(BIRD_PNG)).then((img)=>{
         t.equal(img.width,200);
@@ -427,7 +427,7 @@ test('stroke cubic curves', (t) => {
 
 
 test('font test', (t) => {
-    var fnt = PImage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
+    var fnt = PImage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
     fnt.load(function() {
         var img = PImage.make(200,200);
         var ctx = img.getContext('2d');
