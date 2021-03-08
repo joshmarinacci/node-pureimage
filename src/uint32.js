@@ -1,21 +1,20 @@
 //from https://github.com/fxa/uint32.js
 'use strict';
 
-var POW_2_32 = 0x0100000000;
-var POW_2_52 = 0x10000000000000;
+const POW_2_32 = 0x0100000000
+const POW_2_52 = 0x10000000000000
 
-    //
-    //  Creating and Extracting
-    //
+//  Creating and Extracting
+//
 
-    /**
-     *  Creates an uint32 from the given bytes in big endian order.
-     *  @param {Number} highByte the high byte
-     *  @param {Number} secondHighByte the 2nd high byte
-     *  @param {Number} thirdHighByte the 3rd high byte
-     *  @param {Number} lowByte the low byte
-     *  @returns highByte concat secondHighByte concat thirdHighByte concat lowByte
-     */
+/**
+ *  Creates an uint32 from the given bytes in big endian order.
+ *  @param {Number} highByte the high byte
+ *  @param {Number} secondHighByte the 2nd high byte
+ *  @param {Number} thirdHighByte the 3rd high byte
+ *  @param {Number} lowByte the low byte
+ *  @returns highByte concat secondHighByte concat thirdHighByte concat lowByte
+ */
 export const fromBytesBigEndian = function (highByte, secondHighByte, thirdHighByte, lowByte) {
     return ((highByte << 24) | (secondHighByte << 16) | (thirdHighByte << 8) | lowByte) >>> 0;
 };
@@ -52,7 +51,7 @@ export const fromBytesBigEndian = function (highByte, secondHighByte, thirdHighB
      */
     export const toHex = function (uint32value, optionalMinLength) {
         optionalMinLength = optionalMinLength || 8;
-        var result = uint32value.toString(16);
+        let result = uint32value.toString(16)
         if (result.length < optionalMinLength) {
             result = new Array(optionalMinLength - result.length + 1).join('0') + result;
         }
@@ -90,8 +89,8 @@ export const fromBytesBigEndian = function (highByte, secondHighByte, thirdHighB
      *  @return {Number} the bitwise OR uint32 value
      */
     export const or = function (uint32val0, argv) {
-        var result = uint32val0;
-        for (var index = 1; index < arguments.length; index += 1) {
+        let result = uint32val0
+        for (let index = 1; index < arguments.length; index += 1) {
             result = (result | arguments[index]);
         }
         return result >>> 0;
@@ -104,8 +103,8 @@ export const fromBytesBigEndian = function (highByte, secondHighByte, thirdHighB
      *  @return {Number} the bitwise AND uint32 value
      */
     export const and = function (uint32val0, argv) {
-        var result = uint32val0;
-        for (var index = 1; index < arguments.length; index += 1) {
+        let result = uint32val0
+        for (let index = 1; index < arguments.length; index += 1) {
             result = (result & arguments[index]);
         }
         return result >>> 0;
@@ -118,8 +117,8 @@ export const fromBytesBigEndian = function (highByte, secondHighByte, thirdHighB
      *  @return {Number} the bitwise XOR uint32 value
      */
     export const xor = function (uint32val0, argv) {
-        var result = uint32val0;
-        for (var index = 1; index < arguments.length; index += 1) {
+        let result = uint32val0
+        for (let index = 1; index < arguments.length; index += 1) {
             result = (result ^ arguments[index]);
         }
         return result >>> 0;
@@ -189,8 +188,8 @@ export const fromBytesBigEndian = function (highByte, secondHighByte, thirdHighB
      *  @returns the sum of the given values modulus 2^32
      */
     export const addMod32 = function (uint32val0/*, optionalValues*/) {
-        var result = uint32val0;
-        for (var index = 1; index < arguments.length; index += 1) {
+        let result = uint32val0
+        for (let index = 1; index < arguments.length; index += 1) {
             result += arguments[index];
         }
         return result >>> 0;
@@ -234,10 +233,10 @@ export const fromBytesBigEndian = function (highByte, secondHighByte, thirdHighB
      *  @returns undefined
      */
     export const mult = function (factor1, factor2, resultUint32Array2) {
-        var high16 =  ((factor1 & 0xffff0000) >>> 0) * factor2;
-        var low16 = (factor1 & 0x0000ffff) * factor2;
+        const high16 = ((factor1 & 0xffff0000) >>> 0) * factor2
+        const low16 = (factor1 & 0x0000ffff) * factor2
         // the addition is dangerous, because the result will be rounded, so the result depends on the lowest bits, which will be cut away!
-        var carry = ((exporter.toUint32(high16) + exporter.toUint32(low16)) >= POW_2_32) ? 1 : 0;
+        const carry = ((exporter.toUint32(high16) + exporter.toUint32(low16)) >= POW_2_32) ? 1 : 0
         resultUint32Array2[0] = (exporter.highPart(high16) + exporter.highPart(low16) + carry) >>> 0;
         resultUint32Array2[1] = ((high16 >>> 0) + (low16 >>> 0));// >>> 0;
     };

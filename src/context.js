@@ -196,9 +196,9 @@ export class Context {
      * @example ctx.globalAlpha = 1;
      */
     set font(val) {
-        var n         = val.trim().indexOf(' ');
-        var font_size = parseInt(val.slice(0,n));
-        var font_name = val.slice(n).trim();
+        const n = val.trim().indexOf(' ')
+        const font_size = parseInt(val.slice(0, n))
+        const font_name = val.slice(n).trim()
 
         this._font.family = font_name;
         this._font.size   = font_size;
@@ -302,8 +302,8 @@ export class Context {
      * @memberof Context
      */
     fillRect(x,y,w,h) {
-        for(var i=x; i<x+w; i++) {
-            for(var j=y; j<y+h; j++) {
+        for(let i=x; i<x+w; i++) {
+            for(let j=y; j<y+h; j++) {
                 this.fillPixel(i,j);
             }
         }
@@ -324,8 +324,8 @@ export class Context {
      * @memberof Context
      */
     clearRect(x,y,w,h) {
-        for(var i=x; i<x+w; i++) {
-            for(var j=y; j<y+h; j++) {
+        for(let i=x; i<x+w; i++) {
+            for(let j=y; j<y+h; j++) {
                 this.bitmap.setPixelRGBA(i,j,0x00000000);
             }
         }
@@ -346,11 +346,11 @@ export class Context {
      * @memberof Context
      */
     strokeRect(x,y,w,h) {
-        for(var i=x; i<x+w; i++) {
+        for(let i=x; i<x+w; i++) {
             this.bitmap.setPixelRGBA(i, y, this._strokeColor);
             this.bitmap.setPixelRGBA(i, y+h, this._strokeColor);
         }
-        for(var j=y; j<y+h; j++) {
+        for(let j=y; j<y+h; j++) {
             this.bitmap.setPixelRGBA(x, j, this._strokeColor);
             this.bitmap.setPixelRGBA(x+w, j, this._strokeColor);
         }
@@ -371,9 +371,9 @@ export class Context {
             return
         }
 
-        var new_pixel   = this.calculateRGBA(x,y);
-        var old_pixel   = this.bitmap.getPixelRGBA(x,y);
-        var final_pixel = this.composite(x,y,old_pixel,new_pixel);
+        const new_pixel = this.calculateRGBA(x, y)
+        const old_pixel = this.bitmap.getPixelRGBA(x, y)
+        const final_pixel = this.composite(x, y, old_pixel, new_pixel)
 
         this.bitmap.setPixelRGBA(x,y,final_pixel);
     }
@@ -393,9 +393,9 @@ export class Context {
             return
         }
 
-        var new_pixel   = this.calculateRGBA_stroke(x,y);
-        var old_pixel   = this.bitmap.getPixelRGBA(x,y);
-        var final_pixel = this.composite(x,y,old_pixel,new_pixel);
+        const new_pixel = this.calculateRGBA_stroke(x, y)
+        const old_pixel = this.bitmap.getPixelRGBA(x, y)
+        const final_pixel = this.composite(x, y, old_pixel, new_pixel)
 
         this.bitmap.setPixelRGBA(x,y,final_pixel);
     }
@@ -418,9 +418,9 @@ export class Context {
             return
         }
 
-        var new_pixel   = col;
-        var old_pixel   = this.bitmap.getPixelRGBA(x,y);
-        var final_pixel = this.composite(x,y,old_pixel,new_pixel);
+        const new_pixel = col
+        const old_pixel = this.bitmap.getPixelRGBA(x, y)
+        const final_pixel = this.composite(x, y, old_pixel, new_pixel)
 
         this.bitmap.setPixelRGBA(x,y,final_pixel);
     }
@@ -561,13 +561,13 @@ export class Context {
         if(typeof sw === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, bitmap.width, bitmap.height)
         // four argument form
         if(typeof dx === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, sw, sh)
-        for(var i=0; i<dw; i++) {
-            var tx = i/dw;
-            var ssx = Math.floor(tx*sw)+sx;
-            for(var j=0; j<dh; j++) {
-                var ty = j/dh;
-                var ssy = sy+Math.floor(ty * sh);
-                var rgba = bitmap.getPixelRGBA(ssx,ssy);
+        for(let i=0; i<dw; i++) {
+            const tx = i / dw
+            const ssx = Math.floor(tx * sw) + sx
+            for(let j=0; j<dh; j++) {
+                const ty = j / dh
+                const ssy = sy + Math.floor(ty * sh)
+                const rgba = bitmap.getPixelRGBA(ssx, ssy)
                 this.bitmap.setPixelRGBA(dx+i, dy+j, rgba);
             }
         }
@@ -899,18 +899,18 @@ export class Context {
     drawLine_noaa(line) {
         //Bresenham's from Rosetta Code
         // http://rosettacode.org/wiki/Bitmap/Bresenham's_line_algorithm#JavaScript
-        var x0 = Math.floor(line.start.x);
-        var y0 = Math.floor(line.start.y);
-        var x1 = Math.floor(line.end.x);
-        var y1 = Math.floor(line.end.y);
-        var dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-        var dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-        var err = (dx>dy ? dx : -dy)/2;
+        let x0 = Math.floor(line.start.x)
+        let y0 = Math.floor(line.start.y)
+        const x1 = Math.floor(line.end.x)
+        const y1 = Math.floor(line.end.y)
+        const dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1
+        const dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1
+        let err = (dx > dy ? dx : -dy) / 2
 
         while (true) {
             this.strokePixel(x0,y0);
             if (x0 === x1 && y0 === y1) break;
-            var e2 = err;
+            const e2 = err
             if (e2 > -dx) { err -= dy; x0 += sx; }
             if (e2 < dy) { err += dx; y0 += sy; }
         }
@@ -997,33 +997,33 @@ export class Context {
     fill_aa() {
         if(!this._closed) this.closePath()
         //get just the color part
-        var rgb = uint32.and(this._fillColor,0xFFFFFF00);
-        var alpha = uint32.and(this._fillColor,0xFF);
-        var lines = pathToLines(this.path);
-        var bounds = calcMinimumBounds(lines);
+        const rgb = uint32.and(this._fillColor, 0xFFFFFF00)
+        const alpha = uint32.and(this._fillColor, 0xFF)
+        const lines = pathToLines(this.path)
+        const bounds = calcMinimumBounds(lines)
 
-        var startY = Math.min(bounds.y2-1, this.bitmap.height);
-        var endY = Math.max(bounds.y, 0);
+        const startY = Math.min(bounds.y2 - 1, this.bitmap.height)
+        const endY = Math.max(bounds.y, 0)
 
-        for(var j=startY; j>=endY; j--) {
-            var ints = calcSortedIntersections(lines,j);
+        for(let j=startY; j>=endY; j--) {
+            const ints = calcSortedIntersections(lines, j)
             //fill between each pair of intersections
             // if(ints.length %2 !==0) console.log("warning. uneven number of intersections");
-            for(var i=0; i<ints.length; i+=2) {
-                var fstartf = fract(ints[i]);
-                var fendf   = fract(ints[i+1]);
-                var start = Math.floor(ints[i]);
-                var end   = Math.floor(ints[i+1]);
-                for(var ii=start; ii<=end; ii++) {
-                    if(ii == start) {
+            for(let i=0; i<ints.length; i+=2) {
+                const fstartf = fract(ints[i])
+                const fendf = fract(ints[i + 1])
+                const start = Math.floor(ints[i])
+                const end = Math.floor(ints[i + 1])
+                for(let ii=start; ii<=end; ii++) {
+                    if(ii === start) {
                         //first
-                        var int = uint32.or(rgb,(1-fstartf)*alpha);
+                        const int = uint32.or(rgb,(1-fstartf)*alpha);
                         this.fillPixelWithColor(ii,j, int);
                         continue;
                     }
-                    if(ii == end) {
+                    if(ii === end) {
                         //last
-                        var int = uint32.or(rgb,fendf*alpha);
+                        const int = uint32.or(rgb,fendf*alpha);
                         this.fillPixelWithColor(ii,j, int);
                         continue;
                     }
@@ -1043,22 +1043,22 @@ export class Context {
      */
     fill_noaa() {
         //get just the color part
-        var rgb = uint32.and(this._fillColor, 0xFFFFFF00);
-        var lines = pathToLines(this.path);
-        var bounds = calcMinimumBounds(lines);
-        for(var j=bounds.y2-1; j>=bounds.y; j--) {
-            var ints = calcSortedIntersections(lines,j);
+        const rgb = uint32.and(this._fillColor, 0xFFFFFF00)
+        const lines = pathToLines(this.path)
+        const bounds = calcMinimumBounds(lines)
+        for(let j=bounds.y2-1; j>=bounds.y; j--) {
+            const ints = calcSortedIntersections(lines, j)
             //fill between each pair of intersections
-            for(var i=0; i<ints.length; i+=2) {
-                var start = Math.floor(ints[i]);
-                var end   = Math.floor(ints[i+1]);
-                for(var ii=start; ii<=end; ii++) {
-                    if(ii == start) {
+            for(let i=0; i<ints.length; i+=2) {
+                const start = Math.floor(ints[i])
+                const end = Math.floor(ints[i + 1])
+                for(let ii=start; ii<=end; ii++) {
+                    if(ii === start) {
                         //first
                         this.fillPixel(ii,j);
                         continue;
                     }
-                    if(ii == end) {
+                    if(ii === end) {
                         //last
                         this.fillPixel(ii,j);
                         continue;
@@ -1089,9 +1089,9 @@ export class Context {
         if(!this._clip) return true;
         //turn into a list of lines
         // calculate intersections with a horizontal line at j
-        var ints = calcSortedIntersections(this._clip,y);
+        const ints = calcSortedIntersections(this._clip, y)
         // find the intersections to the left of i (where x < i)
-        var left = ints.filter((inter) => inter<x);
+        const left = ints.filter((inter) => inter < x)
         if(left.length%2 === 0) {
             return false;
         } else {
@@ -1146,8 +1146,8 @@ export class Context {
      */
     static colorStringToUint32(str) {
         if(!str) return 0x000000;
-        if(str.indexOf('#')==0) {
-            if(str.length==4) {
+        if(str.indexOf('#')===0) {
+            if(str.length===4) {
                 //Color format is #RGB
                 //Will get 255 for the alpha channel
                 let redNibble = parseInt(str[1], 16);
@@ -1160,7 +1160,7 @@ export class Context {
                 let int = uint32.toUint32(red << 16 | green << 8 | blue);
                 int = uint32.shiftLeft(int,8);
                 return uint32.or(int,0xff);
-            } else if(str.length==5) {
+            } else if(str.length===5) {
                 //Color format is #RGBA
                 let redNibble = parseInt(str[1], 16);
                 let red = (redNibble << 4) | redNibble;
@@ -1174,27 +1174,27 @@ export class Context {
                 let int = uint32.toUint32(red << 16 | green << 8 | blue);
                 int = uint32.shiftLeft(int,8);
                 return uint32.or(int,alpha);
-            } else if(str.length==7) {
+            } else if(str.length===7) {
                 //Color format is #RRGGBB
                 //Will get 255 for the alpha channel
                 let int = uint32.toUint32(parseInt(str.substring(1),16));
                 int = uint32.shiftLeft(int,8);
                 return uint32.or(int,0xff);
-            } else if(str.length==9) {
+            } else if(str.length===9) {
                 //Color format is #RRGGBBAA
                 return uint32.toUint32(parseInt(str.substring(1),16));
             }
         }
-        if(str.indexOf('rgba')==0) {
-            var parts = str.trim().substring(4).replace('(','').replace(')','').split(',');
+        if(str.indexOf('rgba')===0) {
+            let parts = str.trim().substring(4).replace('(','').replace(')','').split(',');
             return uint32.fromBytesBigEndian(
                 parseInt(parts[0]),
                 parseInt(parts[1]),
                 parseInt(parts[2]),
                 Math.floor(parseFloat(parts[3])*255));
         }
-        if(str.indexOf('rgb')==0) {
-            var parts = str.trim().substring(3).replace('(','').replace(')','').split(',');
+        if(str.indexOf('rgb')===0) {
+            let parts = str.trim().substring(3).replace('(','').replace(')','').split(',');
             return uint32.fromBytesBigEndian(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]), 255);
         }
         if(NAMED_COLORS.hasOwnProperty(str)) {
@@ -1225,28 +1225,28 @@ function fract(v) {  return v-Math.floor(v);   }
  * @returns {Array<Line>}
  */
 function pathToLines(path) {
-    var lines = [];
-    var curr = null;
+    const lines = []
+    let curr = null
 
     path.forEach(function(cmd) {
-        if(cmd[0] == PATH_COMMAND.MOVE) {
+        if(cmd[0] === PATH_COMMAND.MOVE) {
             curr = cmd[1];
         }
-        if(cmd[0] == PATH_COMMAND.LINE) {
-            var pt = cmd[1];
+        if(cmd[0] === PATH_COMMAND.LINE) {
+            const pt = cmd[1]
             lines.push(new Line(curr, pt));
             curr = pt;
         }
-        if(cmd[0] == PATH_COMMAND.QUADRATIC_CURVE) {
-            var pts = [curr, cmd[1], cmd[2]];
-            for(var t=0; t<1; t+=0.1) {
-                var pt = calcQuadraticAtT(pts,t);
+        if(cmd[0] === PATH_COMMAND.QUADRATIC_CURVE) {
+            const pts = [curr, cmd[1], cmd[2]];
+            for(let t=0; t<1; t+=0.1) {
+                let pt = calcQuadraticAtT(pts,t);
                 lines.push(new Line(curr, pt));
                 curr = pt;
             }
         }
         if(cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
-            var pts = [curr, cmd[1], cmd[2], cmd[3]];
+            const pts = [curr, cmd[1], cmd[2], cmd[3]];
             bezierToLines(pts,10).forEach(pt => {
                 lines.push(new Line(curr,pt))
                 curr = pt
@@ -1264,11 +1264,11 @@ function pathToLines(path) {
  *
  * @ignore
  *
- * @returns {void}
+ * @returns {Point}
  */
 function calcQuadraticAtT(p, t) {
-    var x = (1-t)*(1-t)*p[0].x + 2*(1-t)*t*p[1].x + t*t*p[2].x;
-    var y = (1-t)*(1-t)*p[0].y + 2*(1-t)*t*p[1].y + t*t*p[2].y;
+    const x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x
+    const y = (1 - t) * (1 - t) * p[0].y + 2 * (1 - t) * t * p[1].y + t * t * p[2].y
     return new Point(x, y);
 }
 
@@ -1278,11 +1278,11 @@ function calcQuadraticAtT(p, t) {
  * @param {number} p
  * @param {number} t
  *
- * @returns {void}
+ * @returns {Point}
  */
 function calcBezierAtT(p, t) {
-    var x = (1-t)*(1-t)*(1-t)*p[0].x + 3*(1-t)*(1-t)*t*p[1].x + 3*(1-t)*t*t*p[2].x + t*t*t*p[3].x;
-    var y = (1-t)*(1-t)*(1-t)*p[0].y + 3*(1-t)*(1-t)*t*p[1].y + 3*(1-t)*t*t*p[2].y + t*t*t*p[3].y;
+    const x = (1 - t) * (1 - t) * (1 - t) * p[0].x + 3 * (1 - t) * (1 - t) * t * p[1].x + 3 * (1 - t) * t * t * p[2].x + t * t * t * p[3].x
+    const y = (1 - t) * (1 - t) * (1 - t) * p[0].y + 3 * (1 - t) * (1 - t) * t * p[1].y + 3 * (1 - t) * t * t * p[2].y + t * t * t * p[3].y
     return new Point(x, y);
 }
 
@@ -1343,7 +1343,13 @@ function midpoint(p1,p2,t) {
  * @returns {{x: Number.MAX_VALUE, y: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE}}
  */
 function calcMinimumBounds(lines) {
-    var bounds = {  x:  Number.MAX_VALUE, y:  Number.MAX_VALUE,  x2: Number.MIN_VALUE, y2: Number.MIN_VALUE }
+    const bounds = {
+        x: Number.MAX_VALUE,
+        y: Number.MAX_VALUE,
+        x2: Number.MIN_VALUE,
+        y2: Number.MIN_VALUE
+    }
+
     function checkPoint(pt) {
         bounds.x  = Math.min(bounds.x,pt.x);
         bounds.y  = Math.min(bounds.y,pt.y);
@@ -1373,12 +1379,12 @@ function calcMinimumBounds(lines) {
  * @returns {Array}
  */
 function calcSortedIntersections(lines,y) {
-    var xlist = [];
-    for(var i=0; i<lines.length; i++) {
-        var A = lines[i].start;
-        var B = lines[i].end;
+    const xlist = []
+    for(let i=0; i<lines.length; i++) {
+        const A = lines[i].start
+        const B = lines[i].end
         if(A.y<y && B.y>=y || B.y<y && A.y>=y) {
-            var xval = A.x + (y-A.y) / (B.y-A.y) * (B.x-A.x);
+            const xval = A.x + (y - A.y) / (B.y - A.y) * (B.x - A.x)
             xlist.push(xval);
         }
     }

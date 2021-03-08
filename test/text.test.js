@@ -4,8 +4,8 @@ import fs from "fs"
 import * as pureimage from "../src/index.js"
 
 describe('text drawing',() => {
-    var image;
-    var context;
+    let image
+    let context
     const WHITE = 0xFFFFFFFF
     const BLACK = 0x000000FF
 
@@ -31,7 +31,7 @@ describe('text drawing',() => {
         const fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
         fnt.load(()=> {
             context.font = "48pt 'Source Sans Pro'";
-            var metrics = context.measureText('some text')
+            let metrics = context.measureText('some text')
             expect(metrics.width).to.eq(197.088)
             done()
         })
@@ -79,7 +79,7 @@ describe('text drawing',() => {
     }
 
     it('can draw verticl aligned text', (done) => {
-        var fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro');
+        let fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro');
         fnt.load(() => {
             clear()
             context.fillStyle = 'red'

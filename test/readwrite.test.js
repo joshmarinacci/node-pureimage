@@ -71,8 +71,8 @@ describe('PNG image', () => {
  */
 describe('JPEG image', () => {
 
-    var PImage;
-    var context;
+    let PImage
+    let context
 
     beforeEach(() => {
         PImage  = pureimage.make(200, 200);

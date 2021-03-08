@@ -20,9 +20,8 @@ export function make (w,h,options) {
 export function encodePNGToStream(bitmap, outstream) {
     return new Promise((res,rej)=>{
         if(!bitmap.hasOwnProperty('data') || !bitmap.hasOwnProperty('width') || !bitmap.hasOwnProperty('height')) {
-            rej(new TypeError('Invalid bitmap image provided'));
+            return rej(new TypeError('Invalid bitmap image provided'));
         }
-        console.log("inside promise")
 
         const png = new PNG({
             width: bitmap.width,
@@ -63,10 +62,10 @@ export function decodePNGFromStream(instream) {
     return new Promise((res,rej)=>{
         instream.pipe(new PNG())
             .on("parsed", function() {
-                var bitmap =  new Bitmap(this.width,this.height);
-                for(var i=0; i<bitmap.data.length; i++) {
+                const bitmap = new Bitmap(this.width, this.height,{})
+                for(let i=0; i<bitmap.data.length; i++) {
                     bitmap.data[i] = this.data[i];
-                };
+                }
                 res(bitmap);
             }).on("error", function(err) {
             rej(err);
@@ -89,13 +88,13 @@ export function encodeJPEGToStream(img, outstream, quality) {
     quality = quality || 90;
     return new Promise((res,rej)=> {
         if(!img.hasOwnProperty('data') || !img.hasOwnProperty('width') || !img.hasOwnProperty('height')) {
-            rej(new TypeError('Invalid bitmap image provided'));
+            return rej(new TypeError('Invalid bitmap image provided'));
         }
-        var data = {
+        const data = {
             data: img.data,
             width: img.width,
             height: img.height
-        };
+        }
         outstream.on('error', (err) => rej(err));
         outstream.write(JPEG.encode(data, quality).data, () => {
             outstream.end();
@@ -116,20 +115,21 @@ export function encodeJPEGToStream(img, outstream, quality) {
 export function decodeJPEGFromStream(data) {
     return new Promise((res,rej)=>{
         try {
-            var chunks = [];
+            const chunks = []
             data.on('data', chunk => chunks.push(chunk));
             data.on('end',() => {
-                var buf = Buffer.concat(chunks);
+                const buf = Buffer.concat(chunks)
+                let rawImageData = null
                 try {
-                    var rawImageData = JPEG.decode(buf);
+                    rawImageData = JPEG.decode(buf);
                 } catch(err) {
                     rej(err);
                     return
                 }
-                var bitmap = new Bitmap(rawImageData.width, rawImageData.height);
-                for (var x_axis = 0; x_axis < rawImageData.width; x_axis++) {
-                    for (var y_axis = 0; y_axis < rawImageData.height; y_axis++) {
-                        var n = (y_axis * rawImageData.width + x_axis) * 4;
+                const bitmap = new Bitmap(rawImageData.width, rawImageData.height,{})
+                for (let x_axis = 0; x_axis < rawImageData.width; x_axis++) {
+                    for (let y_axis = 0; y_axis < rawImageData.height; y_axis++) {
+                        const n = (y_axis * rawImageData.width + x_axis) * 4
                         bitmap.setPixelRGBA_i(x_axis, y_axis,
                             rawImageData.data[n + 0],
                             rawImageData.data[n + 1],

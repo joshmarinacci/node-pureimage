@@ -4,7 +4,7 @@ import * as opentype from "opentype.js"
 /**
  * @type {object} Map containing all the fonts available for use
  */
-var _fonts = { };
+const _fonts = {}
 
 /**
  * The default font family to use for text
@@ -37,7 +37,7 @@ export function registerFont(binaryPath, family, weight, style, variant) {
                 if(cb)cb();
                 return;
             }
-            var self = this;
+            const self = this
             opentype.load(binaryPath, function (err, font) {
                 if (err) throw new Error('Could not load font: ' + err);
                 self.loaded = true;
@@ -103,9 +103,9 @@ export const processTextPath = function(ctx,text,x,y, fill, hAlign, vAlign) {
     if(vAlign === 'top') y = y + metrics.emHeightAscent
     if(vAlign === 'middle') y = y + metrics.emHeightAscent/2+metrics.emHeightDescent/2
     if(vAlign === 'bottom') y = y + metrics.emHeightDescent
-    var size = ctx._font.size;
+    const size = ctx._font.size
     font.load(function(){
-        var path = font.font.getPath(text, x, y, size);
+        const path = font.font.getPath(text, x, y, size)
         ctx.beginPath();
         path.commands.forEach(function(cmd) {
             switch(cmd.type) {
@@ -136,9 +136,9 @@ export const measureText = function(ctx,text) {
     let font = findFont(ctx._font.family);
     if(!font) console.warn("WARNING. Can't find font family ", ctx._font);
     if(!font.font) console.warn("WARNING. Can't find font family ", ctx._font);
-    var fsize   = ctx._font.size;
-    var glyphs  = font.font.stringToGlyphs(text);
-    var advance = 0;
+    const fsize = ctx._font.size
+    const glyphs = font.font.stringToGlyphs(text)
+    let advance = 0
     glyphs.forEach(function(g) { advance += g.advanceWidth; });
 
     return {

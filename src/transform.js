@@ -43,7 +43,7 @@ export function Transform(context) {
     //==========================================
 
     this.save = function() {
-        var matrix = this.cloneMatrix(this.getMatrix());
+        let matrix = this.cloneMatrix(this.getMatrix());
         this.stack.push(matrix);
 
         if (this.context) this.context.save();
@@ -51,7 +51,7 @@ export function Transform(context) {
 
     this.restore = function() {
         if (this.stack.length > 0) {
-            var matrix = this.stack.pop();
+            let matrix = this.stack.pop();
             this.setMatrix(matrix);
         }
 
@@ -83,12 +83,12 @@ export function Transform(context) {
     };
 
     this.rotate = function(rad) {
-        var c = Math.cos(rad);
-        var s = Math.sin(rad);
-        var m11 = this.matrix[0] * c + this.matrix[2] * s;
-        var m12 = this.matrix[1] * c + this.matrix[3] * s;
-        var m21 = this.matrix[0] * -s + this.matrix[2] * c;
-        var m22 = this.matrix[1] * -s + this.matrix[3] * c;
+        const c = Math.cos(rad)
+        const s = Math.sin(rad)
+        const m11 = this.matrix[0] * c + this.matrix[2] * s
+        const m12 = this.matrix[1] * c + this.matrix[3] * s
+        const m21 = this.matrix[0] * -s + this.matrix[2] * c
+        const m22 = this.matrix[1] * -s + this.matrix[3] * c
         this.matrix[0] = m11;
         this.matrix[1] = m12;
         this.matrix[2] = m21;
@@ -111,7 +111,7 @@ export function Transform(context) {
     //==========================================
 
     this.rotateDegrees = function(deg) {
-        var rad = deg * Math.PI / 180;
+        const rad = deg * Math.PI / 180
         this.rotate(rad);
     };
 
@@ -135,14 +135,14 @@ export function Transform(context) {
     };
 
     this.multiply = function(matrix) {
-        var m11 = this.matrix[0] * matrix.m[0] + this.matrix[2] * matrix.m[1];
-        var m12 = this.matrix[1] * matrix.m[0] + this.matrix[3] * matrix.m[1];
+        const m11 = this.matrix[0] * matrix.m[0] + this.matrix[2] * matrix.m[1]
+        const m12 = this.matrix[1] * matrix.m[0] + this.matrix[3] * matrix.m[1]
 
-        var m21 = this.matrix[0] * matrix.m[2] + this.matrix[2] * matrix.m[3];
-        var m22 = this.matrix[1] * matrix.m[2] + this.matrix[3] * matrix.m[3];
+        const m21 = this.matrix[0] * matrix.m[2] + this.matrix[2] * matrix.m[3]
+        const m22 = this.matrix[1] * matrix.m[2] + this.matrix[3] * matrix.m[3]
 
-        var dx = this.matrix[0] * matrix.m[4] + this.matrix[2] * matrix.m[5] + this.matrix[4];
-        var dy = this.matrix[1] * matrix.m[4] + this.matrix[3] * matrix.m[5] + this.matrix[5];
+        const dx = this.matrix[0] * matrix.m[4] + this.matrix[2] * matrix.m[5] + this.matrix[4]
+        const dy = this.matrix[1] * matrix.m[4] + this.matrix[3] * matrix.m[5] + this.matrix[5]
 
         this.matrix[0] = m11;
         this.matrix[1] = m12;
@@ -154,13 +154,13 @@ export function Transform(context) {
     };
 
     this.invert = function() {
-        var d = 1 / (this.matrix[0] * this.matrix[3] - this.matrix[1] * this.matrix[2]);
-        var m0 = this.matrix[3] * d;
-        var m1 = -this.matrix[1] * d;
-        var m2 = -this.matrix[2] * d;
-        var m3 = this.matrix[0] * d;
-        var m4 = d * (this.matrix[2] * this.matrix[5] - this.matrix[3] * this.matrix[4]);
-        var m5 = d * (this.matrix[1] * this.matrix[4] - this.matrix[0] * this.matrix[5]);
+        const d = 1 / (this.matrix[0] * this.matrix[3] - this.matrix[1] * this.matrix[2])
+        const m0 = this.matrix[3] * d
+        const m1 = -this.matrix[1] * d
+        const m2 = -this.matrix[2] * d
+        const m3 = this.matrix[0] * d
+        const m4 = d * (this.matrix[2] * this.matrix[5] - this.matrix[3] * this.matrix[4])
+        const m5 = d * (this.matrix[1] * this.matrix[4] - this.matrix[0] * this.matrix[5])
         this.matrix[0] = m0;
         this.matrix[1] = m1;
         this.matrix[2] = m2;
@@ -175,8 +175,8 @@ export function Transform(context) {
     //==========================================
 
     this.transformPoint = function(pt) {
-        var x = pt.x;
-        var y = pt.y;
+        const x = pt.x
+        const y = pt.y
         return {
             x: x * this.matrix[0] + y * this.matrix[2] + this.matrix[4],
             y: x * this.matrix[1] + y * this.matrix[3] + this.matrix[5]

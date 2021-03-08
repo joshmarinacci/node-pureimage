@@ -36,8 +36,8 @@ export class Bitmap {
         this.data = Buffer.alloc(w*h*4);
 
         const fillval = NAMED_COLORS.transparent
-        for(var j=0; j<h; j++) {
-            for (var i = 0; i < w; i++) {
+        for(let j=0; j<h; j++) {
+            for (let i = 0; i < w; i++) {
                 this.setPixelRGBA(i, j, fillval);
             }
         }
@@ -135,7 +135,7 @@ export class Bitmap {
      * @memberof Bitmap
      */
     getPixelRGBA_separate(x,y) {
-        var i = this.calculateIndex(x,y);
+        const i = this.calculateIndex(x, y)
         return this.data.slice(i,i+4);
     }
 
