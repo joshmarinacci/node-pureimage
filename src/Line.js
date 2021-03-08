@@ -1,4 +1,4 @@
-const Point = require('./Point');
+import {Point} from "./Point.js"
 
 /**
  * Create a line object represnting a set of two points in 2D space.
@@ -8,7 +8,7 @@ const Point = require('./Point');
  *
  * @class Line
  */
-class Line {
+export class Line {
     /**
      * Construct a Line using two {@link Point} objects
      * .
@@ -69,4 +69,3 @@ class Line {
 }
 
 /** @ignore */
-module.exports = Line;
