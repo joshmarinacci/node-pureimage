@@ -1,4 +1,5 @@
-const Point = require('Point');
+import chai, {expect} from "chai"
+import {Point} from "../src/Point.js"
 
 /**
  * @test {Point}
@@ -10,7 +11,7 @@ describe('Point', () => {
     it('represents a set of x and y co-ordinates in 2D space', () => {
         const point = new Point(20, 60);
 
-        expect(point.x).toBe(20);
-        expect(point.y).toBe(60);
+        expect(point.x).to.eq(20);
+        expect(point.y).to.eq(60);
     });
 });

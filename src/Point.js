@@ -3,7 +3,7 @@
  *
  * @class Point
  */
-class Point {
+export class Point {
     /**
      * Creates an instance of Point.
      * @param {number} x X position
@@ -46,5 +46,3 @@ class Point {
         return new Point(this.x/scalar, this.y/scalar)
     }
 }
-
-module.exports = Point;
