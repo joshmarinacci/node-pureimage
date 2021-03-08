@@ -1,4 +1,4 @@
-const NAMED_COLORS = require('./named_colors');
+import {NAMED_COLORS} from "./named_colors.js"
 
 /**
  * Clamping is the process of limiting a position to an area
@@ -11,7 +11,7 @@ const NAMED_COLORS = require('./named_colors');
  *
  * @returns {number}
  */
-exports.clamp = function (value,min,max) {
+export const clamp = function (value,min,max) {
     if(value < min) return min;
     if(value > max) return max;
     return value;
@@ -34,10 +34,10 @@ exports.clamp = function (value,min,max) {
  *
  * @returns {number}
  */
-exports.lerp = function(a,b,t) {  return a + (b-a)*t; }
+export const lerp = function(a,b,t) {  return a + (b-a)*t; }
 
 
-exports.colorStringToUint32 = function(str) {
+export const colorStringToUint32 = function(str) {
     if(!str) return 0x000000;
     //hex values always get 255 for the alpha channel
     if(str.indexOf('#')===0) {

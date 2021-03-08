@@ -1,7 +1,7 @@
-// const Point = require('./Point')
-// const uint32       = require('./uint32')
-// const util = require('./util')
-//
+import {Point} from "./Point.js"
+import * as util from "./util.js"
+import * as uint32 from "./uint32.js"
+
 export class CanvasGradient {
     constructor() {
         this.stops = []
