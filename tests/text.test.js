@@ -1,6 +1,7 @@
-const fs          = require('fs');
-const pureimage   = require('pureimage');
+import chai, {expect} from "chai"
+import fs from "fs"
 
+import * as pureimage from "../src/index.js"
 
 describe('text drawing',() => {
     var image;
@@ -15,25 +16,23 @@ describe('text drawing',() => {
 
 
     it('can draw some text',(done) => {
-        expect.assertions(1)
-        var fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
-        fnt.load(()=> {
+        const fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
+        fnt.load(()=>{
             context.fillStyle = 'blue'
             context.font = "48pt 'Source Sans Pro'";
             context.fillText("some text", 50, 50)
-            expect(true).toBe(true)
             done()
         })
+
     })
 
 
     it('can measure text',(done) => {
-        expect.assertions(1)
-        var fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
+        const fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
         fnt.load(()=> {
             context.font = "48pt 'Source Sans Pro'";
             var metrics = context.measureText('some text')
-            expect(metrics.width).toBe(197.088)
+            expect(metrics.width).to.eq(197.088)
             done()
         })
     })
@@ -50,21 +49,20 @@ describe('text drawing',() => {
     }
 
     it('can draw horizontal aligned text', (done) => {
-        expect.assertions(6)
-        var fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro');
+        const fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
         fnt.load(() => {
             clear()
             write('U',50,50,'start')
-            expect(image.getPixelRGBA(49,20)).toBe(WHITE)
-            expect(image.getPixelRGBA(57,20)).toBe(BLACK)
+            expect(image.getPixelRGBA(49,20)).to.eq(WHITE)
+            expect(image.getPixelRGBA(57,20)).to.eq(BLACK)
             clear()
             write('U',50,50,'end')
-            expect(image.getPixelRGBA(43,20)).toBe(BLACK)
-            expect(image.getPixelRGBA(57,20)).toBe(WHITE)
+            expect(image.getPixelRGBA(43,20)).to.eq(BLACK)
+            expect(image.getPixelRGBA(57,20)).to.eq(WHITE)
             clear()
             write('U',50,50,'center')
-            expect(image.getPixelRGBA(41,20)).toBe(BLACK)
-            expect(image.getPixelRGBA(50,20)).toBe(WHITE)
+            expect(image.getPixelRGBA(41,20)).to.eq(BLACK)
+            expect(image.getPixelRGBA(50,20)).to.eq(WHITE)
 
             // pureimage.encodePNGToStream(image, fs.createWriteStream('bug31.png')).then(() => {
             //     console.log('wrote out bug31.png')
@@ -81,7 +79,6 @@ describe('text drawing',() => {
     }
 
     it('can draw verticl aligned text', (done) => {
-        expect.assertions(2)
         var fnt = pureimage.registerFont('tests/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro');
         fnt.load(() => {
             clear()
@@ -107,10 +104,12 @@ describe('text drawing',() => {
                 // expect(image.getPixelRGBA(90,37)).toBe(BLACK)
                 // expect(image.getPixelRGBA(90,39)).toBe(WHITE)
                 //bottom
-                expect(image.getPixelRGBA(90,37-13)).toBe(BLACK)
-                expect(image.getPixelRGBA(90,40-13)).toBe(WHITE)
+                expect(image.getPixelRGBA(90,37-13)).to.eq(BLACK)
+                expect(image.getPixelRGBA(90,40-13)).to.eq(WHITE)
                 done()
-            });
+            }).catch(e => {
+                console.error(e)
+            })
         })
     })
 })

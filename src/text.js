@@ -1,4 +1,4 @@
-const opentype = require('opentype.js');
+import * as opentype from "opentype.js"
 
 
 /**
@@ -23,7 +23,7 @@ const DEFAULT_FONT_FAMILY = 'source';
  *
  * @returns {font} Font instance
  */
-exports.registerFont = function(binaryPath, family, weight, style, variant) {
+export function registerFont(binaryPath, family, weight, style, variant) {
     _fonts[family] = {
         binary: binaryPath,
         family: family,
@@ -61,7 +61,7 @@ exports.registerFont = function(binaryPath, family, weight, style, variant) {
     return _fonts[family];
 };
 /**@ignore */
-exports.debug_list_of_fonts = _fonts;
+export const debug_list_of_fonts = _fonts;
 
 /**
  * Find Font
@@ -89,12 +89,12 @@ function findFont(family) {
  *
  * @returns {void}
  */
-exports.processTextPath = function(ctx,text,x,y, fill, hAlign, vAlign) {
+export const processTextPath = function(ctx,text,x,y, fill, hAlign, vAlign) {
     let font = findFont(ctx._font.family);
     if(!font) {
         console.warn("Font missing",ctx._font)
     }
-    const metrics = exports.measureText(ctx,text)
+    const metrics = measureText(ctx,text)
     if(hAlign === 'start' || hAlign === 'left') /* x = x*/ ;
     if(hAlign === 'end'   || hAlign === 'right')  x = x - metrics.width
     if(hAlign === 'center')  x = x - metrics.width/2
@@ -132,9 +132,10 @@ exports.processTextPath = function(ctx,text,x,y, fill, hAlign, vAlign) {
  *
  * @returns {object}
  */
-exports.measureText = function(ctx,text) {
+export const measureText = function(ctx,text) {
     let font = findFont(ctx._font.family);
     if(!font) console.warn("WARNING. Can't find font family ", ctx._font);
+    if(!font.font) console.warn("WARNING. Can't find font family ", ctx._font);
     var fsize   = ctx._font.size;
     var glyphs  = font.font.stringToGlyphs(text);
     var advance = 0;

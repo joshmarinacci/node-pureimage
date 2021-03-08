@@ -1,15 +1,11 @@
 "use strict";
 
-// const Line         = require('./Line');
-// const NAMED_COLORS = require('./named_colors');
+import {Line} from "./Line.js"
 import {NAMED_COLORS} from './named_colors.js'
-// const Point        = require('./Point');
-// const TEXT         = require('./text');
-// const trans        = require('./transform');
+import {Point} from "./Point.js"
+import * as TEXT from "./text.js"
 import * as trans from "./transform.js"
-// const uint32       = require('./uint32');
 import * as uint32 from "./uint32.js"
-// const G = require('./Gradient')
 import * as G from "./Gradient.js"
 
 /**
