@@ -1,6 +1,6 @@
-const fileType = require('file-type');
+import fileType from "file-type"
 
-let toBeOfFileType = (received, expected) => {
+export let toBeOfFileType = (received, expected) => {
 
     const fileData  = fileType(received);
     const extension = (fileData !== null) ? fileData.ext : 'unknown file type';
@@ -20,4 +20,4 @@ let toBeOfFileType = (received, expected) => {
     return result;
 };
 
-module.exports = {toBeOfFileType};
+
