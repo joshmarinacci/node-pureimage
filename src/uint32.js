@@ -1,16 +1,8 @@
-
 //from https://github.com/fxa/uint32.js
+'use strict';
 
-/* jshint bitwise: false */
-
-/**
- * @license (c) Franz X Antesberger 2013
- */
-(function (exporter) {
-    'use strict';
-
-    var POW_2_32 = 0x0100000000;
-    var POW_2_52 = 0x10000000000000;
+var POW_2_32 = 0x0100000000;
+var POW_2_52 = 0x10000000000000;
 
     //
     //  Creating and Extracting
@@ -24,9 +16,9 @@
      *  @param {Number} lowByte the low byte
      *  @returns highByte concat secondHighByte concat thirdHighByte concat lowByte
      */
-    exporter.fromBytesBigEndian = function (highByte, secondHighByte, thirdHighByte, lowByte) {
-        return ((highByte << 24) | (secondHighByte << 16) | (thirdHighByte << 8) | lowByte) >>> 0;
-    };
+export const fromBytesBigEndian = function (highByte, secondHighByte, thirdHighByte, lowByte) {
+    return ((highByte << 24) | (secondHighByte << 16) | (thirdHighByte << 8) | lowByte) >>> 0;
+};
 
     /**
      *  Returns the byte.
@@ -35,7 +27,7 @@
      *  @param {Number} byteNo 0-3 the byte number, 0 is the high byte, 3 the low byte
      *  @returns {Number} the 0-255 byte according byteNo
      */
-    exporter.getByteBigEndian = function (uint32value, byteNo) {
+    export const getByteBigEndian = function (uint32value, byteNo) {
         return (uint32value >>> (8 * (3 - byteNo))) & 0xff;
     };
 
@@ -44,12 +36,12 @@
      *  @param {Number} uint32value the source to be extracted
      *  @returns {Array} the array [highByte, 2ndHighByte, 3rdHighByte, lowByte]
      */
-    exporter.getBytesBigEndian = function (uint32value) {
+    export const getBytesBigEndian = function (uint32value) {
         return [
-            exporter.getByteBigEndian(uint32value, 0),
-            exporter.getByteBigEndian(uint32value, 1),
-            exporter.getByteBigEndian(uint32value, 2),
-            exporter.getByteBigEndian(uint32value, 3)
+            getByteBigEndian(uint32value, 0),
+            getByteBigEndian(uint32value, 1),
+            getByteBigEndian(uint32value, 2),
+            getByteBigEndian(uint32value, 3)
         ];
     };
 
@@ -58,7 +50,7 @@
      *  @param {Number} uint32value the uint32 to be stringified
      *  @param {Number} optionalMinLength the optional (default 8)
      */
-    exporter.toHex = function (uint32value, optionalMinLength) {
+    export const toHex = function (uint32value, optionalMinLength) {
         optionalMinLength = optionalMinLength || 8;
         var result = uint32value.toString(16);
         if (result.length < optionalMinLength) {
@@ -72,7 +64,7 @@
      *  @param {Number} number the number to be converted.
      *  @return {Number} an uint32 value
      */
-    exporter.toUint32 = function (number) {
+    export const toUint32 = function (number) {
         // the shift operator forces js to perform the internal ToUint32 (see ecmascript spec 9.6)
         return number >>> 0;
     };
@@ -83,7 +75,7 @@
      *  @param {Number} number the number to extract the high part
      *  @return {Number} the high part of the number
      */
-    exporter.highPart = function (number) {
+    export const highPart = function (number) {
         return exporter.toUint32(number / POW_2_32);
     };
 
@@ -97,7 +89,7 @@
      *  @param {Number} argv one or more uint32 values
      *  @return {Number} the bitwise OR uint32 value
      */
-    exporter.or = function (uint32val0, argv) {
+    export const or = function (uint32val0, argv) {
         var result = uint32val0;
         for (var index = 1; index < arguments.length; index += 1) {
             result = (result | arguments[index]);
@@ -111,7 +103,7 @@
      *  @param {Number} argv one or more uint32 values
      *  @return {Number} the bitwise AND uint32 value
      */
-    exporter.and = function (uint32val0, argv) {
+    export const and = function (uint32val0, argv) {
         var result = uint32val0;
         for (var index = 1; index < arguments.length; index += 1) {
             result = (result & arguments[index]);
@@ -125,7 +117,7 @@
      *  @param {Number} argv one or more uint32 values
      *  @return {Number} the bitwise XOR uint32 value
      */
-    exporter.xor = function (uint32val0, argv) {
+    export const xor = function (uint32val0, argv) {
         var result = uint32val0;
         for (var index = 1; index < arguments.length; index += 1) {
             result = (result ^ arguments[index]);
@@ -133,7 +125,7 @@
         return result >>> 0;
     };
 
-    exporter.not = function (uint32val) {
+    export const not = function (uint32val) {
         return (~uint32val) >>> 0;
     };
 
@@ -147,7 +139,7 @@
      *  @param {Number} numBits the number of bits to be shifted (0-31)
      *  @returns {Number} the uint32 value of the shifted word
      */
-    exporter.shiftLeft = function (uint32val, numBits) {
+    export const shiftLeft = function (uint32val, numBits) {
         return (uint32val << numBits) >>> 0;
     };
 
@@ -157,15 +149,15 @@
      *  @param {Number} numBits the number of bits to be shifted (0-31)
      *  @returns {Number} the uint32 value of the shifted word
      */
-    exporter.shiftRight = function (uint32val, numBits) {
+    export const shiftRight = function (uint32val, numBits) {
         return uint32val >>> numBits;
     };
 
-    exporter.rotateLeft = function (uint32val, numBits) {
+    export const rotateLeft = function (uint32val, numBits) {
         return (((uint32val << numBits) >>> 0) | (uint32val >>> (32 - numBits))) >>> 0;
     };
 
-    exporter.rotateRight = function (uint32val, numBits) {
+    export const rotateRight = function (uint32val, numBits) {
         return (((uint32val) >>> (numBits)) | ((uint32val) << (32 - numBits)) >>> 0) >>> 0;
     };
 
@@ -176,7 +168,7 @@
     /**
      *  Bitwise choose bits from y or z, as a bitwise x ? y : z
      */
-    exporter.choose = function (x, y, z) {
+    export const choose = function (x, y, z) {
         return ((x & (y ^ z)) ^ z) >>> 0;
     };
 
@@ -184,7 +176,7 @@
      * Majority gate for three parameters. Takes bitwise the majority of x, y and z,
      * @see https://en.wikipedia.org/wiki/Majority_function
      */
-    exporter.majority = function (x, y, z) {
+    export const majority = function (x, y, z) {
         return ((x & (y | z)) | (y & z)) >>> 0;
     };
 
@@ -196,7 +188,7 @@
      *  Adds the given values modulus 2^32.
      *  @returns the sum of the given values modulus 2^32
      */
-    exporter.addMod32 = function (uint32val0/*, optionalValues*/) {
+    export const addMod32 = function (uint32val0/*, optionalValues*/) {
         var result = uint32val0;
         for (var index = 1; index < arguments.length; index += 1) {
             result += arguments[index];
@@ -209,7 +201,7 @@
      *  @param {Number} uint32val the value, the log2 is calculated of
      *  @return {Number} the logarithm base 2, an integer between 0 and 31
      */
-    exporter.log2 = function (uint32val) {
+    export const log2 = function (uint32val) {
         return Math.floor(Math.log(uint32val) / Math.LN2);
     };
 
@@ -241,7 +233,7 @@
      *  @param {Uint32Array[2]} resultUint32Array2 the Array, where the result will be written to
      *  @returns undefined
      */
-    exporter.mult = function (factor1, factor2, resultUint32Array2) {
+    export const mult = function (factor1, factor2, resultUint32Array2) {
         var high16 =  ((factor1 & 0xffff0000) >>> 0) * factor2;
         var low16 = (factor1 & 0x0000ffff) * factor2;
         // the addition is dangerous, because the result will be rounded, so the result depends on the lowest bits, which will be cut away!
@@ -249,5 +241,3 @@
         resultUint32Array2[0] = (exporter.highPart(high16) + exporter.highPart(low16) + carry) >>> 0;
         resultUint32Array2[1] = ((high16 >>> 0) + (low16 >>> 0));// >>> 0;
     };
-
-}) ((typeof module !== 'undefined') ? module.exports = {} : window.uint32 = {});

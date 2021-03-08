@@ -1,4 +1,7 @@
-const pureimage = require('pureimage')
+import chai, {expect} from "chai"
+
+import * as pureimage from "../src/index.js"
+
 describe('color',() => {
     let image
     let context
@@ -9,14 +12,14 @@ describe('color',() => {
     })
 
     it('canvas is empty and clear', (done) => {
-        expect(image.getPixelRGBA(0,0)).toBe(0x00000000)
+        expect(image.getPixelRGBA(0,0)).to.eq(0x00000000)
         done()
     })
 
     it('fillcolor_hex', (done)=>{
         context.fillStyle = '#000000'
         context.fillRect(0,0,200,200)
-        expect(image.getPixelRGBA(0,0)).toBe(0x000000FF)
+        expect(image.getPixelRGBA(0,0)).to.eq(0x000000FF)
         done()
     })
 
@@ -24,7 +27,7 @@ describe('color',() => {
         function fill_check(hex_string, num) {
             context.fillStyle = hex_string
             context.fillRect(0,0,200,200)
-            expect(image.getPixelRGBA(0,0)).toBe(num)
+            expect(image.getPixelRGBA(0,0)).to.eq(num)
         }
 
         fill_check('#000000',0x000000FF)

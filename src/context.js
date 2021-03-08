@@ -1,12 +1,16 @@
 "use strict";
 
-const Line         = require('./Line');
-const NAMED_COLORS = require('./named_colors');
-const Point        = require('./Point');
-const TEXT         = require('./text');
-const trans        = require('./transform');
-const uint32       = require('./uint32');
-const G = require('./Gradient')
+// const Line         = require('./Line');
+// const NAMED_COLORS = require('./named_colors');
+import {NAMED_COLORS} from './named_colors.js'
+// const Point        = require('./Point');
+// const TEXT         = require('./text');
+// const trans        = require('./transform');
+import * as trans from "./transform.js"
+// const uint32       = require('./uint32');
+import * as uint32 from "./uint32.js"
+// const G = require('./Gradient')
+import * as G from "./Gradient.js"
 
 /**
  * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)
@@ -26,7 +30,7 @@ const PATH_COMMAND = {
  *
  * @class Context
  */
-class Context {
+export class Context {
     /**
      * Creates a new pure image Context
      *
@@ -1204,7 +1208,6 @@ class Context {
     }
 
 }
-module.exports = Context;
 
 /**
  * Returns the decimal portion of a given floating point number

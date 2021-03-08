@@ -12,7 +12,7 @@
 /**
  * @ignore
  */
-function Transform(context) {
+export function Transform(context) {
     this.context = context;
     this.matrix = [1,0,0,1,0,0]; //initialize with the identity matrix
     this.stack = [];
@@ -184,4 +184,3 @@ function Transform(context) {
     };
 }
 
-exports.Transform = Transform;

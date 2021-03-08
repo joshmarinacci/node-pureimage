@@ -1,8 +1,8 @@
-const Point = require('./Point')
-const uint32       = require('./uint32')
-const util = require('./util')
-
-class CanvasGradient {
+// const Point = require('./Point')
+// const uint32       = require('./uint32')
+// const util = require('./util')
+//
+export class CanvasGradient {
     constructor() {
         this.stops = []
     }
@@ -18,7 +18,7 @@ class CanvasGradient {
     }
 }
 
-class LinearGradient extends CanvasGradient {
+export class LinearGradient extends CanvasGradient {
     constructor(x0,y0,x1,y1) {
         super()
         this.start = new Point(x0,y0)
@@ -43,7 +43,7 @@ class LinearGradient extends CanvasGradient {
 }
 
 
-class RadialGradient extends CanvasGradient {
+export class RadialGradient extends CanvasGradient {
     constructor(x0, y0, x1, y1) {
         super()
         this.start = new Point(x0,y0)
@@ -57,8 +57,3 @@ class RadialGradient extends CanvasGradient {
     }
 }
 
-module.exports = {
-    CanvasGradient: CanvasGradient,
-    LinearGradient: LinearGradient,
-    RadialGradient: RadialGradient,
-}

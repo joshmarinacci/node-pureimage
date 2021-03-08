@@ -7,7 +7,9 @@
     "email": "joshua@marinacci.org",
     "url": "http://joshondesign.com/"
   },
-  "main": "./src/pureimage.js",
+  "type": "module",
+  "module": "./src/index.js",
+  "main": "./src/index.js",
   "browser": "./src/browser.js",
   "repository": {
     "type": "git",
@@ -19,38 +21,19 @@
     "pngjs": "^3.3.1"
   },
   "devDependencies": {
+    "chai": "^4.3.3",
     "esdoc": "^1.1.0",
     "esdoc-integrate-test-plugin": "^1.0.0",
     "esdoc-member-plugin": "^1.0.0",
     "esdoc-node": "^1.0.3",
     "esdoc-standard-plugin": "^1.0.0",
     "file-type": "^7.6.0",
-    "jest": "^22.4.2",
+    "mocha": "^8.3.1",
     "tape": "^5.2.2"
   },
   "scripts": {
-    "unit": "jest",
+    "test": "mocha",
     "docs": "esdoc"
-  },
-  "jest": {
-    "collectCoverage": true,
-    "coverageDirectory": "./tests/unit/coverage",
-    "coverageReporters": [
-      "lcov",
-      "text"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.{js}"
-    ],
-    "modulePaths": [
-      "<rootDir>/src/"
-    ],
-    "notify": true,
-    "testEnvironment": "node",
-    "globals": {
-      "FIXTURES_DIR": "./tests/unit/fixtures/"
-    },
-    "verbose": true
   },
   "engines": {
     "node": ">=0.8"

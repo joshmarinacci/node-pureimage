@@ -1,6 +1,6 @@
-const Context      = require('./context');
-const NAMED_COLORS = require('./named_colors');
-const uint32       = require('./uint32');
+import {NAMED_COLORS} from "./named_colors.js"
+import {Context} from "./context.js"
+import * as uint32 from "./uint32.js"
 
 /**
  * The Bitmap class is used for direct pixel manipulation(for example setting a pixel colour,
@@ -9,7 +9,7 @@ const uint32       = require('./uint32');
  *
  * @class Bitmap
  */
-class Bitmap {
+export class Bitmap {
 
     /**
      * Creates an instance of Bitmap.
@@ -177,4 +177,3 @@ class Bitmap {
     }
 
 }
-module.exports = Bitmap;
