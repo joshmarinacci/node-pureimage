@@ -1,4 +1,4 @@
-import {Points} from "./points.js"
+import {Point} from "./point.js"
 import {fromBytesBigEndian, getBytesBigEndian} from './uint32.js'
 import {clamp, colorStringToUint32, lerp} from './util.js'
 
@@ -21,12 +21,12 @@ export class CanvasGradient {
 export class LinearGradient extends CanvasGradient {
     constructor(x0,y0,x1,y1) {
         super()
-        this.start = new Points(x0,y0)
-        this.end = new Points(x1,y1)
+        this.start = new Point(x0,y0)
+        this.end = new Point(x1,y1)
     }
 
     colorAt(x,y) {
-        const pc = new Points(x,y) //convert to a point
+        const pc = new Point(x,y) //convert to a point
         //calculate V
         let V = this.end.subtract(this.start) // subtract
         const d = V.magnitude() // get magnitude
@@ -46,11 +46,11 @@ export class LinearGradient extends CanvasGradient {
 export class RadialGradient extends CanvasGradient {
     constructor(x0, y0, x1, y1) {
         super()
-        this.start = new Points(x0,y0)
+        this.start = new Point(x0,y0)
     }
 
     colorAt(x,y) {
-        const pc = new Points(x, y) //convert to a point
+        const pc = new Point(x, y) //convert to a point
         const dist =  pc.distance(this.start)
         let t = clamp(dist/10,0,1)
         return this._lerpStops(t)

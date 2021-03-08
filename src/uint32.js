@@ -204,27 +204,6 @@ export const fromBytesBigEndian = function (highByte, secondHighByte, thirdHighB
         return Math.floor(Math.log(uint32val) / Math.LN2);
     };
 
-/*
-    // this implementation does the same, looks much funnier, but takes 2 times longer (according to jsperf) ...
-    var log2_u = new Uint32Array(2);
-    var log2_d = new Float64Array(log2_u.buffer);
-
-    exporter.log2 = function (uint32val) {
-        // Ported from http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogIEEE64Float to javascript
-        // (public domain)
-        if (uint32val === 0) {
-            return -Infinity;
-        }
-        // fill in the low part
-        log2_u[0] = uint32val;
-        // set the mantissa to 2^52
-        log2_u[1] = 0x43300000;
-        // subtract 2^52
-        log2_d[0] -= 0x10000000000000;
-        return (log2_u[1] >>> 20) - 0x3FF;
-    };
-*/
-
     /**
      *  Returns the the low and the high uint32 of the multiplication.
      *  @param {Number} factor1 an uint32

@@ -1,15 +1,15 @@
 /**
  * Represents a set of co-ordinates on a 2D plane
  *
- * @class Points
+ * @class Point
  */
-export class Points {
+export class Point {
     /**
-     * Creates an instance of Points.
+     * Creates an instance of Point.
      * @param {number} x X position
      * @param {number} y Y position
      *
-     * @memberof Points
+     * @memberof Point
      */
     constructor (x, y) {
         /**
@@ -31,7 +31,7 @@ export class Points {
     }
 
     subtract(pt) {
-        return new Points(this.x-pt.x, this.y-pt.y)
+        return new Point(this.x-pt.x, this.y-pt.y)
     }
 
     magnitude() {
@@ -43,6 +43,6 @@ export class Points {
     }
 
     divide(scalar) {
-        return new Points(this.x/scalar, this.y/scalar)
+        return new Point(this.x/scalar, this.y/scalar)
     }
 }

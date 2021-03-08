@@ -59,7 +59,7 @@ export function registerFont(binaryPath, family, weight, style, variant) {
         }
     };
     return _fonts[family];
-};
+}
 /**@ignore */
 export const debug_list_of_fonts = _fonts;
 
@@ -89,7 +89,7 @@ function findFont(family) {
  *
  * @returns {void}
  */
-export const processTextPath = function(ctx,text,x,y, fill, hAlign, vAlign) {
+export function processTextPath(ctx,text,x,y, fill, hAlign, vAlign) {
     let font = findFont(ctx._font.family);
     if(!font) {
         console.warn("Font missing",ctx._font)
@@ -122,7 +122,7 @@ export const processTextPath = function(ctx,text,x,y, fill, hAlign, vAlign) {
             }
         });
     });
-};
+}
 
 /**
  * Process Text Path
@@ -132,18 +132,18 @@ export const processTextPath = function(ctx,text,x,y, fill, hAlign, vAlign) {
  *
  * @returns {object}
  */
-export const measureText = function(ctx,text) {
+export function measureText(ctx,text) {
     let font = findFont(ctx._font.family);
     if(!font) console.warn("WARNING. Can't find font family ", ctx._font);
     if(!font.font) console.warn("WARNING. Can't find font family ", ctx._font);
     const fsize = ctx._font.size
     const glyphs = font.font.stringToGlyphs(text)
     let advance = 0
-    glyphs.forEach(function(g) { advance += g.advanceWidth; });
+    glyphs.forEach(function(g) { advance += g.advanceWidth; })
 
     return {
         width: advance/font.font.unitsPerEm*fsize,
         emHeightAscent: font.font.ascender/font.font.unitsPerEm*fsize,
         emHeightDescent: font.font.descender/font.font.unitsPerEm*fsize,
-    };
-};
+    }
+}
