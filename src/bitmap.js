@@ -1,6 +1,6 @@
 import {NAMED_COLORS} from "./named_colors.js"
 import {Context} from "./context.js"
-import * as uint32 from "./uint32.js"
+import {fromBytesBigEndian, getBytesBigEndian} from './uint32.js'
 
 /**
  * The Bitmap class is used for direct pixel manipulation(for example setting a pixel colour,
@@ -74,7 +74,7 @@ export class Bitmap {
      */
     setPixelRGBA(x,y,rgba) {
         let i = this.calculateIndex(x, y);
-        const bytes = uint32.getBytesBigEndian(rgba);
+        const bytes = getBytesBigEndian(rgba);
         this.data[i+0] = bytes[0];
         this.data[i+1] = bytes[1];
         this.data[i+2] = bytes[2];
@@ -115,7 +115,7 @@ export class Bitmap {
      */
     getPixelRGBA(x,y) {
         let i = this.calculateIndex(x, y);
-        return uint32.fromBytesBigEndian(
+        return fromBytesBigEndian(
             this.data[i+0],
             this.data[i+1],
             this.data[i+2],
@@ -151,7 +151,7 @@ export class Bitmap {
     }
 
     _copySubBitmap(x,y,w,h) {
-        let dst = new Bitmap(w,h)
+        let dst = new Bitmap(w,h,{})
         for(let i=0; i<w; i++) {
             for(let j=0; j<h; j++) {
                 let indexA = this.calculateIndex(x+i,y+j)

@@ -11,7 +11,7 @@ import {NAMED_COLORS} from "./named_colors.js"
  *
  * @returns {number}
  */
-export const clamp = function (value,min,max) {
+export function clamp(value,min,max) {
     if(value < min) return min;
     if(value > max) return max;
     return value;
@@ -63,3 +63,5 @@ export const colorStringToUint32 = function(str) {
     }
     throw new Error("unknown style format: " + str );
 }
+
+

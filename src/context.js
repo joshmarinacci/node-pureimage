@@ -5,8 +5,9 @@ import {NAMED_COLORS} from './named_colors.js'
 import {Point} from "./Point.js"
 import * as TEXT from "./text.js"
 import * as trans from "./transform.js"
-import * as uint32 from "./uint32.js"
 import * as G from "./Gradient.js"
+import {and, fromBytesBigEndian, getBytesBigEndian, or, shiftLeft, toUint32} from './uint32.js'
+import {clamp} from './util.js'
 
 /**
  * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)
@@ -440,8 +441,8 @@ export class Context {
      * @memberof Context
      */
     composite(i,j,old_pixel, new_pixel) {
-        const old_rgba = uint32.getBytesBigEndian(old_pixel);
-        const new_rgba = uint32.getBytesBigEndian(new_pixel);
+        const old_rgba = getBytesBigEndian(old_pixel);
+        const new_rgba = getBytesBigEndian(new_pixel);
 
         // convert to range of 0->1
         const A = new_rgba.map((b) => b / 255);
@@ -460,7 +461,7 @@ export class Context {
         const Cf = C.map((c) => c * 255);
 
         // convert back to int
-        return uint32.fromBytesBigEndian(
+        return fromBytesBigEndian(
             Cf[0], Cf[1], Cf[2], // R, G, B,
             Math.max(old_rgba[3], new_rgba[3]) // alpha
         );
@@ -943,19 +944,19 @@ export class Context {
 
         let err = dx - dy, e2, x2, y2;
         let ed = dx + dy === 0 ? 1 : Math.sqrt(dx * dx + dy * dy);
-        let rgb = uint32.and(this._strokeColor, 0xFFFFFF00);
-        let a1 = uint32.and(this._strokeColor,0x000000FF);
+        let rgb = and(this._strokeColor, 0xFFFFFF00);
+        let a1 = and(this._strokeColor,0x000000FF);
         for (width = (width+1)/2; ; ) {
             const alpha = ~~Math.max(0, 255 * (Math.abs(err - dx + dy) / ed - width + 1));
             const a2 = 255-alpha
-            const color = uint32.or(rgb,(a1*a2)/255);
+            const color = or(rgb,(a1*a2)/255);
             this.fillPixelWithColor(x0,y0,color);
             e2 = err; x2 = x0;
             if (2*e2 >= -dx) {
                 for (e2 += dy, y2 = y0; e2 < ed*width && (y1 !== y2 || dx > dy); e2 += dx) {
                     const alpha = ~~Math.max(0, 255 * (Math.abs(e2) / ed - width + 1));
                     const a2 = 255-alpha
-                    const color = uint32.or(rgb,(a1*a2)/255);
+                    const color = or(rgb,(a1*a2)/255);
                     this.fillPixelWithColor(x0, y2 += sy, color);
                 }
                 if (x0 === x1) break;
@@ -965,7 +966,7 @@ export class Context {
                 for (e2 = dx-e2; e2 < ed*width && (x1 !== x2 || dx < dy); e2 += dy) {
                     const alpha = ~~Math.max(0, 255 * (Math.abs(e2) / ed - width + 1));
                     const a2 = 255-alpha
-                    const color = uint32.or(rgb,(a1*a2)/255);
+                    const color = or(rgb,(a1*a2)/255);
                     this.fillPixelWithColor(x2 += sx, y0, color);
                 }
                 if (y0 === y1) break;
@@ -997,8 +998,8 @@ export class Context {
     fill_aa() {
         if(!this._closed) this.closePath()
         //get just the color part
-        const rgb = uint32.and(this._fillColor, 0xFFFFFF00)
-        const alpha = uint32.and(this._fillColor, 0xFF)
+        const rgb = and(this._fillColor, 0xFFFFFF00)
+        const alpha = and(this._fillColor, 0xFF)
         const lines = pathToLines(this.path)
         const bounds = calcMinimumBounds(lines)
 
@@ -1017,13 +1018,13 @@ export class Context {
                 for(let ii=start; ii<=end; ii++) {
                     if(ii === start) {
                         //first
-                        const int = uint32.or(rgb,(1-fstartf)*alpha);
+                        const int = or(rgb,(1-fstartf)*alpha);
                         this.fillPixelWithColor(ii,j, int);
                         continue;
                     }
                     if(ii === end) {
                         //last
-                        const int = uint32.or(rgb,fendf*alpha);
+                        const int = or(rgb,fendf*alpha);
                         this.fillPixelWithColor(ii,j, int);
                         continue;
                     }
@@ -1043,7 +1044,7 @@ export class Context {
      */
     fill_noaa() {
         //get just the color part
-        const rgb = uint32.and(this._fillColor, 0xFFFFFF00)
+        const rgb = and(this._fillColor, 0xFFFFFF00)
         const lines = pathToLines(this.path)
         const bounds = calcMinimumBounds(lines)
         for(let j=bounds.y2-1; j>=bounds.y; j--) {
@@ -1157,9 +1158,9 @@ export class Context {
                 let blueNibble = parseInt(str[3], 16);
                 let blue = (blueNibble << 4) | blueNibble;
 
-                let int = uint32.toUint32(red << 16 | green << 8 | blue);
-                int = uint32.shiftLeft(int,8);
-                return uint32.or(int,0xff);
+                let int = toUint32(red << 16 | green << 8 | blue);
+                int = shiftLeft(int,8);
+                return or(int,0xff);
             } else if(str.length===5) {
                 //Color format is #RGBA
                 let redNibble = parseInt(str[1], 16);
@@ -1171,23 +1172,23 @@ export class Context {
                 let alphaNibble = parseInt(str[4], 16);
                 let alpha = (alphaNibble << 4) | alphaNibble;
 
-                let int = uint32.toUint32(red << 16 | green << 8 | blue);
-                int = uint32.shiftLeft(int,8);
-                return uint32.or(int,alpha);
+                let int = toUint32(red << 16 | green << 8 | blue);
+                int = shiftLeft(int,8);
+                return or(int,alpha);
             } else if(str.length===7) {
                 //Color format is #RRGGBB
                 //Will get 255 for the alpha channel
-                let int = uint32.toUint32(parseInt(str.substring(1),16));
-                int = uint32.shiftLeft(int,8);
-                return uint32.or(int,0xff);
+                let int = toUint32(parseInt(str.substring(1),16));
+                int = shiftLeft(int,8);
+                return or(int,0xff);
             } else if(str.length===9) {
                 //Color format is #RRGGBBAA
-                return uint32.toUint32(parseInt(str.substring(1),16));
+                return toUint32(parseInt(str.substring(1),16));
             }
         }
         if(str.indexOf('rgba')===0) {
             let parts = str.trim().substring(4).replace('(','').replace(')','').split(',');
-            return uint32.fromBytesBigEndian(
+            return fromBytesBigEndian(
                 parseInt(parts[0]),
                 parseInt(parts[1]),
                 parseInt(parts[2]),
@@ -1195,7 +1196,7 @@ export class Context {
         }
         if(str.indexOf('rgb')===0) {
             let parts = str.trim().substring(3).replace('(','').replace(')','').split(',');
-            return uint32.fromBytesBigEndian(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]), 255);
+            return fromBytesBigEndian(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]), 255);
         }
         if(NAMED_COLORS.hasOwnProperty(str)) {
             return NAMED_COLORS[str];
@@ -1392,42 +1393,6 @@ function calcSortedIntersections(lines,y) {
 }
 
 
-/**
- * Linear Interpolation
- *
- * In mathematics, linear interpolation is a method of curve fitting using linear polynomials to construct new data
- * points within the range of a discrete set of known data points.
- *
- * @param {number} a
- * @param {number} b
- * @param {number} t
- *
- * @ignore
- *
- * @see https://en.wikipedia.org/wiki/Linear_interpolation
- *
- * @returns {number}
- */
-function lerp(a,b,t) {  return a + (b-a)*t; }
 
-/**
- * Clamping is the process of limiting a position to an area
- *
- * @see https://en.wikipedia.org/wiki/Clamping_(graphics)
- *
- * @param {number} value The value to apply the clamp restriction to
- * @param {number} min   Lower limit
- * @param {number} max   Upper limit
- *
- * @returns {number}
- */
-function clamp(value,min,max) {
-    if(value < min) return min;
-    if(value > max) return max;
-    return value;
-}
-const PI_2 = Math.PI * 2
-function normalize(radians) {
-    return radians - PI_2 * Math.floor(radians / PI_2)
-}
+
 
