@@ -562,6 +562,11 @@ export class Context {
         if(typeof sw === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, bitmap.width, bitmap.height)
         // four argument form
         if(typeof dx === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, sw, sh)
+
+        let pt = new Point(dx,dy)
+        pt = this.transform.transformPoint(pt);
+        console.log("transformed point",pt)
+
         for(let i=0; i<dw; i++) {
             const tx = i / dw
             const ssx = Math.floor(tx * sw) + sx
@@ -569,7 +574,7 @@ export class Context {
                 const ty = j / dh
                 const ssy = sy + Math.floor(ty * sh)
                 const rgba = bitmap.getPixelRGBA(ssx, ssy)
-                this.bitmap.setPixelRGBA(dx+i, dy+j, rgba);
+                this.bitmap.setPixelRGBA(pt.x+i, pt.y+j, rgba);
             }
         }
     }
