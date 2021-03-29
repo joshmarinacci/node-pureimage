@@ -101,7 +101,7 @@ describe("transform image",()=>{
 
     it('draws image normally',(done)=>{
         context.drawImage(src,0,0)
-        pureimage.encodePNGToStream(image, fs.createWriteStream('image_plain.png')).then(() => {
+        write_png(image,'image_plain').then(() => {
             expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
             expect(image.getPixelRGBA(25,0)).to.eq(0x000000FF)
             done()
