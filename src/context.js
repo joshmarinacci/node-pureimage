@@ -563,18 +563,21 @@ export class Context {
         // four argument form
         if(typeof dx === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, sw, sh)
 
-        let pt = new Point(dx,dy)
-        pt = this.transform.transformPoint(pt);
-        console.log("transformed point",pt)
+        let dest_pos = this.transform.transformPoint(new Point(dx,dy));
+        let dest_size = this.transform.transformPoint(new Point(dx+dw,dy+dh))
+        dest_size = new Point(dest_size.x-dest_pos.x, dest_size.y-dest_pos.y)
+        console.log("transformed pos",dest_pos)
+        console.log("transformed size",dest_size)
 
-        for(let i=0; i<dw; i++) {
-            const tx = i / dw
+
+        for(let i=0; i<dest_size.x; i++) {
+            const tx = i / dest_size.x
             const ssx = Math.floor(tx * sw) + sx
-            for(let j=0; j<dh; j++) {
-                const ty = j / dh
+            for(let j=0; j<dest_size.y; j++) {
+                const ty = j / dest_size.y
                 const ssy = sy + Math.floor(ty * sh)
                 const rgba = bitmap.getPixelRGBA(ssx, ssy)
-                this.bitmap.setPixelRGBA(pt.x+i, pt.y+j, rgba);
+                this.bitmap.setPixelRGBA(dest_pos.x+i, dest_pos.y+j, rgba);
             }
         }
     }

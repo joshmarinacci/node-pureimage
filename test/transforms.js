@@ -108,7 +108,7 @@ describe("transform image",()=>{
         })
     })
 
-    it('draws image scaled',(done)=>{
+    it('draws image translated',(done)=>{
         context.save()
         context.translate(50,50)
         context.drawImage(src,0,0)
@@ -116,6 +116,20 @@ describe("transform image",()=>{
         write_png(image,'image_translated').then(()=>{
             expect(image.getPixelRGBA(0+50, 0+50)).to.eq(0xFFFFFFFF)
             expect(image.getPixelRGBA(25+50,0+50)).to.eq(0x000000FF)
+            done()
+        }).catch(e => {
+            console.error(e)
+        })
+    })
+
+    it('draws image scaled',(done)=>{
+        context.save()
+        context.scale(3,3)
+        context.drawImage(src,0,0)
+        context.restore()
+        write_png(image,'image_scaled').then(()=>{
+            expect(image.getPixelRGBA(0*3, 0*3)).to.eq(0xFFFFFFFF)
+            expect(image.getPixelRGBA(25*3,0*3)).to.eq(0x000000FF)
             done()
         }).catch(e => {
             console.error(e)
