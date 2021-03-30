@@ -2,7 +2,7 @@
 
 import {Line} from "./line.js"
 import {NAMED_COLORS} from './named_colors.js'
-import {Point} from "./point.js"
+import {Bounds, calc_min_bounds, Point} from "./point.js"
 import * as TEXT from "./text.js"
 import * as trans from "./transform.js"
 import * as G from "./gradients.js"
@@ -562,14 +562,41 @@ export class Context {
         if(typeof sw === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, bitmap.width, bitmap.height)
         // four argument form
         if(typeof dx === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, sw, sh)
-        for(let i=0; i<dw; i++) {
-            const tx = i / dw
-            const ssx = Math.floor(tx * sw) + sx
-            for(let j=0; j<dh; j++) {
-                const ty = j / dh
-                const ssy = sy + Math.floor(ty * sh)
-                const rgba = bitmap.getPixelRGBA(ssx, ssy)
-                this.bitmap.setPixelRGBA(dx+i, dy+j, rgba);
+
+        let src_bounds = new Bounds(sx,sy,sx+sw,sy+sh)
+        let pts = [
+            new Point(dx,dy),
+            new Point(dx+dw,dy),
+            new Point(dx+dw,dy+dh),
+            new Point(dx,dy+dh),
+            ]
+        pts = pts.map(pt => this.transform.transformPoint(pt))
+        let dst_bounds = calc_min_bounds(pts)
+
+        let bitmap_bounds = new Bounds(0,0, this.bitmap.width, this.bitmap.height)
+        dst_bounds = dst_bounds.intersect(bitmap_bounds)
+
+        let inv = this.transform.cloneTransform()
+        inv.invert()
+
+        //map dx to dx+dw  from sx to sx+sw
+        function remap(n, a1, a2, b1, b2) {
+            let t = (n-a1)/(a2-a1)
+            return t*(b2-b1) + b1
+        }
+
+        for(let i=dst_bounds.x1; i<dst_bounds.x2; i++) {
+            for(let j=dst_bounds.y1; j<dst_bounds.y2; j++) {
+                let dst_pt = new Point(i,j)
+                let src_pt = inv.transformPoint(dst_pt).round()
+                src_pt = new Point(
+                    remap(src_pt.x, dx,dx+dw, sx,sx+sw),
+                    remap(src_pt.y, dy,dy+dh, sy,sy+sh)
+                )
+                if(src_bounds.contains(src_pt)) {
+                    const rgba = bitmap.getPixelRGBA(src_pt.x, src_pt.y)
+                    this.bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, rgba)
+                }
             }
         }
     }
