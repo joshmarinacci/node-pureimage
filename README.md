@@ -3,8 +3,37 @@
 PureImage
 ==============
 
-PureImage is a pure JavaScript implementation of the HTML Canvas 2d drawing api for NodeJS.
-It has no native dependencies.
+PureImage is a pure 100% JavaScript implementation of the HTML Canvas 2d drawing API for NodeJS.
+It has no native dependencies. You can use it to resize images, draw text into images, render badges,
+convert to grayscale, or anything else you could do with the standard Canvas 2D api. 
+
+*note*: PureImage values portability and simplicity of implementation over speed. If you need
+maximum performance you should use a different library backed by native code, such as [Node-Canvas](https://www.npmjs.com/package/canvas)
+
+
+New 0.3.x release
+=================
+
+After a long lull, I've ported the code to modern ES6 modules, so you can just do an
+`import pureimage from 'pureimage'` like any other proper modern module.  If you are using
+`require('pureimage')` it should just work thanks to the `dist/pureimage-umd.cjs` file built
+with [Rollup](https://rollupjs.org). It also has a stub to let `pureimage` run in the browser and delegate to the 
+real HTML canvas. This helps with isomorphic apps.
+
+Other updates include
+
+* Switch to [MochaJS](https://mochajs.org) for the unit tests.
+* add more unit tests.
+* [support](https://github.com/joshmarinacci/node-pureimage/issues/117) drawing images when using transforms
+* [implement](https://github.com/joshmarinacci/node-pureimage/issues/100) `rect()`
+* implement ImageData with `getImageData()` and `putImageData()`  
+* fix gradient fill
+* [add all](https://github.com/joshmarinacci/node-pureimage/commit/ba975575ca986ea11c427082d88833fb153e779d) CSS named colors
+* [support](https://github.com/joshmarinacci/node-pureimage/pull/108) #rgb, #rgba, and #rrggbbaa color strings
+* applied more bug fixes from PRs, thanks to our contributors.
+
+
+
 
 
 New 0.1.x release
@@ -46,7 +75,6 @@ On the roadmap, but still missing
 * blend modes besides SRC OVER
 * smooth clip shapes
 * bold/italic fonts
-* measure text
 * smooth image interpolation
 
 
