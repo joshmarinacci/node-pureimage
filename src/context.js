@@ -927,10 +927,10 @@ export class Context {
     drawLine_noaa(line) {
         //Bresenham's from Rosetta Code
         // http://rosettacode.org/wiki/Bitmap/Bresenham's_line_algorithm#JavaScript
-        let x0 = Math.floor(line.start.x)
-        let y0 = Math.floor(line.start.y)
-        const x1 = Math.floor(line.end.x)
-        const y1 = Math.floor(line.end.y)
+        let x0 = Math.round(line.start.x)
+        let y0 = Math.round(line.start.y)
+        const x1 = Math.round(line.end.x)
+        const y1 = Math.round(line.end.y)
         const dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1
         const dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1
         let err = (dx > dy ? dx : -dy) / 2
@@ -962,10 +962,10 @@ export class Context {
      */
     drawLine_aa(line) {
         let width = this._lineWidth;
-        let x0 = Math.floor(line.start.x);
-        let y0 = Math.floor(line.start.y);
-        let x1 = Math.floor(line.end.x);
-        let y1 = Math.floor(line.end.y);
+        let x0 = Math.round(line.start.x);
+        let y0 = Math.round(line.start.y);
+        let x1 = Math.round(line.end.x);
+        let y1 = Math.round(line.end.y);
         let dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
         let dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
 
