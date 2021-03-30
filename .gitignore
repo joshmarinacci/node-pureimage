@@ -5,3 +5,4 @@ docs
 test/unit/coverage
 .vscode
 output
+dist
