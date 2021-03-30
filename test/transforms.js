@@ -2,11 +2,8 @@ import * as pureimage from "../src/index.js"
 import chai, {expect} from "chai"
 import fs from 'fs'
 import path from 'path'
-import {mkdir} from './common.js'
+import {mkdir, write_png} from './common.js'
 
-function write_png (image,filename) {
-    return pureimage.encodePNGToStream(image, fs.createWriteStream(path.join('output',filename+".png")))
-}
 
 describe("simple transforms",() => {
     let image

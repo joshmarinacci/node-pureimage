@@ -563,7 +563,7 @@ export class Context {
         // four argument form
         if(typeof dx === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, sw, sh)
 
-        let src_bounds = new Bounds(dx,dy,dx+dw,dy+dh)
+        let src_bounds = new Bounds(sx,sy,sx+sw,sy+sh)
         let pts = [
             new Point(dx,dy),
             new Point(dx+dw,dy),
@@ -579,10 +579,20 @@ export class Context {
         let inv = this.transform.cloneTransform()
         inv.invert()
 
+        //map dx to dx+dw  from sx to sx+sw
+        function remap(n, a1, a2, b1, b2) {
+            let t = (n-a1)/(a2-a1)
+            return t*(b2-b1) + b1
+        }
+
         for(let i=dst_bounds.x1; i<dst_bounds.x2; i++) {
             for(let j=dst_bounds.y1; j<dst_bounds.y2; j++) {
                 let dst_pt = new Point(i,j)
                 let src_pt = inv.transformPoint(dst_pt).round()
+                src_pt = new Point(
+                    remap(src_pt.x, dx,dx+dw, sx,sx+sw),
+                    remap(src_pt.y, dy,dy+dh, sy,sy+sh)
+                )
                 if(src_bounds.contains(src_pt)) {
                     const rgba = bitmap.getPixelRGBA(src_pt.x, src_pt.y)
                     this.bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, rgba)
