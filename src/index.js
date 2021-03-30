@@ -1,5 +1,5 @@
 import {Bitmap} from './bitmap.js'
-import {PNG} from "pngjs"
+import * as PNG from "pngjs"
 import * as JPEG from "jpeg-js"
 import {getBytesBigEndian} from './uint32.js'
 

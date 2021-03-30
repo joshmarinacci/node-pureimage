@@ -9,7 +9,7 @@
   },
   "type": "module",
   "module": "./src/index.js",
-  "main": "./src/index.js",
+  "main": "./dist/pureimage-umd.js",
   "browser": "./src/browser.js",
   "repository": {
     "type": "git",
@@ -21,6 +21,8 @@
     "pngjs": "^3.3.1"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^18.0.0",
+    "@rollup/plugin-node-resolve": "^11.2.1",
     "chai": "^4.3.3",
     "esdoc": "^1.1.0",
     "esdoc-integrate-test-plugin": "^1.0.0",
@@ -29,11 +31,13 @@
     "esdoc-standard-plugin": "^1.0.0",
     "file-type": "^7.6.0",
     "mocha": "^8.3.1",
+    "rollup": "^2.44.0",
     "tape": "^5.2.2"
   },
   "scripts": {
     "test": "mocha",
-    "docs": "esdoc"
+    "docs": "esdoc",
+    "build": "rollup -c"
   },
   "engines": {
     "node": ">=0.8"
