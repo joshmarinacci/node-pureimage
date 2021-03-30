@@ -5,7 +5,7 @@ import commonjs from '@rollup/plugin-commonjs';
 export default {
     input: 'src/index.js',
     output: {
-        file: 'dist/pureimage-umd.js',
+        file: 'dist/pureimage-umd.cjs',
         format: 'umd',
         name: 'PureImage'
     },

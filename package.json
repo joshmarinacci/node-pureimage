@@ -9,7 +9,7 @@
   },
   "type": "module",
   "module": "./src/index.js",
-  "main": "./dist/pureimage-umd.js",
+  "main": "./dist/pureimage-umd.cjs",
   "browser": "./src/browser.js",
   "repository": {
     "type": "git",
