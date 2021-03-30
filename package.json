@@ -37,7 +37,8 @@
   "scripts": {
     "test": "mocha",
     "docs": "esdoc",
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "clean": "rm -rf dist/ output/ *.tgz"
   },
   "engines": {
     "node": ">=0.8"

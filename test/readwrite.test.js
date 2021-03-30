@@ -33,8 +33,9 @@ describe('PNG image', () => {
         passThroughStream.on('data', chunk => PNGData.push(chunk));
         passThroughStream.on('end', () => {
             // expect(Buffer.concat(PNGData)).toBeOfFileType('png');
-            PNGPromise.then(done);
+            PNGPromise.then(done).catch(e => console.error(e));
         });
+        passThroughStream.on('error',e => console.error(e))
     });
 
     /**
