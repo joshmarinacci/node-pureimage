@@ -9,6 +9,8 @@
  */
 
 "use strict";
+import {Point} from './point.js'
+
 /**
  * @ignore
  */
@@ -37,6 +39,12 @@ export function Transform(context) {
     this.cloneMatrix = function(m) {
         return [m[0],m[1],m[2],m[3],m[4],m[5]];
     };
+
+    this.cloneTransform = function() {
+        let trans = new Transform()
+        trans.setMatrix(this.getMatrix())
+        return trans
+    }
 
     //==========================================
     // Stack
@@ -177,10 +185,10 @@ export function Transform(context) {
     this.transformPoint = function(pt) {
         const x = pt.x
         const y = pt.y
-        return {
-            x: x * this.matrix[0] + y * this.matrix[2] + this.matrix[4],
-            y: x * this.matrix[1] + y * this.matrix[3] + this.matrix[5]
-        };
+        return new Point(
+            x * this.matrix[0] + y * this.matrix[2] + this.matrix[4],
+            x * this.matrix[1] + y * this.matrix[3] + this.matrix[5],
+        )
     };
 }
 

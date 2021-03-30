@@ -2,7 +2,7 @@
 
 import {Line} from "./line.js"
 import {NAMED_COLORS} from './named_colors.js'
-import {Point} from "./point.js"
+import {Bounds, calc_min_bounds, Point} from "./point.js"
 import * as TEXT from "./text.js"
 import * as trans from "./transform.js"
 import * as G from "./gradients.js"
@@ -563,21 +563,30 @@ export class Context {
         // four argument form
         if(typeof dx === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, sw, sh)
 
-        let dest_pos = this.transform.transformPoint(new Point(dx,dy));
-        let dest_size = this.transform.transformPoint(new Point(dx+dw,dy+dh))
-        dest_size = new Point(dest_size.x-dest_pos.x, dest_size.y-dest_pos.y)
-        console.log("transformed pos",dest_pos)
-        console.log("transformed size",dest_size)
+        let src_bounds = new Bounds(dx,dy,dx+dw,dy+dh)
+        let pts = [
+            new Point(dx,dy),
+            new Point(dx+dw,dy),
+            new Point(dx+dw,dy+dh),
+            new Point(dx,dy+dh),
+            ]
+        pts = pts.map(pt => this.transform.transformPoint(pt))
+        let dst_bounds = calc_min_bounds(pts)
 
+        let bitmap_bounds = new Bounds(0,0, this.bitmap.width, this.bitmap.height)
+        dst_bounds = dst_bounds.intersect(bitmap_bounds)
 
-        for(let i=0; i<dest_size.x; i++) {
-            const tx = i / dest_size.x
-            const ssx = Math.floor(tx * sw) + sx
-            for(let j=0; j<dest_size.y; j++) {
-                const ty = j / dest_size.y
-                const ssy = sy + Math.floor(ty * sh)
-                const rgba = bitmap.getPixelRGBA(ssx, ssy)
-                this.bitmap.setPixelRGBA(dest_pos.x+i, dest_pos.y+j, rgba);
+        let inv = this.transform.cloneTransform()
+        inv.invert()
+
+        for(let i=dst_bounds.x1; i<dst_bounds.x2; i++) {
+            for(let j=dst_bounds.y1; j<dst_bounds.y2; j++) {
+                let dst_pt = new Point(i,j)
+                let src_pt = inv.transformPoint(dst_pt).round()
+                if(src_bounds.contains(src_pt)) {
+                    const rgba = bitmap.getPixelRGBA(src_pt.x, src_pt.y)
+                    this.bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, rgba)
+                }
             }
         }
     }

@@ -93,10 +93,13 @@ describe("transform image",()=>{
         //src is 50x50, white on left side and black on right side
         src = pureimage.make(50,50)
         const c = src.getContext('2d')
-        c.fillStyle = 'white'
-        c.fillRect(0,0,50,50)
-        c.fillStyle = 'black'
-        c.fillRect(25,0,25,50)
+        let stripe_count = 2
+        for(let n=0; n<stripe_count; n++) {
+            let w = 50/stripe_count
+            let even = n%2===0
+            c.fillStyle = even?'white':'black'
+            c.fillRect(n*w,0,w,50)
+        }
     })
 
     it('draws image normally',(done)=>{
@@ -130,6 +133,36 @@ describe("transform image",()=>{
         write_png(image,'image_scaled').then(()=>{
             expect(image.getPixelRGBA(0*3, 0*3)).to.eq(0xFFFFFFFF)
             expect(image.getPixelRGBA(25*3,0*3)).to.eq(0x000000FF)
+            done()
+        }).catch(e => {
+            console.error(e)
+        })
+    })
+
+    it('draws image rotated',(done)=>{
+        context.save()
+        context.rotate(-30*Math.PI/180)
+        context.drawImage(src,0,0)
+        context.restore()
+        write_png(image,'image_rotated').then(()=>{
+            expect(image.getPixelRGBA(10, 0)).to.eq(0xFFFFFFFF)
+            expect(image.getPixelRGBA(40,0)).to.eq(0x000000FF)
+            done()
+        }).catch(e => {
+            console.error(e)
+        })
+    })
+
+    it('draws combined',(done)=>{
+        context.save()
+        context.translate(100,100)
+        context.rotate(-45*Math.PI/180)
+        context.translate(-25,-25)
+        context.drawImage(src,0,0)
+        context.restore()
+        write_png(image,'image_combined').then(()=>{
+            expect(image.getPixelRGBA(100, 103)).to.eq(0xFFFFFFFF)
+            expect(image.getPixelRGBA(100,97)).to.eq(0x000000FF)
             done()
         }).catch(e => {
             console.error(e)
