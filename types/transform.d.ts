@@ -7,7 +7,6 @@
  * Based on a class created by Simon Sarris - www.simonsarris.com - sarris@acm.org
  */
 
-'use strict';
 import { Context } from './context.js';
 import { Point } from './point.js';
 type Matrix = number[];
@@ -58,7 +57,7 @@ export class Transform {
 
     rotateAbout(rad: number, x: number, y: number): void;
 
-    rotateDegreesAbout(deg: number, x: numbe, y: number): void;
+    rotateDegreesAbout(deg: number, x: number, y: number): void;
 
     identity(): void;
 

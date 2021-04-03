@@ -1,9 +1,6 @@
 import * as opentype from 'opentype.js';
 import { Context } from './context';
-/**
- * @type {object} Map containing all the fonts available for use
- */
-const _fonts: Record<string, FontRecord> = {};
+
 type FontRecord = {
     binary: string;
     family: string;
@@ -15,11 +12,6 @@ type FontRecord = {
     load(cb: () => void): void;
     loadSync(): FontRecord | void;
 };
-/**
- * The default font family to use for text
- * @type {string}
- */
-const DEFAULT_FONT_FAMILY: string = 'source';
 
 /**
  * Register Font
@@ -41,17 +33,7 @@ export function registerFont(
 ): FontRecord;
 
 /**@ignore */
-export const debug_list_of_fonts = _fonts;
-
-/**
- * Find Font
- *
- * Search the `fonts` array for a given font family name
- *
- * @param {string} family The name of the font family to search for
- *
- */
-function findFont(family: string): FontRecord;
+export const debug_list_of_fonts: Record<string, FontRecord>;
 
 /**
  * Process Text Path

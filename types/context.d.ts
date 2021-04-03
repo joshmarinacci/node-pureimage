@@ -1,32 +1,20 @@
-'use strict';
-
 import { Line } from './line.js';
-import { NAMED_COLORS } from './named_colors.js';
-import { Bounds, calc_min_bounds, Point } from './point.js';
-import * as TEXT from './text.js';
+import { Point } from './point.js';
 import * as trans from './transform.js';
 import * as G from './gradients.js';
-import {
-    and,
-    fromBytesBigEndian,
-    getBytesBigEndian,
-    or,
-    shiftLeft,
-    toUint32,
-} from './uint32.js';
-import { clamp } from './util.js';
 import { Bitmap } from './bitmap.js';
 
 /**
  * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)
  * @enum {string}
  */
-enum PATH_COMMAND {
-    MOVE = 'm',
-    LINE = 'l',
-    QUADRATIC_CURVE = 'q',
-    BEZIER_CURVE = 'b',
-}
+type PATH_COMMAND = 'm' | 'l' | 'q' | 'b';
+// enum PATH_COMMAND {
+//     MOVE = 'm',
+//     LINE = 'l',
+//     QUADRATIC_CURVE = 'q',
+//     BEZIER_CURVE = 'b',
+// }
 type Font = {
     /** The font family to set */
     family: string;
@@ -59,15 +47,12 @@ export class Context {
 
     private _globalAlpha: number;
 
-    transform: Transform;
+    transform: trans.Transform;
 
     /**
      * Plain js object wrapping the font name and size
      */
-    private _font: Font = {
-        family: 'invalid',
-        size: 12,
-    };
+    private _font: Font;
 
     /** Horizontal text alignment, one of start, end, left, center, right. start is the default */
     textAlign: TextAlign;
@@ -122,7 +107,7 @@ export class Context {
      * @param {number} val
      * @example ctx.strokeStyle = 'rgba(0, 25, 234, 0.6)';
      */
-    set strokeStyle(val: number);
+    set strokeStyle(val: string);
 
     /**
      * The thickness of lines in space units. When getting, it returns the current value (1.0 by default). When setting, zero, negative, `Infinity` and `NaN` values are ignored; otherwise the current value is set to the new value.
@@ -132,10 +117,10 @@ export class Context {
     get lineWidth(): number;
 
     /**
-     * @param {string} val
+     * @param {number} val
      * @example ctx.lineWidth = 15;
      */
-    set lineWidth(val: string);
+    set lineWidth(val: number);
 
     /**
      * The alpha value that is applied to shapes and images before they are drawn onto the canvas. The value is in the range from 0.0 (fully transparent) to 1.0 (fully opaque).
@@ -782,98 +767,3 @@ export class Context {
      */
     static colorStringToUint32(str: string): number;
 }
-type Coordinate = {
-    x: number;
-    y: number;
-};
-/**
- * Returns the decimal portion of a given floating point number
- *
- * @param {number} v The number to return the declimal fration of
- * @example
- * console.log(fract(12.35))
- * // Prints out 0.34999999999999964
- *
- * @returns {number}
- */
-function fract(v: number): number;
-
-/**
- * Convert a path of points to an array of lines
- *
- * @param {Array} path List of sub-paths
- *
- * @returns {Array<Line>}
- */
-function pathToLines(path: Array<any>): Array<Line>;
-
-/**
- * Calculate Quadratic
- *
- * @param {number} p
- * @param {number} t
- *
- * @ignore
- *
- * @returns {Point}
- */
-function calcQuadraticAtT(p: number, t: number): Point;
-
-/**
- * Calculate Bezier at T
- *
- * @param {number} p
- * @param {number} t
- *
- * @returns {Point}
- */
-function calcBezierAtT(p: number, t: number): Point;
-
-function bezierToLines(
-    curve: Coordinate[],
-    THRESHOLD: number
-): [Coordinate, Coordinate];
-
-function splitCurveAtT(
-    p: Point[],
-    t: number,
-    debug: boolean
-): (Coordinate | Point)[][];
-
-function flatness(curve: Coordinate[]): number;
-
-function midpoint(p1: Point, p2: Point, t: number): Coordinate;
-
-/**
- * Calculate Minimum Bounds
- *
- * @param {Array} lines
- *
- * @ignore
- *
- * @returns {{x: Number.MAX_VALUE, y: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE}}
- */
-function calcMinimumBounds(
-    lines: Array<Line>
-): {
-    x: number;
-    y: number;
-    x2: number;
-    y2: number;
-};
-
-/**
- * Calculate Sorted Intersections
- *
- * Adopted from http://alienryderflex.com/polygon
- *
- * @see http://alienryderflex.com/polygon
- *
- * @param {Array} lines An {@link Array} of Line
- * @param {number} y
- *
- * @ignore
- *
- * @returns {Array}
- */
-function calcSortedIntersections(lines: Line[], y: number): number[];

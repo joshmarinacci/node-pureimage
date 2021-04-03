@@ -1,8 +1,4 @@
 //from https://github.com/fxa/uint32.js
-'use strict';
-
-const POW_2_32 = 0x0100000000;
-const POW_2_52 = 0x10000000000000;
 
 //  Creating and Extracting
 //
@@ -107,9 +103,7 @@ export function shiftLeft(uint32val: number, numBits: number): number;
  *  @param {Number} numBits the number of bits to be shifted (0-31)
  *  @returns {Number} the uint32 value of the shifted word
  */
-export function shiftRight(uint32val: number, numBits: number): number {
-    return uint32val >>> numBits;
-}
+export function shiftRight(uint32val: number, numBits: number): number;
 
 export function rotateLeft(uint32val: number, numBits: number): number;
 
