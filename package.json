@@ -8,6 +8,7 @@
     "url": "http://joshondesign.com/"
   },
   "type": "module",
+  "types": "./types/index.d.ts",
   "module": "./src/index.js",
   "main": "./dist/pureimage-umd.cjs",
   "browser": "./src/browser.js",
