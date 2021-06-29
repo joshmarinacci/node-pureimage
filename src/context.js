@@ -892,10 +892,10 @@ export class Context {
         let stroke_path = path_to_stroked_path(flat_path,this.lineWidth)
         const lines = pathToLines(stroke_path)
         this.imageSmoothingEnabled ? this.fill_aa(lines) : this.fill_noaa(lines);
-        // this.strokeStyle = 'red'
-        // this.lineWidth = 1
-        // pathToLines(this.path).forEach((line)=> this.drawLine(line));
-        // pathToLines(stroke_path).forEach(line => this.drawLine(line))
+        this.strokeStyle = 'red'
+        this.lineWidth = 1
+        pathToLines(this.path).forEach((line)=> this.drawLine(line));
+        pathToLines(stroke_path).forEach(line => this.drawLine(line))
     }
 
     /**
@@ -1369,7 +1369,7 @@ function path_to_stroked_path(path, w) {
             let next = path[i+1]
             //if first
             if(prev_cmd[0] === PATH_COMMAND.MOVE) {
-                console.log("doing the first")
+                // console.log("doing the first")
                 let pts1 = project(B,A,w)
                 outside.push([PATH_COMMAND.LINE, pts1[1]])
                 inside.push([PATH_COMMAND.LINE,pts1[0]])
@@ -1377,7 +1377,7 @@ function path_to_stroked_path(path, w) {
             prev_cmd = cmd
             // if last
             if(!next) {
-                console.log("doing last")
+                // console.log("doing last")
                 let pts1 = project(A,B,w)
                 outside.push([PATH_COMMAND.LINE, pts1[0]])
                 inside.push([PATH_COMMAND.LINE, pts1[1]])
@@ -1404,12 +1404,14 @@ function path_to_stroked_path(path, w) {
                 outside.push([PATH_COMMAND.LINE, pts1[0]])
                 outside.push([PATH_COMMAND.LINE, pts2[1]])
                 //adjust inside
-                // inside.push([PATH_COMMAND.LINE,average(pts1[1],pts2[0])])
-                inside.push([PATH_COMMAND.LINE,B.clone()])
+                let C_unit = A.subtract(B).unit().rotate(turn/2).scale(w).add(B)
+                inside.push([PATH_COMMAND.LINE,C_unit])
+
             } else {
                 //if turning left
                 //adjust outside
-                outside.push([PATH_COMMAND.LINE,average(pts1[0],pts2[1])])
+                let C_unit = C.subtract(B).unit().rotate(-turn/2).scale(w).add(B)
+                outside.push([PATH_COMMAND.LINE,C_unit])
                 //inside is normal
                 inside.push([PATH_COMMAND.LINE, pts1[1]])
                 inside.push([PATH_COMMAND.LINE, pts2[0]])
