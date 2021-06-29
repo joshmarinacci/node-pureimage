@@ -1404,13 +1404,15 @@ function path_to_stroked_path(path, w) {
                 outside.push([PATH_COMMAND.LINE, pts1[0]])
                 outside.push([PATH_COMMAND.LINE, pts2[1]])
                 //adjust inside
-                let C_unit = A.subtract(B).unit().rotate(turn/2).scale(w).add(B)
+                let h = w/Math.cos((Math.PI+turn)/2)
+                let C_unit = A.subtract(B).unit().rotate(turn/2).scale(h).add(B)
                 inside.push([PATH_COMMAND.LINE,C_unit])
 
             } else {
                 //if turning left
                 //adjust outside
-                let C_unit = C.subtract(B).unit().rotate(-turn/2).scale(w).add(B)
+                let h = w/Math.cos(-(Math.PI-turn)/2)
+                let C_unit = C.subtract(B).unit().rotate(-turn/2).scale(h).add(B)
                 outside.push([PATH_COMMAND.LINE,C_unit])
                 //inside is normal
                 inside.push([PATH_COMMAND.LINE, pts1[1]])
