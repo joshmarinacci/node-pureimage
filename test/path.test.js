@@ -161,15 +161,22 @@ describe('draw curve',() => {
         c.fillStyle = 'white'
         c.fillRect(0,0,200,200)
         c.beginPath()
+        //square
         c.moveTo(10,10)
-        c.lineTo(100,100)
-        // c.lineTo(10,200)
-        // c.lineTo(100,100)
-        // c.lineTo(10,100)
+        c.lineTo(60,10)
+        c.lineTo(60,60)
+        c.lineTo(120,60)
+        c.lineTo(120,10)
+        c.lineTo(180,10)
+        c.lineTo(180,100)
+        c.lineTo(10,100)
         // c.lineTo(10,10)
         c.strokeStyle = 'black'
-        c.lineWidth = 5
+        c.lineWidth = 10
+        c.fillStyle = 'black'
         c.stroke()
+        // c.fillStyle = 'black'
+        // c.fill()
         pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'thick_stroke_square.png'))).then(() => {
             console.log('wrote out thick_stroke.png')
             // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
@@ -187,7 +194,10 @@ describe('draw curve',() => {
         c.lineTo(10,10)
         c.strokeStyle = 'black'
         c.lineWidth = 5
+        c.fillStyle = 'black'
         c.stroke()
+        // c.fillStyle = 'black'
+        // c.fill()
         pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'thick_stroke_curve.png'))).then(() => {
             console.log('wrote out thick_stroke.png')
             // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)

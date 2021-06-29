@@ -2,7 +2,7 @@
 
 import {Line} from "./line.js"
 import {NAMED_COLORS} from './named_colors.js'
-import {Bounds, calc_min_bounds, Point} from "./point.js"
+import {Bounds, calc_min_bounds, Point, toDeg, toRad} from "./point.js"
 import * as TEXT from "./text.js"
 import * as trans from "./transform.js"
 import * as G from "./gradients.js"
@@ -888,7 +888,14 @@ export class Context {
      * @memberof Context
      */
     stroke() {
-        pathToLines(this.path).forEach((line)=> this.drawLine(line));
+        let flat_path = flatten_path(this.path)
+        let stroke_path = path_to_stroked_path(flat_path,this.lineWidth)
+        const lines = pathToLines(stroke_path)
+        this.imageSmoothingEnabled ? this.fill_aa(lines) : this.fill_noaa(lines);
+        // this.strokeStyle = 'red'
+        // this.lineWidth = 1
+        // pathToLines(this.path).forEach((line)=> this.drawLine(line));
+        // pathToLines(stroke_path).forEach(line => this.drawLine(line))
     }
 
     /**
@@ -1012,7 +1019,9 @@ export class Context {
      * @memberof Context
      */
     fill() {
-        this.imageSmoothingEnabled ? this.fill_aa() : this.fill_noaa();
+        if(!this._closed) this.closePath()
+        const lines = pathToLines(this.path)
+        this.imageSmoothingEnabled ? this.fill_aa(lines) : this.fill_noaa(lines);
     }
 
     /**
@@ -1022,12 +1031,10 @@ export class Context {
      *
      * @memberof Context
      */
-    fill_aa() {
-        if(!this._closed) this.closePath()
+    fill_aa(lines) {
         //get just the color part
         const rgb = and(this._fillColor, 0xFFFFFF00)
         const alpha = and(this._fillColor, 0xFF)
-        const lines = pathToLines(this.path)
         const bounds = calcMinimumBounds(lines)
 
         const startY = Math.min(bounds.y2 - 1, this.bitmap.height)
@@ -1069,10 +1076,9 @@ export class Context {
      *
      * @memberof Context
      */
-    fill_noaa() {
+    fill_noaa(lines) {
         //get just the color part
         const rgb = and(this._fillColor, 0xFFFFFF00)
-        const lines = pathToLines(this.path)
         const bounds = calcMinimumBounds(lines)
         for(let j=bounds.y2-1; j>=bounds.y; j--) {
             const ints = calcSortedIntersections(lines, j)
@@ -1282,6 +1288,145 @@ function pathToLines(path) {
         }
     });
     return lines;
+}
+
+function flatten_path(A) {
+    let B = []
+    let curr = null
+    A.forEach(cmd => {
+        if(cmd[0] === PATH_COMMAND.MOVE) {
+            curr = cmd[1];
+            // console.log("move",curr)
+            return B.push([PATH_COMMAND.MOVE, new Point(curr.x,curr.y)])
+        }
+        if(cmd[0] === PATH_COMMAND.LINE) {
+            curr = cmd[1];
+            // console.log("line",curr)
+            return B.push([PATH_COMMAND.LINE, new Point(curr.x,curr.y)])
+        }
+        if(cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
+            const pts = [curr, cmd[1], cmd[2], cmd[3]];
+            let pts2 = bezierToLines(pts,10)
+            for(let i=1; i<pts2.length; i+=2) {
+                B.push([PATH_COMMAND.LINE,new Point(pts2[i].x,pts2[i].y)])
+            }
+        }
+    })
+    return B
+}
+
+function path_to_stroked_path(path, w) {
+    let curr = null
+    let outside = []
+    let inside = []
+    let path_start = 0
+
+    function project(A,B,scale) {
+        // console.log("projecting",A,B)
+        let delta_unit = A.subtract(B).unit()
+        let C_unit = delta_unit.rotate(toRad(90))
+        let D_unit = delta_unit.rotate(toRad(-90))
+        // console.log(C_unit, D_unit)
+        return [
+            C_unit.scale(scale).add(B),
+            D_unit.scale(scale).add(B)
+        ]
+    }
+
+
+    let prev_cmd = null
+
+    function normalize_angle(turn) {
+        if(turn < -Math.PI) return turn + Math.PI*2
+        if(turn > +Math.PI) return turn - Math.PI*2
+        return turn
+    }
+
+    function average(a, b) {
+        return a.add(b).divide(2)
+    }
+
+    path.forEach(function(cmd,i) {
+        // console.log("converting",cmd)
+        if(cmd[0] === PATH_COMMAND.MOVE) {
+            curr = cmd[1];
+            prev_cmd = cmd
+            path_start = curr.clone()
+            outside.push([PATH_COMMAND.MOVE,path_start.clone()])
+        }
+
+        function first(arr) {
+            return arr[0]
+        }
+        function last(arr) {
+            return arr[arr.length-1]
+        }
+
+        if(cmd[0] === PATH_COMMAND.LINE) {
+            const A = curr
+            const B = cmd[1]
+            // console.log(i,"====",B)
+            let next = path[i+1]
+            //if first
+            if(prev_cmd[0] === PATH_COMMAND.MOVE) {
+                console.log("doing the first")
+                let pts1 = project(B,A,w)
+                outside.push([PATH_COMMAND.LINE, pts1[1]])
+                inside.push([PATH_COMMAND.LINE,pts1[0]])
+            }
+            prev_cmd = cmd
+            // if last
+            if(!next) {
+                console.log("doing last")
+                let pts1 = project(A,B,w)
+                outside.push([PATH_COMMAND.LINE, pts1[0]])
+                inside.push([PATH_COMMAND.LINE, pts1[1]])
+                return
+            }
+            const C = next[1]
+            // console.log(i,A,B,C)
+            // console.log("next",next)
+            let BA = A.subtract(B)
+            let BC = C.subtract(B)
+            // console.log(i,'B',B,'BA',BA,'BC',BC)
+            let BA_angle = Math.atan2(BA.y,BA.x)
+            let BC_angle = Math.atan2(BC.y,BC.x)
+            // console.log("angles",toDeg(turn))
+            let turn = normalize_angle(BC_angle-BA_angle)
+
+            let pts1 = project(A,B,w)
+            let pts2 = project(C,B,w)
+            // console.log(i,'B',pts1)
+            // console.log(i,'B',pts2)
+            if(turn < 0) {
+                //if turning right
+                //outside is normal
+                outside.push([PATH_COMMAND.LINE, pts1[0]])
+                outside.push([PATH_COMMAND.LINE, pts2[1]])
+                //adjust inside
+                // inside.push([PATH_COMMAND.LINE,average(pts1[1],pts2[0])])
+                inside.push([PATH_COMMAND.LINE,B.clone()])
+            } else {
+                //if turning left
+                //adjust outside
+                outside.push([PATH_COMMAND.LINE,average(pts1[0],pts2[1])])
+                //inside is normal
+                inside.push([PATH_COMMAND.LINE, pts1[1]])
+                inside.push([PATH_COMMAND.LINE, pts2[0]])
+            }
+            curr = B
+        }
+    })
+
+    inside.reverse()
+    let final = [].concat(outside).concat(inside)
+    // console.log("path_to_stroked_path output")
+    // console.log('outside',outside)
+    // console.log('inside',inside)
+    final.push([PATH_COMMAND.LINE, path_start]);
+    // console.log("final")
+    // console.log(final)
+    return final
 }
 
 /**
