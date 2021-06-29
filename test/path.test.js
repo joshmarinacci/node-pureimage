@@ -172,7 +172,7 @@ describe('draw curve',() => {
         c.lineTo(10,100)
         // c.lineTo(10,10)
         c.strokeStyle = 'black'
-        c.lineWidth = 10
+        c.lineWidth = 4
         c.fillStyle = 'black'
         c.stroke()
         // c.fillStyle = 'black'
@@ -193,7 +193,7 @@ describe('draw curve',() => {
         c.bezierCurveTo(50,50, 100,50, 10,100)
         c.lineTo(10,10)
         c.strokeStyle = 'black'
-        c.lineWidth = 5
+        c.lineWidth = 2
         c.fillStyle = 'black'
         c.stroke()
         // c.fillStyle = 'black'

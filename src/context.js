@@ -892,10 +892,10 @@ export class Context {
         let stroke_path = path_to_stroked_path(flat_path,this.lineWidth)
         const lines = pathToLines(stroke_path)
         this.imageSmoothingEnabled ? this.fill_aa(lines) : this.fill_noaa(lines);
-        this.strokeStyle = 'red'
-        this.lineWidth = 1
-        pathToLines(this.path).forEach((line)=> this.drawLine(line));
-        pathToLines(stroke_path).forEach(line => this.drawLine(line))
+        // this.strokeStyle = 'red'
+        // this.lineWidth = 1
+        // pathToLines(this.path).forEach((line)=> this.drawLine(line));
+        // pathToLines(stroke_path).forEach(line => this.drawLine(line))
     }
 
     /**
