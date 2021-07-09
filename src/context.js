@@ -889,13 +889,30 @@ export class Context {
      */
     stroke() {
         let flat_path = flatten_path(this.path)
-        let stroke_path = path_to_stroked_path(flat_path,this.lineWidth)
+        let stroke_path = path_to_stroked_path(flat_path,this.lineWidth/2)
         const lines = pathToLines(stroke_path)
+        const old_fillStyle = this.fillStyle
+        this.fillStyle = this.strokeStyle
         this.imageSmoothingEnabled ? this.fill_aa(lines) : this.fill_noaa(lines);
-        // this.strokeStyle = 'red'
-        // this.lineWidth = 1
-        // pathToLines(this.path).forEach((line)=> this.drawLine(line));
-        // pathToLines(stroke_path).forEach(line => this.drawLine(line))
+        this.fillStyle = old_fillStyle
+
+        if(this.debug) {
+            this.save()
+            let old_ss = this.strokeStyle
+            let old_lw = this.lineWidth
+            this.strokeStyle = 'red'
+            this.lineWidth = 1
+            console.log("path is",this.path)
+            pathToLines(this.path).forEach((line) => this.drawLine(line));
+            console.log("flat path is",flat_path)
+            pathToLines(flat_path).forEach((line) => this.drawLine(line));
+            console.log("stroke path is",stroke_path)
+            pathToLines(stroke_path).forEach(line => this.drawLine(line))
+            console.log("final lines are",lines)
+            this.strokeStyle = old_ss
+            this.lineWidth = old_lw
+            this.restore()
+        }
     }
 
     /**
@@ -913,6 +930,7 @@ export class Context {
      * @memberof Context
      */
     drawLine(line) {
+        if(line.is_invalid()) return console.error('cannot draw line',line)
         this.imageSmoothingEnabled?this.drawLine_aa(line):this.drawLine_noaa(line)
     }
 
@@ -1322,7 +1340,7 @@ function path_to_stroked_path(path, w) {
     let path_start = 0
 
     function project(A,B,scale) {
-        // console.log("projecting",A,B)
+        if(A.equals(B)) console.log("same points!",A,B)
         let delta_unit = A.subtract(B).unit()
         let C_unit = delta_unit.rotate(toRad(90))
         let D_unit = delta_unit.rotate(toRad(-90))
@@ -1365,6 +1383,7 @@ function path_to_stroked_path(path, w) {
         if(cmd[0] === PATH_COMMAND.LINE) {
             const A = curr
             const B = cmd[1]
+            if(A.equals(B)) return console.log("can't project the same paths",i,cmd,A,B)
             // console.log(i,"====",B)
             let next = path[i+1]
             //if first
@@ -1384,6 +1403,7 @@ function path_to_stroked_path(path, w) {
                 return
             }
             const C = next[1]
+            if(C.equals(B)) return console.log("can't project the same paths",i,cmd,A,B)
             // console.log(i,A,B,C)
             // console.log("next",next)
             let BA = A.subtract(B)

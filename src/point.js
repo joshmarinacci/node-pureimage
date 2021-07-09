@@ -67,6 +67,9 @@ export class Point {
             this.y*scalar
         )
     }
+    equals(pt) {
+        return this.x === pt.x && this.y === pt.y;
+    }
 }
 
 export const toRad = (deg) => Math.PI/180*deg
