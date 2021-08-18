@@ -22,37 +22,59 @@ export class Point {
          */
         this.y = y;
     }
-
+    clone() {
+        return new Point(this.x,this.y)
+    }
     distance(pt) {
         return Math.sqrt(
             Math.pow(pt.x-this.x,2)+
             Math.pow(pt.y-this.y,2)
         )
     }
-
+    add(pt) {
+        return new Point(this.x+pt.x, this.y+pt.y)
+    }
     subtract(pt) {
         return new Point(this.x-pt.x, this.y-pt.y)
     }
-
     magnitude() {
         return Math.sqrt(this.dotProduct(this))
     }
-
     dotProduct(v) {
         return this.x*v.x + this.y*v.y
     }
-
     divide(scalar) {
         return new Point(this.x/scalar, this.y/scalar)
     }
-
     floor() {
         return new Point(Math.floor(this.x), Math.floor(this.y))
     }
     round() {
         return new Point(Math.round(this.x), Math.round(this.y))
     }
+    unit() {
+        return this.divide(this.magnitude())
+    }
+    rotate(theta) {
+        return new Point(
+            Math.cos(theta)*this.x - Math.sin(theta)*this.y,
+            Math.sin(theta)*this.x + Math.cos(theta)*this.y
+        )
+    }
+    scale(scalar) {
+        return new Point(
+            this.x*scalar,
+            this.y*scalar
+        )
+    }
+    equals(pt) {
+        return this.x === pt.x && this.y === pt.y;
+    }
 }
+
+export const toRad = (deg) => Math.PI/180*deg
+export const toDeg = (rad) => 180/Math.PI*rad
+
 
 export function calc_min_bounds(pts) {
     let x1 = Number.POSITIVE_INFINITY

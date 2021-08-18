@@ -66,6 +66,18 @@ export class Line {
             Math.pow(this.start.x - this.end.x, 2) + Math.pow(this.start.y - this.end.y, 2)
         );
     }
+
+    is_invalid() {
+        if(Number.isNaN(this.start.x)) return true
+        if(Number.isNaN(this.end.x)) return true
+        if(Number.isNaN(this.start.y)) return true
+        if(Number.isNaN(this.end.y)) return true
+        if(this.start.x > Number.MAX_SAFE_INTEGER) return true
+        if(this.start.y > Number.MAX_SAFE_INTEGER) return true
+        if(this.end.x > Number.MAX_SAFE_INTEGER) return true
+        if(this.end.y > Number.MAX_SAFE_INTEGER) return true
+        return false
+    }
 }
 
 /** @ignore */

@@ -101,7 +101,7 @@ export class Bitmap {
      *
      * @memberof Bitmap
      */
-    getContext(): Context;
+    getContext(type:string): Context;
 
     private _copySubBitmap(x: number, y: number, w: number, h: number): Bitmap;
 

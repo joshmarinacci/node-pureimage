@@ -157,5 +157,52 @@ describe('draw curve',() => {
 
         done()
     })
+    it("draws thick square",(done) => {
+        c.fillStyle = 'white'
+        c.fillRect(0,0,200,200)
+        c.beginPath()
+        //square
+        c.moveTo(10,10)
+        c.lineTo(60,10)
+        c.lineTo(60,60)
+        c.lineTo(120,60)
+        c.lineTo(120,10)
+        c.lineTo(180,10)
+        c.lineTo(180,100)
+        c.lineTo(10,100)
+        // c.lineTo(10,10)
+        c.strokeStyle = 'black'
+        c.lineWidth = 4
+        c.fillStyle = 'black'
+        c.stroke()
+        // c.fillStyle = 'black'
+        // c.fill()
+        pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'thick_stroke_square.png'))).then(() => {
+            console.log('wrote out thick_stroke.png')
+            // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
+            // expect(image.getPixelRGBA(19, 39)).to.eq(BLACK)
+            done()
+        })
+    })
+    it("draws thick curve",(done) => {
+        c.fillStyle = 'white'
+        c.fillRect(0,0,200,200)
 
+        c.beginPath()
+        c.moveTo(10,10)
+        c.bezierCurveTo(50,50, 100,50, 10,100)
+        c.lineTo(10,10)
+        c.strokeStyle = 'black'
+        c.lineWidth = 2
+        c.fillStyle = 'black'
+        c.stroke()
+        // c.fillStyle = 'black'
+        // c.fill()
+        pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'thick_stroke_curve.png'))).then(() => {
+            console.log('wrote out thick_stroke.png')
+            // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
+            // expect(image.getPixelRGBA(19, 39)).to.eq(BLACK)
+            done()
+        })
+    })
 })

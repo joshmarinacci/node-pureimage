@@ -146,7 +146,7 @@ export class Bitmap {
      *
      * @memberof Bitmap
      */
-    getContext() {
+    getContext(type) {
         return new Context(this);
     }
 
