@@ -1,6 +1,6 @@
 {
   "name": "pureimage",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Pure JS image drawing API based on Canvas. Export to PNG streams.",
   "author": {
     "name": "Josh Marinacci",
