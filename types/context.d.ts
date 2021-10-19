@@ -390,6 +390,8 @@ export class Context {
         dw: number,
         dh: number
     ): void;
+    drawImage(bitmap: Bitmap, dx: number, dy: number): void;
+    drawImage(bitmap: Bitmap, dx: number, dy: number, dWidth: number, dHeight: number): void;
 
     /**
      * Starts a new path by emptying the list of sub-paths. Call this method when you want to create a new path.
