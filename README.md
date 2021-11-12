@@ -2,58 +2,44 @@
 PureImage
 ==============
 
-PureImage is a pure 100% JavaScript implementation of the HTML Canvas 2d drawing API for NodeJS.
-It has no native dependencies. You can use it to resize images, draw text into images, render badges,
-convert to grayscale, or anything else you could do with the standard Canvas 2D api. 
+PureImage is a pure 100% JavaScript implementation of the HTML Canvas 2D drawing API for NodeJS.
+It has no native dependencies. You can use it to resize images, draw text, render badges,
+convert to grayscale, or anything else you could do with the standard Canvas 2D API. 
+
+Simple example
+==============
+
+Make a 100x100 image, fill with red, write to png file
+
+```javascript
+import * as PImage from "../../src/index.js"
+import * as fs from 'fs'
+
+// make image
+const img1 = PImage.make(100, 50)
+
+// get canvas context
+const ctx = img1.getContext('2d');
+
+// fill with red
+ctx.fillStyle = 'red';
+ctx.fillRect(0,0,100,100);
+
+//write to 'out.png'
+PImage.encodePNGToStream(img1, fs.createWriteStream('out.png')).then(() => {
+    console.log("wrote out the png file to out.png");
+}).catch((e)=>{
+    console.log("there was an error writing");
+});
+
+```
+
+
+## supported Canvas Features
 
 *note*: PureImage values portability and simplicity of implementation over speed. If you need
 maximum performance you should use a different library backed by native code, such as [Node-Canvas](https://www.npmjs.com/package/canvas)
 
-
-New 0.3.x release
-=================
-
-After a long lull, I've ported the code to modern ES6 modules, so you can just do an
-`import pureimage from 'pureimage'` like any other proper modern module.  If you are using
-`require('pureimage')` it should just work thanks to the `dist/pureimage-umd.cjs` file built
-with [Rollup](https://rollupjs.org). It also has a stub to let `pureimage` run in the browser and delegate to the 
-real HTML canvas. This helps with isomorphic apps.
-
-Other updates include
-
-* Switch to [MochaJS](https://mochajs.org) for the unit tests.
-* add more unit tests.
-* [support](https://github.com/joshmarinacci/node-pureimage/issues/117) drawing images when using transforms
-* [implement](https://github.com/joshmarinacci/node-pureimage/issues/100) `rect()`
-* implement ImageData with `getImageData()` and `putImageData()`  
-* fix gradient fill
-* [add all](https://github.com/joshmarinacci/node-pureimage/commit/ba975575ca986ea11c427082d88833fb153e779d) CSS named colors
-* [support](https://github.com/joshmarinacci/node-pureimage/pull/108) #rgb, #rgba, and #rrggbbaa color strings
-* applied more bug fixes from PRs, thanks to our contributors.
-
-
-
-
-
-New 0.1.x release
-=================
-
-I've completely refactored the code so that it should be easier to
-maintain and implement new features. For the most part there are no API changes (since the API is
- defined by the HTML Canvas spec), but if you
-were using the font or image loading extensions
-you will need to use the new function names and switch to promises. For more information, please see [the API docs](http://joshmarinacci.github.io/node-pureimage)
-
-I'm also using Node buffers instead of arrays internally, so you can work with large images
-faster than before. Rich text is no longer supported, which is fine because it never really worked
-anyway. We'll have to find a different way to do it.
-
-I've tried to maintain all of the patches that have been sent in, but if you contributed a patch
-please check that it still works. Thank you all!  - josh
-
-
-
-## supported Canvas Features
 
 * set pixels
 * stroke and fill paths (rectangles, lines, quadratic curves, bezier curves, arcs/circles)
@@ -103,9 +89,6 @@ PureImage uses only pure JS dependencies.  [OpenType](https://github.com/nodebox
 for font parsing, [PngJS](https://github.com/niegowski/node-pngjs) for PNG import/export,
 and [jpeg-js](https://github.com/eugeneware/jpeg-js) for JPG import/export.
 
-Documentation
-=============
-Documentation can now be found at: http://joshmarinacci.github.io/node-pureimage
 
 Examples
 =========
@@ -184,6 +167,50 @@ PImage.decodeJPEGFromStream(fs.createReadStream("test/images/bird.jpg")).then((i
     });
 });
 ```
+
+New 0.3.x release
+=================
+
+After a long lull, I've ported the code to modern ES6 modules, so you can just do an
+`import pureimage from 'pureimage'` like any other proper modern module.  If you are using
+`require('pureimage')` it should just work thanks to the `dist/pureimage-umd.cjs` file built
+with [Rollup](https://rollupjs.org). It also has a stub to let `pureimage` run in the browser and delegate to the
+real HTML canvas. This helps with isomorphic apps.
+
+Other updates include
+
+* Switch to [MochaJS](https://mochajs.org) for the unit tests.
+* add more unit tests.
+* [support](https://github.com/joshmarinacci/node-pureimage/issues/117) drawing images when using transforms
+* [implement](https://github.com/joshmarinacci/node-pureimage/issues/100) `rect()`
+* implement ImageData with `getImageData()` and `putImageData()`
+* fix gradient fill
+* [add all](https://github.com/joshmarinacci/node-pureimage/commit/ba975575ca986ea11c427082d88833fb153e779d) CSS named colors
+* [support](https://github.com/joshmarinacci/node-pureimage/pull/108) #rgb, #rgba, and #rrggbbaa color strings
+* applied more bug fixes from PRs, thanks to our contributors.
+
+
+
+
+
+New 0.1.x release
+=================
+
+I've completely refactored the code so that it should be easier to
+maintain and implement new features. For the most part there are no API changes (since the API is
+defined by the HTML Canvas spec), but if you
+were using the font or image loading extensions
+you will need to use the new function names and switch to promises. For more information, please see [the API docs](http://joshmarinacci.github.io/node-pureimage)
+
+I'm also using Node buffers instead of arrays internally, so you can work with large images
+faster than before. Rich text is no longer supported, which is fine because it never really worked
+anyway. We'll have to find a different way to do it.
+
+I've tried to maintain all of the patches that have been sent in, but if you contributed a patch
+please check that it still works. Thank you all!  - josh
+
+
+
 
 
 
