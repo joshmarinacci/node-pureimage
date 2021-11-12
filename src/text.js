@@ -56,6 +56,11 @@ export function registerFont(binaryPath, family, weight, style, variant) {
             } catch (err) {
                 throw new Error('Could not load font: ' + err);
             }
+        },
+        loadPromise: function() {
+            return new Promise((res,rej)=>{
+                this.load(()=>res())
+            })
         }
     };
     return _fonts[family];
