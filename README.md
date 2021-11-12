@@ -168,6 +168,37 @@ PImage.decodeJPEGFromStream(fs.createReadStream("test/images/bird.jpg")).then((i
 });
 ```
 
+This examples streams an image from a URL to a memory buffer, draws the current date in big black letters, and writes the final image to disk
+
+```javascript
+import * as PImage from "../../src/index.js"
+import fs from 'fs'
+import * as client from "https"
+
+let url = "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png"
+let filepath = "output.png"
+//register font
+const font = PImage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf','MyFont');
+//load font
+font.load(() => {
+    //get image
+    client.get(url, (image_stream)=>{
+        //decode image
+        PImage.decodePNGFromStream(image_stream).then(img => {
+            //get context
+            const ctx = img.getContext('2d');
+            ctx.fillStyle = '#000000';
+            ctx.font = "60pt MyFont";
+            ctx.fillText(new Date().toDateString(), 50, 80);
+            PImage.encodePNGToStream(img, fs.createWriteStream(filepath)).then(()=>{
+                console.log("done writing to ",filepath)
+            })
+        });
+    })
+})
+```
+
+
 New 0.3.x release
 =================
 
