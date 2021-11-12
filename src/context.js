@@ -595,7 +595,9 @@ export class Context {
                 )
                 if(src_bounds.contains(src_pt)) {
                     const rgba = bitmap.getPixelRGBA(src_pt.x, src_pt.y)
-                    this.bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, rgba)
+                    if(this.pixelInsideClip(dst_pt.x,dst_pt.y)) {
+                        this.bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, rgba)
+                    }
                 }
             }
         }
