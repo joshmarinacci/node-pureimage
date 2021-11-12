@@ -12,11 +12,11 @@ Simple example
 Make a 100x100 image, fill with red, write to png file
 
 ```javascript
-import * as PImage from "../../src/index.js"
+import * as PImage from "pureimage"
 import * as fs from 'fs'
 
 // make image
-const img1 = PImage.make(100, 50)
+const img1 = PImage.make(100, 100)
 
 // get canvas context
 const ctx = img1.getContext('2d');
@@ -33,6 +33,10 @@ PImage.encodePNGToStream(img1, fs.createWriteStream('out.png')).then(() => {
 });
 
 ```
+
+result
+
+![red square](./images/redsquare.png)
 
 
 ## supported Canvas Features
@@ -197,6 +201,9 @@ font.load(() => {
     })
 })
 ```
+
+produces
+![stream example](./images/streamexample.png)
 
 The same as above but with Promises
 

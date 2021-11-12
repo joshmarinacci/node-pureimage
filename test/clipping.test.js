@@ -5,7 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import {write_png} from './common.js'
 
-describe('color',() => {
+describe('clipping tests',() => {
     let image
     let context
 
