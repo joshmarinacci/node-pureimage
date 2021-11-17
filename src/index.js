@@ -3,7 +3,7 @@ import {PNG} from "pngjs"
 import * as JPEG from "jpeg-js"
 import {getBytesBigEndian} from './uint32.js'
 
-export {registerFont} from './text.js'
+export * from './text.js'
 
 export function make (w,h,options) {
     return new Bitmap(w,h,options)
