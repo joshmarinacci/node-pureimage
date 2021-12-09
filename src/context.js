@@ -1330,6 +1330,7 @@ function flatten_path(A) {
             for(let i=1; i<pts2.length; i+=2) {
                 B.push([PATH_COMMAND.LINE,new Point(pts2[i].x,pts2[i].y)])
             }
+            curr = cmd[3]
         }
     })
     return B
