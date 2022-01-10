@@ -1,9 +1,10 @@
-import chai, {expect} from "chai"
-import * as pureimage from "../src/index.js"
-import {PassThrough} from "stream"
-import fs from "fs"
-import {toBeOfFileType} from "./unit/matchers/toBeOfFileType.js"
-import {FIXTURES_DIR} from './common.js'
+import {expect} from 'chai';
+import * as pureimage from '../src/index.js';
+import type { Context } from '../src/context.js';
+import {PassThrough} from 'stream';
+import fs from 'fs';
+// import {toBeOfFileType} from './unit/matchers/toBeOfFileType.js';
+import {FIXTURES_DIR} from './common.js';
 
 // expect.extend(toBeOfFileType);
 //
@@ -12,8 +13,8 @@ import {FIXTURES_DIR} from './common.js'
  */
 describe('PNG image', () => {
 
-    let PImage
-    let context
+    let PImage: ReturnType<typeof pureimage.make>;
+    let context: Context;
 
     beforeEach(() => {
         PImage  = pureimage.make(200, 200);
@@ -35,17 +36,18 @@ describe('PNG image', () => {
             // expect(Buffer.concat(PNGData)).toBeOfFileType('png');
             PNGPromise.then(done).catch(e => console.error(e));
         });
-        passThroughStream.on('error',e => console.error(e))
+        passThroughStream.on('error',e => console.error(e));
     });
 
     /**
      * @test {encodePNGToStream}
      */
     it('must be generated from a valid bitmap buffer', (done) => {
+        // @ts-expect-error
         pureimage.encodePNGToStream('this is a string, not a bitmap buffer', new PassThrough()).catch(e => {
-            console.log("should error here")
-            done()
-        })
+            console.log('should error here');
+            done();
+        });
     });
 
     /**
@@ -65,6 +67,7 @@ describe('PNG image', () => {
         PImage  = undefined;
         context = undefined;
     });
+    context;
 });
 
 /**
@@ -72,8 +75,8 @@ describe('PNG image', () => {
  */
 describe('JPEG image', () => {
 
-    let PImage
-    let context
+    let PImage: ReturnType<typeof pureimage.make>;
+    let context: Context;
 
     beforeEach(() => {
         PImage  = pureimage.make(200, 200);
@@ -88,9 +91,9 @@ describe('JPEG image', () => {
         const passThroughStream = new PassThrough();
         const JPEGData          = [];
 
-        const JPEGPromise = pureimage.encodeJPEGToStream(PImage, passThroughStream).catch(e => console.error(e))
+        const JPEGPromise = pureimage.encodeJPEGToStream(PImage, passThroughStream).catch(e => console.error(e));
 
-        passThroughStream.on('data', chunk => JPEGData.push(chunk))
+        passThroughStream.on('data', chunk => JPEGData.push(chunk));
         passThroughStream.on('end', () => {
             // expect(Buffer.concat(JPEGData)).toBeOfFileType('jpg');
             JPEGPromise.then(done);
@@ -101,7 +104,8 @@ describe('JPEG image', () => {
     * @test {encodeJPEGToStream}
     */
     it('must be generated from a valid bitmap buffer', (done) => {
-        pureimage.encodeJPEGToStream('this is a string, not a bitmap buffer', new PassThrough()).catch(e => done())
+        // @ts-expect-error
+        pureimage.encodeJPEGToStream('this is a string, not a bitmap buffer', new PassThrough()).catch(e => done());
     });
 
     /**
@@ -119,12 +123,13 @@ describe('JPEG image', () => {
     /**
      * @test {decodeJPEGFromStream}
      */
-    it('rejects invalid JPEG data', () => {
-        pureimage.decodeJPEGFromStream(fs.createReadStream( '/package.json')).catch(e => done())
+    it('rejects invalid JPEG data', (done) => {
+        pureimage.decodeJPEGFromStream(fs.createReadStream( '/package.json')).catch(_e => done());
     });
 
     afterEach(() => {
         PImage  = undefined;
         context = undefined;
     });
+    context;
 });

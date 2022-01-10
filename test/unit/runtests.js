@@ -8,7 +8,7 @@ var path = require('path');
 var assert = require('assert');
 var PImage = require('../../src/pureimage');
 
-var BUILD_DIR = "build";
+var BUILD_DIR = 'build';
 mkdir(BUILD_DIR);
 
 const white = '#ffffff';
@@ -69,7 +69,7 @@ test('rgba polygon', (t) => {
     ctx.fillRect(50,50,50,50);
     var path = 'build/rgba_fill.png';
     PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
-        console.log("wrote out the png file to",path);
+        console.log('wrote out the png file to',path);
         t.end();
     });
 });
@@ -97,7 +97,7 @@ test('clip path', (t) => {
 
     var path = 'build/clip_path.png';
     PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
-        console.log("wrote out the png file to",path);
+        console.log('wrote out the png file to',path);
         t.end();
     });
 });
@@ -122,7 +122,7 @@ test('fill rect', (t) => {
     t.end();
 });
 test('clear rect', (t)=>{
-    console.log("clear rect test");
+    console.log('clear rect test');
     //clear rect
     var img = PImage.make(100,100);
     var c = img.getContext('2d');
@@ -147,8 +147,8 @@ test('clear rect', (t)=>{
 
 /* image loading and saving test */
 
-const BIRD_PNG = "test/unit/fixtures/images/bird.png"
-const BIRD_JPG = 'test/unit/fixtures/images/bird.jpg'
+const BIRD_PNG = 'test/unit/fixtures/images/bird.png';
+const BIRD_JPG = 'test/unit/fixtures/images/bird.jpg';
 test('load png', (t)=>{
     PImage.decodePNGFromStream(fs.createReadStream(BIRD_PNG)).then((img)=>{
         t.equal(img.width,200);
@@ -164,7 +164,7 @@ test('load jpg', (t)=>{
         t.end();
     }).catch((e) => {
         t.fail();
-    })
+    });
 });
 
 function makeTestImage() {
@@ -180,7 +180,7 @@ function makeTestImage() {
 
 test('save png', (t)=>{
     var img = makeTestImage();
-    var pth = path.join(BUILD_DIR,"test.png");
+    var pth = path.join(BUILD_DIR,'test.png');
     PImage.encodePNGToStream(img,fs.createWriteStream(pth)).then(()=>{
         console.log('done writing');
         PImage.decodePNGFromStream(fs.createReadStream(pth)).then((img)=>{
@@ -195,7 +195,7 @@ test('save png', (t)=>{
 
 test('save jpg', (t)=>{
     var img = makeTestImage();
-    var pth = path.join(BUILD_DIR,"test.jpg");
+    var pth = path.join(BUILD_DIR,'test.jpg');
     PImage.encodeJPEGToStream(img,fs.createWriteStream(pth)).then(()=>{
         PImage.decodeJPEGFromStream(fs.createReadStream(pth)).then((img)=>{
             t.equal(img.width,50);
@@ -218,7 +218,7 @@ test('resize jpg', (t) => {
             0, 0, 200, 133, // source dimensions
             0, 0, 50, 50   // destination dimensions
         );
-        var pth = path.join(BUILD_DIR,"resized_bird.jpg");
+        var pth = path.join(BUILD_DIR,'resized_bird.jpg');
         PImage.encodeJPEGToStream(img2,fs.createWriteStream(pth)).then(()=> {
             PImage.decodeJPEGFromStream(fs.createReadStream(pth)).then((img)=> {
                 t.equal(img.width,50);
@@ -229,14 +229,14 @@ test('resize jpg', (t) => {
     }).catch((e) => {
         console.log(e);
         t.fail();
-    })
+    });
 
 });
 
 
 function mkdir(dir) {
     if (!fs.existsSync(dir)) {
-        console.log("mkdir",dir);
+        console.log('mkdir',dir);
         fs.mkdirSync(dir);
     }
 }
@@ -293,11 +293,11 @@ test('stroke triangle', (t) => {
     t.equal(img.getPixelRGBA(10,10),BLUE);
     t.equal(img.getPixelRGBA(20,15),BLACK);
     t.end();
-     //var path = "build/p3.png";
-     //PImage.encodePNGToStream(img, fs.createWriteStream(path)).then((e)=>{
-     //    console.log("wrote out the png file to ",path);
-     //    t.end();
-     //});
+    //var path = "build/p3.png";
+    //PImage.encodePNGToStream(img, fs.createWriteStream(path)).then((e)=>{
+    //    console.log("wrote out the png file to ",path);
+    //    t.end();
+    //});
 });
 
 test('fill circle (arc)', (t)=>{
@@ -433,7 +433,7 @@ test('font test', (t) => {
         var ctx = img.getContext('2d');
         ctx.fillStyle = '#ffffff';
         ctx.font = "48pt 'Source Sans Pro'";
-        ctx.fillText("ABC", 80, 80);
+        ctx.fillText('ABC', 80, 80);
         var path = 'build/text.png';
         PImage.encodePNGToStream(img, fs.createWriteStream(path)).then(()=>{
             // console.log("wrote out the png file to",path);
@@ -468,7 +468,7 @@ function calcCrop(img1, specs) {
         dy:0,
         dw:specs.width,
         dh:specs.height
-    }
+    };
 }
 
 test('image cropping', (t)=>{

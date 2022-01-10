@@ -1,4 +1,4 @@
-import fileType from "file-type"
+import fileType from 'file-type';
 
 export let toBeOfFileType = (received, expected) => {
 

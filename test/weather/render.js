@@ -1,14 +1,16 @@
-import chai, {expect} from "chai"
-import os from "os"
-import * as pure from "../../src/index.js"
-import fs from "fs"
-import path from 'path'
-import {WeatherData} from './weatherdata.js'
+import chai, {expect} from 'chai';
+import os from 'os';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import * as pure from '../../src/index.ts';
+import fs from 'fs';
+import path from 'path';
+import {WeatherData} from './weatherdata.js';
 
 async function render() {
-    let wData = new WeatherData()
-    let raw_data = await fs.promises.readFile("data.json")
-    await wData.getWeatherData(JSON.parse(raw_data.toString()))
+    let wData = new WeatherData();
+    let raw_data = await fs.promises.readFile('data.json');
+    await wData.getWeatherData(JSON.parse(raw_data.toString()));
 
     const imageHeight = 1080; // 800;
     const imageWidth = 1920; // 1280;
@@ -24,13 +26,13 @@ async function render() {
     const chartWidth = 1680; // 1080;
     const chartHeight = 900; // 600;
 
-    const daysToShow = 5//weatherRequest.days;                       // for 5 days (valid is 1..6)
+    const daysToShow = 5;//weatherRequest.days;                       // for 5 days (valid is 1..6)
 
     const showHourGridLines = daysToShow <= 2 ? true : false;    // Only show if we are showing 2 days or less, otherwise its too crowded
 
     const hoursToShow = daysToShow * 24;                         //   120
 
-    const verticalFineGridLines = daysToShow * 24                //   120        every 1 hours  (0-20 for 21 total vertical lines)
+    const verticalFineGridLines = daysToShow * 24;                //   120        every 1 hours  (0-20 for 21 total vertical lines)
     const verticalGridLines = daysToShow * 4;                    //   20        every 6 hours  (0-20 for 21 total vertical lines)
     const verticalMajorGridLines = daysToShow;                         //   4         every 4th vertical lines is a day
 
@@ -55,7 +57,7 @@ async function render() {
     const mediumFont = "36px 'OpenSans-Bold'";   // axis labels
     const smallFont = "24px 'OpenSans-Bold'";   // Legend at the top
 
-    const fontDir = "."
+    const fontDir = '.';
     const fntBold = pure.registerFont(path.join(fontDir, 'OpenSans-Bold.ttf'), 'OpenSans-Bold');
     const fntRegular = pure.registerFont(path.join(fontDir , '/OpenSans-Regular.ttf'), 'OpenSans-Regular');
     const fntRegular2 = pure.registerFont(path.join(fontDir, '/alata-regular.ttf'), 'alata-regular');
@@ -95,7 +97,7 @@ async function render() {
     // Draw the title
     ctx.fillStyle = titleColor;
     ctx.font = largeFont;
-    let title = "Forecast for Onset, MA"
+    let title = 'Forecast for Onset, MA';
     const textWidth = ctx.measureText(title).width;
     ctx.fillText(title, (imageWidth - textWidth) / 2, 60);
 
@@ -103,13 +105,13 @@ async function render() {
     ctx.font = smallFont;
 
     ctx.fillStyle = temperatureColor;
-    ctx.fillText("Temperature", topLegendLeftIndent, 30);
+    ctx.fillText('Temperature', topLegendLeftIndent, 30);
 
     ctx.fillStyle = dewPointColor;
-    ctx.fillText("Dew Point", topLegendLeftIndent, 60);
+    ctx.fillText('Dew Point', topLegendLeftIndent, 60);
 
     ctx.fillStyle = windSpeedColor;
-    ctx.fillText("Wind Speed", topLegendLeftIndent, 90);
+    ctx.fillText('Wind Speed', topLegendLeftIndent, 90);
 
     let startX;
     let startY;
@@ -394,8 +396,8 @@ async function render() {
     ctx.lineTo(chartOriginX + pointsPerHour * hoursToShow, chartOriginY - (wData.windSpeed(hoursToShow - firstHour) * chartHeight) / fullScaleDegrees);
     ctx.stroke();
 
-    await pure.encodePNGToStream(img, fs.createWriteStream("foo.png"))
-    console.log("wrote it out to foo.png")
+    await pure.encodePNGToStream(img, fs.createWriteStream('foo.png'));
+    console.log('wrote it out to foo.png');
 }
 
-render().then(()=>console.log("we are done")).catch(e => console.error(e))
+render().then(()=>console.log('we are done')).catch(e => console.error(e));

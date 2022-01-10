@@ -1,7 +1,7 @@
-import chai, {expect} from "chai"
+import {expect} from 'chai';
 
-import {Line} from "../src/line.js"
-import {Point} from "../src/point.js"
+import {Line} from '../src/line.js';
+import {Point} from '../src/point.js';
 
 /**
  * @test {Line}
@@ -23,7 +23,8 @@ describe('Line', () => {
     */
     it('can be created from 4 numbers and uses them as start and end points', () => {
         expect(() => new Line(6, 8, 12, 6)).not.throw();
-        expect(() => new Line({}, "spaghetti", "hello world", [])).to.throw(TypeError);
+        // @ts-expect-error
+        expect(() => new Line({}, 'spaghetti', 'hello world', [])).to.throw(TypeError);
     });
 
     /**
@@ -32,9 +33,13 @@ describe('Line', () => {
     it('can only be created with either 2 or 4 arguments', () => {
         const errorMsg = 'Please pass either two Point objects, or 4 integers to the constructor';
 
+        // @ts-expect-error
         expect(() => new Line()).to.throw(errorMsg);
+        // @ts-expect-error
         expect(() => new Line(12)).to.throw(errorMsg);
+        // @ts-expect-error
         expect(() => new Line(12, 30, 92)).to.throw(errorMsg);
+        // @ts-expect-error
         expect(() => new Line(12, 30, 92, 10, 99)).to.throw(errorMsg);
     });
 
@@ -48,5 +53,5 @@ describe('Line', () => {
         const line  = new Line(start, end);
 
         expect(line.getLength()).to.eq(10);
-    })
+    });
 });
