@@ -3,6 +3,6 @@ build
 .idea
 docs
 test/unit/coverage
-.vscode
 output
 dist
+!dist/*.esm.js

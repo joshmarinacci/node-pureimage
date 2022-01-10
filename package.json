@@ -1,48 +1,140 @@
 {
-  "name": "pureimage",
-  "version": "0.3.8",
-  "description": "Pure JS image drawing API based on Canvas. Export to PNG streams.",
-  "author": {
-    "name": "Josh Marinacci",
-    "email": "joshua@marinacci.org",
-    "url": "http://joshondesign.com/"
-  },
-  "type": "module",
-  "types": "./types/index.d.ts",
-  "module": "./src/index.js",
-  "main": "./dist/pureimage-umd.cjs",
-  "browser": "./src/browser.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/joshmarinacci/node-pureimage.git"
-  },
-  "dependencies": {
-    "jpeg-js": "^0.4.1",
-    "opentype.js": "^0.4.3",
-    "pngjs": "^3.3.1"
-  },
-  "devDependencies": {
-    "@rollup/plugin-commonjs": "^18.0.0",
-    "@rollup/plugin-node-resolve": "^11.2.1",
-    "chai": "^4.3.3",
-    "esdoc": "^1.1.0",
-    "esdoc-integrate-test-plugin": "^1.0.0",
-    "esdoc-member-plugin": "^1.0.0",
-    "esdoc-node": "^1.0.3",
-    "esdoc-standard-plugin": "^1.0.0",
-    "file-type": "^7.6.0",
-    "mocha": "^8.3.1",
-    "rollup": "^2.44.0",
-    "tape": "^5.2.2"
-  },
-  "scripts": {
-    "test": "mocha",
-    "docs": "esdoc",
-    "build": "rollup -c",
-    "clean": "rm -rf dist/ output/ *.tgz"
-  },
-  "engines": {
-    "node": ">=0.8"
-  },
-  "license": "MIT"
+    "name": "pureimage",
+    "version": "0.3.5",
+    "description": "Pure JS image drawing API based on Canvas. Export to PNG streams.",
+    "author": {
+        "name": "Josh Marinacci",
+        "email": "joshua@marinacci.org",
+        "url": "http://joshondesign.com/"
+    },
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/joshmarinacci/node-pureimage.git"
+    },
+    "bugs": {
+        "url": "https://github.com/joshmarinacci/node-pureimage/issues"
+    },
+    "scripts": {
+        "test": "run-s test:*",
+        "docs": "esdoc",
+        "build": "rollup -c config/rollup.config.js --validate",
+        "clean": "rm -rf dist/ output/ *.tgz",
+        "fix": "run-s fix:*",
+        "test:spelling": "cspell --config config/cspell.json \"{README.md,.github/*.md,src/**/*.ts,docs/**/*.md}\" || echo spelling_errors",
+        "test:unit": "mocha",
+        "check-cli": "run-s test diff-integration-tests check-integration-tests",
+        "check-integration-tests": "run-s check-integration-test:*",
+        "diff-integration-tests": "mkdir -p diff && rm -rf diff/test && cp -r test diff/test && rm -rf diff/test/test-*/.git && cd diff && git init --quiet && git add -A && git commit --quiet --no-verify --allow-empty -m 'WIP' && echo '\\n\\nCommitted most recent integration test output in the \"diff\" directory. Review the changes with \"cd diff && git diff HEAD\" or your preferred git diff viewer.'",
+        "watch:test": "mocha --watch",
+        "cov": "run-s build test:unit && open-cli coverage/index.html",
+        "cov:send": "run-s build test:unit && codecov",
+        "doc": "run-s doc:html && open-cli build/docs/index.html",
+        "doc:html": "typedoc src/ --exclude **/*.test.ts --target ES6 --mode file --out build/docs",
+        "doc:json": "typedoc src/ --exclude **/*.test.ts --target ES6 --mode file --json build/docs/typedoc.json",
+        "reset-hard": "git clean -dfx && git reset --hard && npm i",
+        "prepare-release": "run-s reset-hard test doc:html version doc:publish",
+        "ci:validate": "rm -rf node_modules && npm ci && npm run test",
+        "prepublishOnly": "npm run ci:validate && npm run build",
+        "semantic-release": "semantic-release",
+        "pre-commit": "echo careful, no checks run on commit",
+        "pre-push": "npm run test",
+        "prepare": "husky install config/husky"
+    },
+    "dependencies": {
+        "jpeg-js": "^0.4.3",
+        "opentype.js": "^1.3.4",
+        "pngjs": "^6.0.0"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.16.0",
+        "@babel/plugin-transform-runtime": "^7.16.4",
+        "@babel/preset-env": "^7.16.4",
+        "@rollup/plugin-babel": "^5.3.0",
+        "@rollup/plugin-commonjs": "^21.0.1",
+        "@rollup/plugin-node-resolve": "^13.0.6",
+        "@types/chai": "^4.2.22",
+        "@types/mocha": "^9.0.0",
+        "@types/node": "^16.11.6",
+        "@types/opentype.js": "^1.3.3",
+        "@types/pngjs": "^6.0.1",
+        "chai": "^4.3.4",
+        "codecov": "^3.8.3",
+        "core-js": "^3.19.1",
+        "cspell": "^5.13.0",
+        "file-type": "^16.5.3",
+        "gh-pages": "^3.2.3",
+        "husky": "^7.0.4",
+        "mocha": "^9.1.3",
+        "npm-run-all": "^4.1.5",
+        "open-cli": "^7.0.1",
+        "rollup": "^2.60.0",
+        "rollup-plugin-clear": "^2.0.7",
+        "rollup-plugin-terser": "^7.0.2",
+        "rollup-plugin-ts": "^2.0.1",
+        "tape": "^5.3.1",
+        "ts-node": "^10.4.0",
+        "typedoc": "^0.22.9",
+        "typescript": "^4.4.4"
+    },
+    "files": [
+        "dist",
+        "src/browser.js",
+        "examples",
+        "!**/*.spec.*",
+        "!**/*.json",
+        "mod.ts",
+        "CHANGELOG.md",
+        "LICENSE",
+        "SECURITY.md",
+        "README.md"
+    ],
+    "main": "dist/pureimage.cjs.js",
+    "typings": "dist/pureimage.d.ts",
+    "types": "dist/pureimage.d.ts",
+    "module": "dist/pureimage.esm.js",
+    "browser": "dist/pureimage.browser.esm.js",
+    "unpkg": "dist/pureimage.browser.esm.js",
+    "exports": {
+        "import": "./dist/pureimage.mjs",
+        "require": "./dist/pureimage.cjs",
+        "node": {
+            "import": "./dist/pureimage.mjs",
+            "require": "./dist/pureimage.cjs"
+        },
+        "browser": {
+            "import": "./dist/pureimage.browser.esm.js",
+            "require": "./dist/pureimage.browser.cjs"
+        },
+        "default": "./dist/pureimage.esm.js"
+    },
+    "keywords": [
+        "dom",
+        "image",
+        "raster",
+        "render",
+        "html",
+        "canvas",
+        "svg",
+        "Deno",
+        "Node.js",
+        "nodejs",
+        "compatible",
+        "library"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "release": {
+        "extends": "./config/.releaserc.json"
+    },
+    "config": {
+        "commitizen": {
+            "path": "cz-conventional-changelog"
+        }
+    },
+    "engines": {
+        "node": ">=0.8"
+    },
+    "license": "MIT"
 }
