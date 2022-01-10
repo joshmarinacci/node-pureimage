@@ -92,7 +92,7 @@ describe('text drawing',() => {
             // writeV('Hey',50,50,'middle')
             // writeV('hey',50,50,'alphabetic')
             writeV('hey',50,50,'bottom');
-            pureimage.encodePNGToStream(image, fs.createWriteStream('bug31.png')).then(() => {
+            pureimage.encodePNGToStream(image, fs.createWriteStream('output/bug31.png')).then(() => {
                 console.log('wrote out bug31.png');
                 //top
                 // expect(image.getPixelRGBA(90,37+47)).toBe(BLACK)

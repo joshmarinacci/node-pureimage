@@ -24,7 +24,7 @@ describe('drawing gradients',() => {
         c.fillStyle = grad;
         c.fillRect(0,0,20,20);
 
-        pureimage.encodePNGToStream(image, fs.createWriteStream('lgrad.png')).then(() => {
+        pureimage.encodePNGToStream(image, fs.createWriteStream('output/lgrad.png')).then(() => {
             console.log('wrote out lgrad.png');
             expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF);
             expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF);
@@ -39,7 +39,7 @@ describe('drawing gradients',() => {
         c.fillStyle = grad;
         c.fillRect(0,0,20,20);
 
-        pureimage.encodePNGToStream(image, fs.createWriteStream('rgrad.png')).then(() => {
+        pureimage.encodePNGToStream(image, fs.createWriteStream('output/rgrad.png')).then(() => {
             console.log('wrote out rgrad.png');
             expect(image.getPixelRGBA(0, 0)).to.eq(0x00FF00FF);
             expect(image.getPixelRGBA(10, 10)).to.eq(0xFFFFFFFF);
