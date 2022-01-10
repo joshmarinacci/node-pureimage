@@ -1,17 +1,19 @@
-import {NAMED_COLORS} from "./named_colors.js"
+import {NAMED_COLORS} from './named_colors.js';
+import * as uint32 from './uint32.js';
 
 /**
  * Clamping is the process of limiting a position to an area
  *
  * @see https://en.wikipedia.org/wiki/Clamping_(graphics)
- *
- * @param {number} value The value to apply the clamp restriction to
- * @param {number} min   Lower limit
- * @param {number} max   Upper limit
- *
- * @returns {number}
  */
-export function clamp(value,min,max) {
+export function clamp(
+    /** The value to apply the clamp restriction to */
+    value: number,
+    /** Lower limit */
+    min: number,
+    /** Upper limit */
+    max: number,
+): number {
     if(value < min) return min;
     if(value > max) return max;
     return value;
@@ -24,20 +26,20 @@ export function clamp(value,min,max) {
  * In mathematics, linear interpolation is a method of curve fitting using linear polynomials to construct new data
  * points within the range of a discrete set of known data points.
  *
- * @param {number} a
- * @param {number} b
- * @param {number} t
- *
  * @ignore
  *
  * @see https://en.wikipedia.org/wiki/Linear_interpolation
- *
- * @returns {number}
  */
-export const lerp = function(a,b,t) {  return a + (b-a)*t; }
+export const lerp = function(
+    a: number,
+    b: number,
+    t: number,
+): number {  return a + (b-a)*t };
 
 
-export const colorStringToUint32 = function(str) {
+export const colorStringToUint32 = function(
+    str: string
+): number {
     if(!str) return 0x000000;
     //hex values always get 255 for the alpha channel
     if(str.indexOf('#')===0) {
@@ -61,7 +63,26 @@ export const colorStringToUint32 = function(str) {
     if(NAMED_COLORS[str]) {
         return NAMED_COLORS[str];
     }
-    throw new Error("unknown style format: " + str );
+    throw new Error('unknown style format: ' + str );
+};
+
+
+export const hasOwnProperty = Object.hasOwnProperty;
+
+export function typedArrConcat(arrays: Uint8Array[], type = Uint8Array): Uint8Array {
+    // sum of individual array lengths
+    const totalLength = arrays.reduce((acc, value) => acc + value.length, 0);
+    if (!arrays.length) return null;
+
+    const result = new type(totalLength);
+
+    // for each array - copy it over result
+    // next array is copied right after the previous one
+    let length = 0;
+    for(const array of arrays) {
+        result.set(array, length);
+        length += array.length;
+    }
+
+    return result;
 }
-
-
