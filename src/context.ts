@@ -525,6 +525,9 @@ export class Context {
                 if(src_bounds.contains(src_pt)) {
                     const rgba = bitmap.getPixelRGBA(src_pt.x, src_pt.y);
                     this.bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, rgba);
+                    if(this.pixelInsideClip(dst_pt.x,dst_pt.y)) {
+                        this.bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, rgba)
+                    }
                 }
             }
         }
@@ -1204,6 +1207,7 @@ function flatten_path(
             for(let i=1; i<pts2.length; i+=2) {
                 B.push([PATH_COMMAND.LINE,new Point(pts2[i].x,pts2[i].y)]);
             }
+            curr = cmd[3]
         }
     });
     return B;

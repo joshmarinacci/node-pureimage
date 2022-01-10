@@ -24,6 +24,7 @@ export type Font = {
     font?: opentype.Font | null;
     load?: (cb: CallableFunction) => void;
     loadSync?: () => Font;
+    loadPromise?: () => Promise<void>;
 };
 export type TextAlign = 'start' | 'end' | 'left' | 'center' | 'right';
 export type TextBaseline = 'top' | 'middle' | 'alphabetic' | 'bottom';

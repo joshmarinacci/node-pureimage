@@ -1,13 +1,11 @@
-import chai, {expect} from "chai"
+import {expect} from "chai"
 
 import * as pureimage from "../src/index.js"
-import fs from 'fs'
-import path from 'path'
 import {write_png} from './common.js'
 
 describe('clipping tests',() => {
-    let image
-    let context
+    let image: pureimage.Bitmap;
+    let context: pureimage.Context;
 
     beforeEach(() => {
         image = pureimage.make(200, 200)

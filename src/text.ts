@@ -58,6 +58,11 @@ export function registerFont(
             } catch (err) {
                 throw new Error('Could not load font: ' + err);
             }
+        },
+        loadPromise: function() {
+            return new Promise<void>((res,_rej)=>{
+                this.load(() => res())
+            })
         }
     };
     return _fonts[family];
