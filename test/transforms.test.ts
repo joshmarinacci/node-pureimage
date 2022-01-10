@@ -1,13 +1,11 @@
 import * as pureimage from "../src/index.js"
-import chai, {expect} from "chai"
-import fs from 'fs'
-import path from 'path'
-import {mkdir, write_png} from './common.js'
+import {expect} from "chai"
+import {mkdir, write_png} from './common.test.js'
 
 
 describe("simple transforms",() => {
-    let image
-    let context
+    let image: pureimage.Bitmap;
+    let context: pureimage.Context;
 
     beforeEach(() => {
         image = pureimage.make(20,20)

@@ -1,7 +1,7 @@
 import {expect} from "chai"
 
 import * as pureimage from "../src/index.js"
-import {write_png} from './common.js'
+import {write_png} from './common.test.js'
 
 describe('clipping tests',() => {
     let image: pureimage.Bitmap;

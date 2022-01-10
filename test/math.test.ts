@@ -1,38 +1,27 @@
 export class Point {
     /**
      * Creates an instance of Point.
-     * @param {number} x X position
-     * @param {number} y Y position
-     *
-     * @memberof Point
      */
-    constructor(x, y) {
-        /**
-         * @type {number}
-         */
-        this.x = x;
+    constructor(
+        public x: number,
+        public y: number
+    ) {}
 
-        /**
-         * @type {number}
-         */
-        this.y = y;
-    }
-
-    distance(pt) {
+    distance(pt: Point) {
         return Math.sqrt(
             Math.pow(pt.x-this.x,2)+
             Math.pow(pt.y-this.y,2)
         );
     }
 
-    unit(pt) {
+    unit(_pt?: Point) {
         return this.divide(this.magnitude());
     }
 
-    subtract(pt) {
+    subtract(pt: Point) {
         return new Point(this.x-pt.x, this.y-pt.y);
     }
-    add(pt) {
+    add(pt: Point) {
         return new Point(this.x+pt.x, this.y+pt.y);
     }
 
@@ -40,11 +29,11 @@ export class Point {
         return Math.sqrt(this.dotProduct(this));
     }
 
-    dotProduct(v) {
+    dotProduct(v: Point) {
         return this.x*v.x + this.y*v.y;
     }
 
-    divide(scalar) {
+    divide(scalar: number) {
         return new Point(this.x/scalar, this.y/scalar);
     }
 
@@ -55,13 +44,13 @@ export class Point {
         return new Point(Math.round(this.x), Math.round(this.y));
     }
 
-    rotate(theta) {
+    rotate(theta: number) {
         return new Point(
             Math.cos(theta)*this.x - Math.sin(theta)*this.y,
             Math.sin(theta)*this.x + Math.cos(theta)*this.y
         );
     }
-    scale(scalar) {
+    scale(scalar: number) {
         return new Point(
             this.x*scalar,
             this.y*scalar
@@ -69,8 +58,8 @@ export class Point {
     }
 }
 
-const l = (...args) => console.log(...args);
-const toRad = (deg) => Math.PI/180*deg;
+const l = (...args: unknown[]) => console.log(...args);
+const toRad = (deg: number) => Math.PI/180*deg;
 
 let AB = new Point(10,10);
 l('ab',AB);

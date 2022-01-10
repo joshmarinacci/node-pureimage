@@ -34,11 +34,11 @@ export class Context {
     private _fillStyle_text: string;
     private _strokeStyle_text: string;
     private _closed?: boolean;
-    /** Plain js object wrapping the font name and size */
-    public _font: Font & {size:number};
-    private path?: PathCmd[];
     private pathStart?: Point;
     private debug?: boolean;
+    public path?: PathCmd[];
+    /** Plain js object wrapping the font name and size */
+    public _font: Font & {size:number};
     public transform: Transform;
     /** Horizontal text alignment, one of start, end, left, center, right. start is the default */
     public textAlign: TextAlign;

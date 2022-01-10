@@ -4,7 +4,7 @@ import type { Context } from '../src/context.js';
 import {PassThrough} from 'stream';
 import fs from 'fs';
 // import {toBeOfFileType} from './unit/matchers/toBeOfFileType.js';
-import {FIXTURES_DIR} from './common.js';
+import {FIXTURES_DIR} from './common.test.js';
 
 // expect.extend(toBeOfFileType);
 //
