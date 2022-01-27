@@ -203,6 +203,7 @@ font.load(() => {
 ```
 
 produces
+
 ![stream example](./images/streamexample.png)
 
 The same as above but with Promises
