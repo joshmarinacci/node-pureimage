@@ -198,7 +198,7 @@ export class Context {
      */
     set font(val) {
         this._font.family = val.family.trim();
-		this._font.size = val.size.trim();
+		this._font.size = val.size;
     }
 
 
