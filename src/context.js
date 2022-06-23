@@ -186,23 +186,18 @@ export class Context {
      * The current text style being used when drawing text. This string uses the same syntax as the CSS font specifier
      *
      * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font
-     * @type {object}
-     * @property {number} size   The an integer representing the font size to use
-     * @property {string} family The font family to set
+     * @type {string} a string representing the font size and family to use
      */
     get font() {};
 
     /**
-     * @param {object} font
-     * @example ctx.globalAlpha = 1;
+     * @param {string} font to use. Note that the font weight is not supported.
+     * @example ctx.font = '16px serif'
      */
     set font(val) {
         const n = val.trim().indexOf(' ')
-        const font_size = parseInt(val.slice(0, n))
-        const font_name = val.slice(n).trim()
-
-        this._font.family = font_name;
-        this._font.size   = font_size;
+        this._font.size   = parseInt(val.slice(0, n))
+        this._font.family = val.slice(n).trim();
     }
 
 
