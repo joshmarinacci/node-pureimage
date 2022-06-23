@@ -206,3 +206,38 @@ describe('draw curve',() => {
         })
     })
 })
+describe('restroke test',() => {
+    it('draws multiple lines',(done) => {
+        let image = pureimage.make(200,200)
+        let ctx = image.getContext('2d')
+        ctx.fillStyle = 'white'
+        ctx.fillRect(0,0,200,200)
+        ctx.beginPath() // Only needed in pureimage :/
+
+// First sub-path
+        ctx.lineWidth = 26;
+        ctx.strokeStyle = 'rgba(255,165,0,0.5)'
+        ctx.moveTo(20, 20);
+        ctx.lineTo(160, 20);
+        ctx.stroke();
+
+// Second sub-path
+        ctx.lineWidth = 14;
+        ctx.strokeStyle = 'rgba(0,255,0,0.5)'
+        ctx.moveTo(20, 80);
+        ctx.lineTo(220, 80);
+        ctx.stroke();
+
+// // Third sub-path
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(255,192,203,0.5)'
+        ctx.moveTo(20, 140);
+        ctx.lineTo(280, 140);
+        ctx.stroke();
+
+        pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'restroke.png'))).then(() => {
+            console.log('wrote out restroke.png')
+            done()
+        })
+    })
+})

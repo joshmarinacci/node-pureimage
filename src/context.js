@@ -1332,6 +1332,31 @@ function flatten_path(A) {
 }
 
 function path_to_stroked_path(path, w) {
+    //split the path into sub-paths based on the MOVE command
+    let subs = []
+    let curr_sub = []
+    path.forEach(pth => {
+        if(pth[0] === PATH_COMMAND.MOVE) {
+            if(curr_sub.length > 0) subs.push(curr_sub)
+            curr_sub = []
+        }
+        curr_sub.push(pth)
+    })
+    if(curr_sub.length > 0) subs.push(curr_sub)
+
+    // warn if there's missing MOVEs
+    subs.forEach(sub => {
+        if(sub[0][0] !== PATH_COMMAND.MOVE) console.warn("missing a starting move command!");
+    })
+
+    // stroke each sub-path
+    let fsubs = subs.map(sub => sub_path_to_stroked_sub_path(sub,w))
+    // flatten back into a single string of commands
+    let final_path = []
+    fsubs.forEach(sub => sub.forEach(cmd => final_path.push(cmd)))
+    return final_path
+}
+function sub_path_to_stroked_sub_path(path, w) {
     let curr = null
     let outside = []
     let inside = []
