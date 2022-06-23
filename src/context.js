@@ -519,7 +519,7 @@ export class Context {
     /**
      * *Put Image Data
      *
-     * @param {number} id Image ID
+     * @param {Bitmap} imageData Image ID
      * @param {number} x  X position
      * @param {number} y  Y position
      *
@@ -529,8 +529,8 @@ export class Context {
      *
      * @memberof Context
      */
-    putImageData(id, x, y) {
-        this.bitmap._pasteSubBitmap(id,x,y)
+    putImageData(imageData, x, y) {
+        this.bitmap._pasteSubBitmap(imageData,x,y)
     }
 
     /**

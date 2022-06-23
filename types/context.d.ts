@@ -348,7 +348,7 @@ export class Context {
     /**
      * *Put Image Data
      *
-     * @param {number} id Image ID
+     * @param {Bitmap} imageData Image ID
      * @param {number} x  X position
      * @param {number} y  Y position
      *
@@ -358,7 +358,7 @@ export class Context {
      *
      * @memberof Context
      */
-    putImageData(id: number, x: number, y: number): void;
+    putImageData(imageData: Bitmap, x: number, y: number): void;
 
     /**
      * Provides different ways to draw an image onto the canvas.
