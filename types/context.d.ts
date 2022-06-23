@@ -140,13 +140,13 @@ export class Context {
      *
      * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font
      */
-    get font(): Font;
+    get font(): string;
 
     /**
-     * @param {Font} font
+     * @param {string} font
      * @example ctx.globalAlpha = 1;
      */
-    set font(val: Font);
+    set font(val: string);
 
     createLinearGradient(
         x0: number,
