@@ -39,7 +39,8 @@
     "test": "mocha",
     "docs": "esdoc",
     "build": "rollup -c",
-    "clean": "rm -rf dist/ output/ *.tgz"
+    "clean": "rm -rf dist/ output/ *.tgz",
+    "publish": "npm run clean && npm run build && npm run test && npm version patch && npm publish"
   },
   "engines": {
     "node": ">=0.8"
