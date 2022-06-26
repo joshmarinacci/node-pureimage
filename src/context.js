@@ -138,12 +138,16 @@ export class Context {
     };
 
     /**
-     * @param {number} val
+     * @param {string} val
      * @example ctx.strokeStyle = 'rgba(0, 25, 234, 0.6)';
      */
     set strokeStyle (val) {
-        this._strokeColor = Context.colorStringToUint32(val);
-        this._strokeStyle_text = val;
+        if(val instanceof G.CanvasGradient) {
+            this._strokeStyle_text = val
+        } else {
+            this._strokeColor = Context.colorStringToUint32(val);
+            this._strokeStyle_text = val;
+        }
     };
 
     /**
@@ -1065,6 +1069,7 @@ export class Context {
                 const start = Math.floor(ints[i])
                 const end = Math.floor(ints[i + 1])
                 for(let ii=start; ii<=end; ii++) {
+                    let col = this.calculateRGBA(ii,j)
                     if(ii === start) {
                         //first
                         const int = or(rgb,(1-fstartf)*alpha);
@@ -1078,7 +1083,7 @@ export class Context {
                         continue;
                     }
                     //console.log("filling",ii,j);
-                    this.fillPixelWithColor(ii,j, this._fillColor);
+                    this.fillPixelWithColor(ii,j, col);
                 }
             }
         }
@@ -1102,17 +1107,18 @@ export class Context {
                 const start = Math.floor(ints[i])
                 const end = Math.floor(ints[i + 1])
                 for(let ii=start; ii<=end; ii++) {
+                    let col = this.calculateRGBA(ii,j)
                     if(ii === start) {
                         //first
-                        this.fillPixel(ii,j);
+                        this.fillPixelWithColor(ii,j,col);
                         continue;
                     }
                     if(ii === end) {
                         //last
-                        this.fillPixel(ii,j);
+                        this.fillPixelWithColor(ii,j,col);
                         continue;
                     }
-                    this.fillPixel(ii,j);
+                    this.fillPixelWithColor(ii,j,col);
                 }
             }
         }

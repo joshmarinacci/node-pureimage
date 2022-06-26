@@ -17,19 +17,59 @@ describe('drawing gradients',() => {
     })
 
 
-    it('is making a linear gradient',(done)=>{
+    it('fillRect with linear gradient',(done)=>{
         const grad = c.createLinearGradient(0,0,20,20)
         grad.addColorStop(0,'white')
         grad.addColorStop(1,'blue')
         c.fillStyle = grad
         c.fillRect(0,0,20,20)
 
-        pureimage.encodePNGToStream(image, fs.createWriteStream('lgrad.png')).then(() => {
+        pureimage.encodePNGToStream(image, fs.createWriteStream('l_fr_grad.png')).then(() => {
             console.log('wrote out lgrad.png')
             expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
             expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
             done()
         })
+    })
+
+    it('fill with linear gradient',(done)=>{
+        c.imageSmoothingEnabled = true
+        const grad = c.createLinearGradient(0,0,20,20)
+        grad.addColorStop(0,'white')
+        grad.addColorStop(1,'blue')
+        c.fillStyle = grad
+        c.beginPath()
+        c.rect(0,0,20,20)
+        c.fill()
+
+        pureimage.encodePNGToStream(image, fs.createWriteStream('l_f_grad.png')).then(() => {
+            console.log('wrote out l_f_grad.png')
+            // expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
+            // expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
+            done()
+        }).catch(e => console.error(e))
+    })
+
+    it('stroke with linear gradient',(done)=>{
+        c.imageSmoothingEnabled = true
+        const grad = c.createLinearGradient(0,0,20,20)
+        grad.addColorStop(0,'white')
+        grad.addColorStop(1,'blue')
+        // c.fillStyle = grad
+        // c.fillStyle = 'red'
+        c.strokeStyle = grad
+        // c.strokeStyle = 'red'
+        c.lineWidth = 3
+        c.beginPath()
+        c.rect(5,5,10,10)
+        c.stroke()
+
+        pureimage.encodePNGToStream(image, fs.createWriteStream('l_s_grad.png')).then(() => {
+            console.log('wrote out l_s_grad.png')
+            // expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
+            // expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
+            done()
+        }).catch(e => console.error(e))
     })
 
     it('is making a radial gradient',(done)=>{
