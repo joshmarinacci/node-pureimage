@@ -1,7 +1,18 @@
 import chai, {expect} from "chai"
 import * as pureimage from "../src/index.js"
 import fs from "fs"
+import path from "path";
+import {NAMED_COLORS} from "../src/named_colors.js";
 
+const DIR = "output"
+
+function save(image, filename, done) {
+    let pth = path.join(DIR,filename)
+    pureimage.encodePNGToStream(image, fs.createWriteStream(pth)).then(() => {
+        console.log(`wrote out ${pth}`)
+        done()
+    }).catch(e => console.error(e))
+}
 describe('drawing gradients',() => {
 
     let image
@@ -24,12 +35,9 @@ describe('drawing gradients',() => {
         c.fillStyle = grad
         c.fillRect(0,0,20,20)
 
-        pureimage.encodePNGToStream(image, fs.createWriteStream('l_fr_grad.png')).then(() => {
-            console.log('wrote out lgrad.png')
-            expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
-            expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
-            done()
-        })
+        expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
+        save(image, 'linear_gradient_fillrect.png',done)
     })
 
     it('fill with linear gradient',(done)=>{
@@ -41,13 +49,7 @@ describe('drawing gradients',() => {
         c.beginPath()
         c.rect(0,0,20,20)
         c.fill()
-
-        pureimage.encodePNGToStream(image, fs.createWriteStream('l_f_grad.png')).then(() => {
-            console.log('wrote out l_f_grad.png')
-            // expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
-            // expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
-            done()
-        }).catch(e => console.error(e))
+        save(image, 'linear_gradient_fill.png',done)
     })
 
     it('stroke with linear gradient',(done)=>{
@@ -64,29 +66,19 @@ describe('drawing gradients',() => {
         c.rect(5,5,10,10)
         c.stroke()
 
-        pureimage.encodePNGToStream(image, fs.createWriteStream('l_s_grad.png')).then(() => {
-            console.log('wrote out l_s_grad.png')
-            // expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
-            // expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
-            done()
-        }).catch(e => console.error(e))
+        save(image, 'linar_gradient_stroke.png',done)
     })
 
     it('is making a radial gradient',(done)=>{
         const grad = c.createRadialGradient(10,10, 5, 10,10,10)
         grad.addColorStop(0,'white')
         grad.addColorStop(1,'green')
+        c.imageSmoothingEnabled = false
         c.fillStyle = grad
         c.fillRect(0,0,20,20)
 
-        pureimage.encodePNGToStream(image, fs.createWriteStream('rgrad.png')).then(() => {
-            console.log('wrote out rgrad.png')
-            expect(image.getPixelRGBA(0, 0)).to.eq(0x00FF00FF)
-            expect(image.getPixelRGBA(10, 10)).to.eq(0xFFFFFFFF)
-            done()
-        }).catch(e => {
-            console.error(e)
-            done()
-        })
+        expect(image.getPixelRGBA(0, 0)).to.eq(NAMED_COLORS.green)
+        expect(image.getPixelRGBA(10, 10)).to.eq(NAMED_COLORS.white)
+        save(image, 'radial_gradient_fillrect.png',done)
     })
 });
