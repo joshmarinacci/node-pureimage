@@ -2,6 +2,7 @@ import chai, {expect} from "chai"
 import fs from "fs"
 
 import * as pureimage from "../src/index.js"
+import * as PImage from "../src/index.js";
 
 describe('text drawing',() => {
     let image
@@ -112,4 +113,29 @@ describe('text drawing',() => {
             })
         })
     })
+})
+
+describe('font loading', () => {
+    it('uses loadPromise',done => {
+        pureimage.registerFont(
+            'test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'MyFont'
+        ).loadPromise().then(()=>{
+            let image = PImage.make(200,200)
+            let context = image.getContext('2d');
+            context.font = `48px MyFont`;
+            const metrics = context.measureText('some text')
+            done()
+        })
+    })
+    it('bug 52', (done) => {
+        // const fontRecord = pureimage.registerFont('./lib/fonts/monofonto/monofontorg.otf', 'MyFont', 10, '', '');
+        const fontRecord = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'MyFont', 10, '', '');
+        fontRecord.loadSync();
+        let image = PImage.make(200,200)
+        let context = image.getContext('2d');
+        context.font = `48px MyFont`;
+        const metrics = context.measureText('some text')
+        done()
+    })
+
 })
