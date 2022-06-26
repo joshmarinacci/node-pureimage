@@ -12,6 +12,8 @@ describe("simple transforms",() => {
     beforeEach(() => {
         image = pureimage.make(20,20)
         context = image.getContext('2d')
+        context.fillStyle = 'white'
+        context.fillRect(0,0,20,20)
     })
 
 
@@ -69,6 +71,33 @@ describe("simple transforms",() => {
         expect(context.path[3][0]).to.eq( 'l')
         expect(context.path[3][1].x).to.eq( 10)
         expect(context.path[3][1].y).to.eq( 10)
+
+    })
+
+    it('transforms a line', (done) => {
+        context.save();
+        // context.transform(1, .2, .8, 1, 0, 0);
+        context.setTransform(1, .2, .8, 1, 0, 0);
+
+        context.beginPath();
+        context.moveTo(0, 0);
+        context.lineTo(20, 0);
+        context.lineTo(10, 10);
+
+        expect(context.path[0][0]).to.eq( 'm')
+        expect(context.path[0][1].x).to.eq( 0)
+        expect(context.path[0][1].y).to.eq( 0)
+        expect(context.path[1][0]).to.eq( 'l')
+        expect(context.path[1][1].x).to.eq( 20)
+        expect(context.path[1][1].y).to.eq( 4)
+        expect(context.path[2][0]).to.eq( 'l')
+        expect(context.path[2][1].x).to.eq( 18)
+        expect(context.path[2][1].y).to.eq( 12)
+
+        context.strokeStyle = 'black'
+        context.stroke()
+        context.restore();
+        write_png(image,'line_transform').then(done)
 
     })
 

@@ -273,6 +273,25 @@ export class Context {
         this._transform.scale(sx,sy);
     }
 
+    transform(...args) {
+        let new_mat = [...args]
+        this._transform.multiply(new_mat)
+    }
+
+    setTransform(...args) {
+        this._transform.identity()
+        if(args[0].is2D) {
+            let new_mat = this._transform.fromDomMatrix(args[0])
+            this._transform.multiply(new_mat)
+        } else {
+            this._transform.multiply([...args])
+        }
+    }
+    getTransform() {
+        return this._transform.asDomMatrix()
+    }
+
+
     /**
      * Restores the most recently saved canvas state by popping the top entry in the drawing state stack. If there is no saved state, this method does nothing.
      *

@@ -46,6 +46,22 @@ export function Transform(context) {
         return trans
     }
 
+    this.asDomMatrix = function() {
+        return {
+            is2D:true,
+            isIdentity:false,
+            a:this.matrix[0],
+            b:this.matrix[1],
+            c:this.matrix[2],
+            d:this.matrix[3],
+            e:this.matrix[4],
+        }
+    }
+    this.fromDomMatrix = function(dom) {
+        return [dom.a,dom.b,dom.c,dom.d,dom.e,dom.f]
+    }
+
+
     //==========================================
     // Stack
     //==========================================
@@ -143,14 +159,14 @@ export function Transform(context) {
     };
 
     this.multiply = function(matrix) {
-        const m11 = this.matrix[0] * matrix.m[0] + this.matrix[2] * matrix.m[1]
-        const m12 = this.matrix[1] * matrix.m[0] + this.matrix[3] * matrix.m[1]
+        const m11 = this.matrix[0] * matrix[0] + this.matrix[2] * matrix[1]
+        const m12 = this.matrix[1] * matrix[0] + this.matrix[3] * matrix[1]
 
-        const m21 = this.matrix[0] * matrix.m[2] + this.matrix[2] * matrix.m[3]
-        const m22 = this.matrix[1] * matrix.m[2] + this.matrix[3] * matrix.m[3]
+        const m21 = this.matrix[0] * matrix[2] + this.matrix[2] * matrix[3]
+        const m22 = this.matrix[1] * matrix[2] + this.matrix[3] * matrix[3]
 
-        const dx = this.matrix[0] * matrix.m[4] + this.matrix[2] * matrix.m[5] + this.matrix[4]
-        const dy = this.matrix[1] * matrix.m[4] + this.matrix[3] * matrix.m[5] + this.matrix[5]
+        const dx = this.matrix[0] * matrix[4] + this.matrix[2] * matrix[5] + this.matrix[4]
+        const dy = this.matrix[1] * matrix[4] + this.matrix[3] * matrix[5] + this.matrix[5]
 
         this.matrix[0] = m11;
         this.matrix[1] = m12;
