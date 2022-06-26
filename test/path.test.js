@@ -205,6 +205,78 @@ describe('draw curve',() => {
             done()
         })
     })
+
+    it('draws round rect',(done) => {
+        create();
+
+        let img = create();
+        pureimage.encodePNGToStream(img, fs.createWriteStream(path.join(DIR,'roundrect.png'))).then(() => {
+            console.log('wrote out roundrect.png')
+            done()
+        }).catch((e)=>{
+            console.log("there was an error writing");
+            console.log(e);
+        });
+
+        function create() {
+            let img = pureimage.make(1200, 628)
+            let ctx = img.getContext('2d')
+            let WIDTH = 1200
+            let HEIGHT = 628
+
+            ctx.imageSmoothingEnabled = true;
+
+            // clear background
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+            // background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            // top color box
+            ctx.fillStyle = '#142C6E';
+            ctx.fillRect(0, 0, 338, HEIGHT / 2);
+
+            // bottom color box
+            ctx.fillStyle = "#FF0000";
+            ctx.fillRect(0, HEIGHT / 2, 338, HEIGHT / 2);
+
+            // Green rectangle box
+            ctx.fillStyle = '#00FF00';
+            roundRect(ctx, 44, 239, 250, 150, 8);
+
+
+            function roundRect(ctx, x, y, width, height, radius) {
+                console.log("drawing a round rect");
+                if (typeof radius === 'undefined') {
+                    radius = 5;
+                }
+                if (typeof radius === 'number') {
+                    radius = {tl: radius, tr: radius, br: radius, bl: radius};
+                } else {
+                    var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+                    for (var side in defaultRadius) {
+                        radius[side] = radius[side] || defaultRadius[side];
+                    }
+                }
+                ctx.beginPath();
+                ctx.moveTo(x + radius.tl, y);
+                ctx.lineTo(x + width - radius.tr, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+                ctx.lineTo(x + width, y + height - radius.br);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+                ctx.lineTo(x + radius.bl, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+                ctx.lineTo(x, y + radius.tl);
+                ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+                ctx.lineTo(x + radius.tl, y);
+                ctx.closePath();
+                // ctx.fill_aa();
+                ctx.fill()
+            }
+            return img
+        }
+    })
 })
 describe('restroke test',() => {
     it('draws multiple lines',(done) => {
