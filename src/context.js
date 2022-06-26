@@ -66,7 +66,7 @@ export class Context {
         /**
          * @type {Transform}
          */
-        this.transform = new trans.Transform();
+        this._transform = new trans.Transform();
 
         /**
          * @type {object} Plain js object wrapping the font name and size
@@ -223,7 +223,7 @@ export class Context {
      * @memberof Context
      */
     save() {
-        this.transform.save();
+        this._transform.save();
     }
 
     /**
@@ -239,7 +239,7 @@ export class Context {
      * @memberof Context
      */
     translate(x,y) {
-        this.transform.translate(x,y);
+        this._transform.translate(x,y);
     }
 
     /**
@@ -254,7 +254,7 @@ export class Context {
      * @memberof Context
      */
     rotate(angle) {
-        this.transform.rotate(angle);
+        this._transform.rotate(angle);
     }
 
     /**
@@ -270,7 +270,7 @@ export class Context {
      * @memberof Context
      */
     scale(sx,sy) {
-        this.transform.scale(sx,sy);
+        this._transform.scale(sx,sy);
     }
 
     /**
@@ -283,7 +283,7 @@ export class Context {
      * @memberof Context
      */
     restore() {
-        this.transform.restore();
+        this._transform.restore();
     }
 
 
@@ -569,13 +569,13 @@ export class Context {
             new Point(dx+dw,dy+dh),
             new Point(dx,dy+dh),
             ]
-        pts = pts.map(pt => this.transform.transformPoint(pt))
+        pts = pts.map(pt => this._transform.transformPoint(pt))
         let dst_bounds = calc_min_bounds(pts)
 
         let bitmap_bounds = new Bounds(0,0, this.bitmap.width, this.bitmap.height)
         dst_bounds = dst_bounds.intersect(bitmap_bounds)
 
-        let inv = this.transform.cloneTransform()
+        let inv = this._transform.cloneTransform()
         inv.invert()
 
         //map dx to dx+dw  from sx to sx+sw
@@ -651,7 +651,7 @@ export class Context {
      * @memberof Context
     * */
     _moveTo(pt) {
-        pt = this.transform.transformPoint(pt);
+        pt = this._transform.transformPoint(pt);
         /**
          * Set the starting co-ordinates for the path starting point
          * @type {Point}
@@ -686,7 +686,7 @@ export class Context {
      * @memberof Context
      */
     _lineTo(pt) {
-        this.path.push([PATH_COMMAND.LINE, this.transform.transformPoint(pt)]);
+        this.path.push([PATH_COMMAND.LINE, this._transform.transformPoint(pt)]);
     }
 
     /**
@@ -704,8 +704,8 @@ export class Context {
      * @memberof Context
      */
     quadraticCurveTo(cp1x, cp1y, x,y) {
-        let cp1 = this.transform.transformPoint(new Point(cp1x, cp1y));
-        let pt  = this.transform.transformPoint(new Point(x, y));
+        let cp1 = this._transform.transformPoint(new Point(cp1x, cp1y));
+        let pt  = this._transform.transformPoint(new Point(x, y));
         this.path.push([PATH_COMMAND.QUADRATIC_CURVE, cp1, pt]);
     }
 
@@ -741,9 +741,9 @@ export class Context {
      * @memberof Context
     * */
     _bezierCurveTo(cp1, cp2, pt) {
-        cp1 = this.transform.transformPoint(cp1);
-        cp2 = this.transform.transformPoint(cp2);
-        pt  = this.transform.transformPoint(pt);
+        cp1 = this._transform.transformPoint(cp1);
+        cp2 = this._transform.transformPoint(cp2);
+        pt  = this._transform.transformPoint(pt);
         this.path.push([PATH_COMMAND.BEZIER_CURVE, cp1, cp2, pt]);
     }
 
