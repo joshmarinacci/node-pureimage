@@ -7,7 +7,7 @@ import * as TEXT from "./text.js"
 import * as trans from "./transform.js"
 import * as G from "./gradients.js"
 import {and, fromBytesBigEndian, getBytesBigEndian, or, shiftLeft, toUint32} from './uint32.js'
-import {clamp} from './util.js'
+import {clamp, colorStringToUint32} from './util.js'
 
 /**
  * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)
@@ -122,7 +122,7 @@ export class Context {
         if(val instanceof G.CanvasGradient) {
             this._fillColor = val
         } else {
-            this._fillColor = Context.colorStringToUint32(val);
+            this._fillColor = colorStringToUint32(val);
             this._fillStyle_text = val;
         }
     };
@@ -145,7 +145,7 @@ export class Context {
         if(val instanceof G.CanvasGradient) {
             this._strokeStyle_text = val
         } else {
-            this._strokeColor = Context.colorStringToUint32(val);
+            this._strokeColor = colorStringToUint32(val);
             this._strokeStyle_text = val;
         }
     };
@@ -1183,80 +1183,6 @@ export class Context {
     strokeText(text, x ,y) { TEXT.processTextPath(this, text, x,y, false, this.textAlign, this.textBaseline);  }
 
 
-    /**
-     * Color String To Unint32
-     *
-     * Convert a color string to Uint32 notation
-     *
-     * @static
-     * @param {string} str The color string to convert
-     *
-     * @returns {number}
-     *
-     * @example
-     * var uInt32 = colorStringToUint32('#FF00FF');
-     * console.log(uInt32); // Prints 4278255615
-     *
-     * @memberof Context
-     */
-    static colorStringToUint32(str) {
-        if(!str) return 0x000000;
-        if(str.indexOf('#')===0) {
-            if(str.length===4) {
-                //Color format is #RGB
-                //Will get 255 for the alpha channel
-                let redNibble = parseInt(str[1], 16);
-                let red = (redNibble << 4) | redNibble;
-                let greenNibble = parseInt(str[2], 16);
-                let green = (greenNibble << 4) | greenNibble;
-                let blueNibble = parseInt(str[3], 16);
-                let blue = (blueNibble << 4) | blueNibble;
-
-                let int = toUint32(red << 16 | green << 8 | blue);
-                int = shiftLeft(int,8);
-                return or(int,0xff);
-            } else if(str.length===5) {
-                //Color format is #RGBA
-                let redNibble = parseInt(str[1], 16);
-                let red = (redNibble << 4) | redNibble;
-                let greenNibble = parseInt(str[2], 16);
-                let green = (greenNibble << 4) | greenNibble;
-                let blueNibble = parseInt(str[3], 16);
-                let blue = (blueNibble << 4) | blueNibble;
-                let alphaNibble = parseInt(str[4], 16);
-                let alpha = (alphaNibble << 4) | alphaNibble;
-
-                let int = toUint32(red << 16 | green << 8 | blue);
-                int = shiftLeft(int,8);
-                return or(int,alpha);
-            } else if(str.length===7) {
-                //Color format is #RRGGBB
-                //Will get 255 for the alpha channel
-                let int = toUint32(parseInt(str.substring(1),16));
-                int = shiftLeft(int,8);
-                return or(int,0xff);
-            } else if(str.length===9) {
-                //Color format is #RRGGBBAA
-                return toUint32(parseInt(str.substring(1),16));
-            }
-        }
-        if(str.indexOf('rgba')===0) {
-            let parts = str.trim().substring(4).replace('(','').replace(')','').split(',');
-            return fromBytesBigEndian(
-                parseInt(parts[0]),
-                parseInt(parts[1]),
-                parseInt(parts[2]),
-                Math.floor(parseFloat(parts[3])*255));
-        }
-        if(str.indexOf('rgb')===0) {
-            let parts = str.trim().substring(3).replace('(','').replace(')','').split(',');
-            return fromBytesBigEndian(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]), 255);
-        }
-        if(NAMED_COLORS.hasOwnProperty(str)) {
-            return NAMED_COLORS[str];
-        }
-        throw new Error("unknown style format: " + str );
-    }
 
 }
 

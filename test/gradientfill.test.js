@@ -43,12 +43,18 @@ describe('drawing gradients',() => {
     it('fill with linear gradient',(done)=>{
         c.imageSmoothingEnabled = true
         const grad = c.createLinearGradient(0,0,20,20)
-        grad.addColorStop(0,'white')
+        grad.addColorStop(0,'#ffffff')
         grad.addColorStop(1,'blue')
         c.fillStyle = grad
         c.beginPath()
         c.rect(0,0,20,20)
         c.fill()
+        // expect(image.getPixelRGBA(0, 0)).to.eq(NAMED_COLORS.white)
+        expect(image.getPixelRGBA(19, 19)).to.eq(0x0c0cFFFF)
+        // console.log(image)
+        // for(let i=0; i<20; i++) {
+        //     console.log(i, image.getPixelRGBA_separate(i,19))
+        // }
         save(image, 'linear_gradient_fill.png',done)
     })
 
