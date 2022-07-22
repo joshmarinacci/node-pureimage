@@ -30,7 +30,7 @@
     "esdoc-member-plugin": "^1.0.0",
     "esdoc-node": "^1.0.3",
     "esdoc-standard-plugin": "^1.0.0",
-    "file-type": "^7.6.0",
+    "file-type": "^16.5.4",
     "mocha": "^8.3.1",
     "rollup": "^2.44.0",
     "tape": "^5.2.2"
