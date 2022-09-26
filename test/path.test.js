@@ -184,6 +184,28 @@ describe('draw curve',() => {
             done()
         })
     })
+    it('draws a thin horizontal line',(done) => {
+        let fname = "thin-h-stroke.png"
+        let image = pureimage.make(10, 10);
+        let c = image.getContext('2d');
+        c.imageSmoothingEnabled = true
+        c.fillStyle = 'white'
+        c.fillRect(0,0,10,10)
+        // c.debug = true
+        c.beginPath()
+        c.moveTo(2,5)
+        c.lineTo(8,5)
+        c.strokeStyle = 'black'
+        c.lineWidth = 1
+        c.stroke()
+        pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,fname))).then(() => {
+            console.log(`wrote out "${fname}"`)
+            // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
+            // expect(image.getPixelRGBA(19, 39)).to.eq(BLACK)
+            done()
+        })
+
+    })
     it("draws thick curve",(done) => {
         c.fillStyle = 'white'
         c.fillRect(0,0,200,200)

@@ -1075,8 +1075,8 @@ export class Context {
         const alpha = and(this._fillColor, 0xFF)
         const bounds = calcMinimumBounds(lines)
 
-        const startY = Math.min(bounds.y2 - 1, this.bitmap.height)
-        const endY = Math.max(bounds.y, 0)
+        const startY = Math.min(bounds.y2 + 1, this.bitmap.height)
+        const endY = Math.max(bounds.y-1, 0)
 
         for(let j=startY; j>=endY; j--) {
             const ints = calcSortedIntersections(lines, j)
@@ -1119,7 +1119,9 @@ export class Context {
         //get just the color part
         const rgb = and(this._fillColor, 0xFFFFFF00)
         const bounds = calcMinimumBounds(lines)
-        for(let j=bounds.y2-1; j>=bounds.y; j--) {
+        const startY = Math.min(bounds.y2 + 1, this.bitmap.height)
+        const endY = Math.max(bounds.y-1, 0)
+        for(let j=startY; j>=endY; j--) {
             const ints = calcSortedIntersections(lines, j)
             //fill between each pair of intersections
             for(let i=0; i<ints.length; i+=2) {
