@@ -6,6 +6,13 @@ PureImage is a pure 100% JavaScript implementation of the HTML Canvas 2D drawing
 It has no native dependencies. You can use it to resize images, draw text, render badges,
 convert to grayscale, or anything else you could do with the standard Canvas 2D API. 
 
+Installation
+==============
+
+```bash
+npm install pureimage
+```
+
 Simple example
 ==============
 
