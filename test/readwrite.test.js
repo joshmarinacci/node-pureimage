@@ -116,6 +116,18 @@ describe('JPEG image', () => {
         }).catch(e => console.error(e));
     });
 
+    it('can be decoded from a stream with settings', (done) => {
+        pureimage.decodeJPEGFromStream(fs.createReadStream(FIXTURES_DIR + 'images/bird.jpg'),{
+            tolerantDecoding:true,
+            maxMemoryUsageInMB:1024,
+        }).then((jpeg) => {
+            expect(jpeg.width).to.eq(200);
+            expect(jpeg.height).to.eq(133);
+            expect(jpeg.getPixelRGBA(3, 3)).to.eq(0xE8EAEDFF);
+            done();
+        }).catch(e => console.error(e));
+    });
+
     /**
      * @test {decodeJPEGFromStream}
      */
