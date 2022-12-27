@@ -102,6 +102,8 @@ export class Context {
          * @type {string}
          */
         this._strokeStyle_text = '';
+
+        this.states = []
     }
 
     /**
@@ -223,6 +225,9 @@ export class Context {
      * @memberof Context
      */
     save() {
+        this.states.push({
+            _clip:this._clip
+        })
         this._transform.save();
     }
 
@@ -303,6 +308,10 @@ export class Context {
      */
     restore() {
         this._transform.restore();
+        let state = this.states.pop()
+        if(state) {
+            this._clip = state._clip
+        }
     }
 
 
