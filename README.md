@@ -260,6 +260,11 @@ pureimage.encodePNGToStream(canvas, passThroughStream).then(()=> {
 })
 ```
 
+### Using a really large image buffer
+
+PureImage has no inherit size limitations, but NodeJS does have a default max memory
+setting. You can learn how to increase the default [here](https://stackoverflow.com/questions/34356012/how-to-increase-nodejs-default-memory)
+
 
 
 
