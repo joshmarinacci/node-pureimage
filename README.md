@@ -4,7 +4,8 @@ PureImage
 
 PureImage is a pure 100% JavaScript implementation of the HTML Canvas 2D drawing API for NodeJS.
 It has no native dependencies. You can use it to resize images, draw text, render badges,
-convert to grayscale, or anything else you could do with the standard Canvas 2D API. 
+convert to grayscale, or anything else you could do with the standard Canvas 2D API. It also has
+additional APIs to save an image as PNG and JPEG.
 
 Installation
 ==============
@@ -239,6 +240,29 @@ PImage.registerFont(fontpath,'MyFont').loadPromise()
         console.log('done writing',filepath)
     })
 ```
+
+Save a canvas to a NodeJS buffer as PNG using a `PassThrough` stream:
+
+```javascript
+import * as PImage from "pureimage"
+import {PassThrough} from "stream"
+const passThroughStream = new PassThrough();
+const pngData = [];
+passThroughStream.on('data', chunk => pngData.push(chunk));
+passThroughStream.on('end', () => {});
+pureimage.encodePNGToStream(canvas, passThroughStream).then(()=> {
+    let buf = Buffer.concat(pngData);
+    expect(buf[0]).to.eq(0x89)
+    expect(buf[1]).to.eq(0x50)
+    expect(buf[2]).to.eq(0x4E)
+    expect(buf[3]).to.eq(0x47)
+    done()
+})
+```
+
+
+
+
 
 
 New 0.3.x release
