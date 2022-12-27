@@ -284,6 +284,19 @@ pureimage.encodePNGToStream(canvas, passThroughStream).then(()=> {
 })
 ```
 
+# Troubleshooting
+
+
+### missing or broken text
+
+PureImage uses [OpenType.js](https://opentype.js.org) to parse fonts
+and rasterize glyphs. If you are having trouble rendering something first
+check on the [OpenType website](https://opentype.js.org) that the font can
+actually be parsed and rendered. If you are rendering non-latin character sets
+you may need to install an additional dependency to your operating system. 
+For example, rendering arabic text may require `pip install arabic-reshaper` on Linux.
+
+
 ### Using a really large image buffer
 
 PureImage has no inherit size limitations, but NodeJS does have a default max memory
