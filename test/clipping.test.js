@@ -58,5 +58,17 @@ describe('clipping tests',() => {
         })
     })
 
+    it('can save and restore clips',(done) => {
+        expect(context._clip).to.eq(null)
+        context.save();
+        context.beginPath();
+        context.rect(0,0,10,10)
+        context.clip();
+        expect(context._clip.length).to.eq(4)
+        context.restore()
+        expect(context._clip).to.eq(null)
+        done()
+    })
+
 
 })
