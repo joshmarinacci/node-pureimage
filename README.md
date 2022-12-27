@@ -241,6 +241,30 @@ PImage.registerFont(fontpath,'MyFont').loadPromise()
     })
 ```
 
+The same as above but with async await
+
+```javascript
+import fs from 'fs'
+import * as https from "https"
+async function doit() {
+    let url = "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png"
+    let filepath = "output.png"
+    let fontpath = 'test/unit/fixtures/fonts/SourceSansPro-Regular.ttf'
+    await PImage.registerFont(fontpath,'MyFont').loadPromise()
+    //Promise hack because https module doesn't support promises natively)
+    let stream = await (new Promise(res => https.get(url,res)))
+    let img = await PImage.decodePNGFromStream(stream)
+    const ctx = img.getContext('2d');
+    ctx.fillStyle = '#000000';
+    ctx.font = "60pt MyFont";
+    ctx.fillText(new Date().toDateString(), 50, 80);
+    await PImage.encodePNGToStream(img, fs.createWriteStream(filepath))
+    console.log('done writing',filepath)
+}
+doit().then(()=>console.log("done")).catch(e => console.error(e))
+```
+
+
 Save a canvas to a NodeJS buffer as PNG using a `PassThrough` stream:
 
 ```javascript
