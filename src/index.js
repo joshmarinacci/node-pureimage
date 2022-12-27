@@ -82,7 +82,7 @@ export function decodePNGFromStream(instream) {
  * @param {Bitmap} img       An instance of {@link Bitmap} to be encoded to JPEG, `img.data` must be a buffer of raw JPEG data
  * @param {Stream} outstream The stream to write the raw JPEG buffer to
  * @param {Int} Number between 0 and 100 setting the JPEG quality
- * @returns {Promise<void>}
+  * @returns {Promise<void>}
  */
 export function encodeJPEGToStream(img, outstream, quality) {
     quality = quality || 90;
@@ -112,7 +112,7 @@ export function encodeJPEGToStream(img, outstream, quality) {
  *
  * @returns {Promise<Bitmap>}
  */
-export function decodeJPEGFromStream(data) {
+export function decodeJPEGFromStream(data, opts) {
     return new Promise((res,rej)=>{
         try {
             const chunks = []
@@ -121,7 +121,7 @@ export function decodeJPEGFromStream(data) {
                 const buf = Buffer.concat(chunks)
                 let rawImageData = null
                 try {
-                    rawImageData = JPEG.decode(buf);
+                    rawImageData = JPEG.decode(buf,opts);
                 } catch(err) {
                     rej(err);
                     return
