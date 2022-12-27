@@ -72,12 +72,12 @@ describe('PNG image', () => {
  */
 describe('JPEG image', () => {
 
-    let PImage
+    let canvas
     let context
 
     beforeEach(() => {
-        PImage  = pureimage.make(200, 200);
-        context = PImage.getContext('2d');
+        canvas  = pureimage.make(200, 200);
+        context = canvas.getContext('2d');
     });
 
     /**
@@ -88,7 +88,7 @@ describe('JPEG image', () => {
         const passThroughStream = new PassThrough();
         const JPEGData          = [];
 
-        const JPEGPromise = pureimage.encodeJPEGToStream(PImage, passThroughStream).catch(e => console.error(e))
+        const JPEGPromise = pureimage.encodeJPEGToStream(canvas, passThroughStream).catch(e => console.error(e))
 
         passThroughStream.on('data', chunk => JPEGData.push(chunk))
         passThroughStream.on('end', () => {
@@ -119,12 +119,27 @@ describe('JPEG image', () => {
     /**
      * @test {decodeJPEGFromStream}
      */
-    it('rejects invalid JPEG data', () => {
+    it('rejects invalid JPEG data', (done) => {
         pureimage.decodeJPEGFromStream(fs.createReadStream( '/package.json')).catch(e => done())
     });
 
+    it('saves to a nodejs buffer', () => {
+        const passThroughStream = new PassThrough();
+        const pngData = [];
+        passThroughStream.on('data', chunk => pngData.push(chunk));
+        passThroughStream.on('end', () => {});
+        pureimage.encodePNGToStream(canvas, passThroughStream).then(()=> {
+            let buf = Buffer.concat(pngData);
+            expect(buf[0]).to.eq(0x89)
+            expect(buf[1]).to.eq(0x50)
+            expect(buf[2]).to.eq(0x4E)
+            expect(buf[3]).to.eq(0x47)
+            done()
+        })
+    })
+
     afterEach(() => {
-        PImage  = undefined;
+        canvas  = undefined;
         context = undefined;
     });
 });

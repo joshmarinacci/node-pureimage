@@ -15,5 +15,8 @@ export const mkdir = (pth) => {
 }
 
 export function write_png (image,filename) {
-    return pureimage.encodePNGToStream(image, fs.createWriteStream(path.join('output',filename+".png")))
+    let pth = path.join('output',filename+".png")
+    console.log("writing to",pth)
+    let stream = fs.createWriteStream(pth);
+    return pureimage.encodePNGToStream(image, stream)
 }
