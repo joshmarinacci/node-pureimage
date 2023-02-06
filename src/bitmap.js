@@ -73,6 +73,10 @@ export class Bitmap {
      * @memberof Bitmap
      */
     setPixelRGBA(x,y,rgba) {
+        if(x < 0) return
+        if(y < 0) return
+        if(x >= this.width) return
+        if(y >= this.height) return
         let i = this.calculateIndex(x, y);
         const bytes = getBytesBigEndian(rgba);
         this.data[i+0] = bytes[0];
