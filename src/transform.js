@@ -11,6 +11,8 @@
 "use strict";
 import {Point} from './point.js'
 
+const IDENTITY_MATRIX = [1,0,0,1,0,0];
+
 /**
  * @ignore
  */
@@ -154,9 +156,16 @@ export function Transform(context) {
     }
 
     this.identity = function() {
-        this.m = [1,0,0,1,0,0];
+        this.m = IDENTITY_MATRIX
         this.setTransform();
     };
+
+    this.isIdentity = function() {
+        for(let i=0; i<this.matrix.length; i++) {
+            if(this.matrix[i] !== IDENTITY_MATRIX[i]) return false
+        }
+        return true
+    }
 
     this.multiply = function(matrix) {
         const m11 = this.matrix[0] * matrix[0] + this.matrix[2] * matrix[1]

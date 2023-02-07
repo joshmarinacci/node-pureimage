@@ -330,10 +330,21 @@ export class Context {
      * @memberof Context
      */
     fillRect(x,y,w,h) {
-        for(let i=x; i<x+w; i++) {
-            for(let j=y; j<y+h; j++) {
-                this.fillPixelWithColor(i,j,this.calculateRGBA(i,j))
+        if(this._transform.isIdentity()) {
+            for (let i = x; i < x + w; i++) {
+                for (let j = y; j < y + h; j++) {
+                    this.fillPixelWithColor(i, j, this.calculateRGBA(i, j))
+                }
             }
+        } else {
+            let old_path = this.path
+            let old_closed = this._closed
+            this.beginPath()
+            this.rect(x-0.0001, y-0.0001, w, h)
+            this.closePath()
+            this.fill()
+            this.path = old_path
+            this._closed = old_closed
         }
     }
 
