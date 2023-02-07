@@ -204,9 +204,9 @@ describe("transform rect",() => {
         context.translate(5, 0);
         fillRect()
         context.restore();
-        // expect(image.getPixelRGBA(0,   0)).to.eq(0xFFFFFFFF)
-        // expect(image.getPixelRGBA(10,  0)).to.eq(0xFF0000FF)
-        // expect(image.getPixelRGBA(10, 10)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(0,   0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(10,  0)).to.eq(0xFF0000FF)
+        expect(image.getPixelRGBA(10, 10)).to.eq(0xFFFFFFFF)
         save(image,'transform_rect_translate',done)
     })
 })
