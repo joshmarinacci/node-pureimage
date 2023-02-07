@@ -3,12 +3,14 @@ import fs from "fs"
 
 import * as pureimage from "../src/index.js"
 import * as PImage from "../src/index.js";
+import {save} from './common.js'
 
 describe('text drawing',() => {
     let image
     let context
     const WHITE = 0xFFFFFFFF
     const BLACK = 0x000000FF
+    const BLUE = 0x0000FFFF
 
     beforeEach(() => {
         image  = pureimage.make(200, 200);
@@ -22,9 +24,9 @@ describe('text drawing',() => {
             context.fillStyle = 'blue'
             context.font = "48pt 'Source Sans Pro'";
             context.fillText("some text", 50, 50)
-            done()
+            expect(image.getPixelRGBA(50+4, 50-2)).to.eq(BLUE)
+            save(image,"text-simple",done)
         })
-
     })
 
 
@@ -64,11 +66,7 @@ describe('text drawing',() => {
             write('U',50,50,'center')
             expect(image.getPixelRGBA(41,20)).to.eq(BLACK)
             expect(image.getPixelRGBA(50,20)).to.eq(WHITE)
-
-            // pureimage.encodePNGToStream(image, fs.createWriteStream('bug31.png')).then(() => {
-            //     console.log('wrote out bug31.png')
-                done()
-            // });
+            save(image,"text-halign",done)
         })
     })
 
@@ -89,28 +87,47 @@ describe('text drawing',() => {
             context.fillRect(0,50-47,200,1)
             context.fillRect(0,50-47/2,200,1)
             context.fillRect(0,50-13,200,1)
-            // writeV('Hello',50,50,'top')
-            // writeV('Hey',50,50,'middle')
-            // writeV('hey',50,50,'alphabetic')
-            writeV('hey',50,50,'bottom')
-            pureimage.encodePNGToStream(image, fs.createWriteStream('bug31.png')).then(() => {
-                console.log('wrote out bug31.png')
-                //top
-                // expect(image.getPixelRGBA(90,37+47)).toBe(BLACK)
-                // expect(image.getPixelRGBA(90,39+47)).toBe(WHITE)
-                //middle
-                // expect(image.getPixelRGBA(90,37+47/2+ -13/2)).toBe(BLACK)
-                // expect(image.getPixelRGBA(90,39+47/2+ -13/2)).toBe(WHITE)
+
+            {
+                writeV('Hello', 50, 50, 'top')
+                let y = 37+47
+                context.fillStyle = 'magenta'
+                expect(image.getPixelRGBA(90, y)).to.eq(BLACK)
+                expect(image.getPixelRGBA(90, y+2)).to.eq(WHITE)
+                context.fillRect(90, y, 1, 1)
+                // clear()
+            }
+
+            {
+                writeV('Hey',50,50,'middle')
+                context.fillStyle = 'magenta'
+                let y = 37 + 47/2 - 13/2
+                expect(image.getPixelRGBA(90,y)).to.eq(BLACK)
+                expect(image.getPixelRGBA(90,y+2)).to.eq(WHITE)
+                context.fillRect(91,y,1,1)
+            }
+
+            {
+                writeV('hey', 50, 50, 'alphabetic')
+                context.fillStyle = 'magenta'
+                let y = 37
                 //alphabetic
-                // expect(image.getPixelRGBA(90,37)).toBe(BLACK)
-                // expect(image.getPixelRGBA(90,39)).toBe(WHITE)
+                expect(image.getPixelRGBA(90, y)).to.eq(BLACK)
+                expect(image.getPixelRGBA(90, y+2)).to.eq(WHITE)
+                context.fillRect(91, y, 1, 1)
+                // clear()
+            }
+
+            {
                 //bottom
-                expect(image.getPixelRGBA(90,37-13)).to.eq(BLACK)
-                expect(image.getPixelRGBA(90,40-13)).to.eq(WHITE)
-                done()
-            }).catch(e => {
-                console.error(e)
-            })
+                writeV('hey',50,50,'bottom')
+                context.fillStyle = 'magenta'
+                let y = 37-13
+                expect(image.getPixelRGBA(90,y)).to.eq(BLACK)
+                expect(image.getPixelRGBA(90,y-2)).to.eq(WHITE)
+                context.fillRect(91, y, 1, 1)
+            }
+            save(image,"text-valign",done)
         })
     })
 })
