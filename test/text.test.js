@@ -29,6 +29,16 @@ describe('text drawing',() => {
         })
     })
 
+    it('can draw empty text without crashing',done => {
+        const fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
+        fnt.load(()=>{
+            context.fillStyle = 'blue'
+            context.font = "48pt 'Source Sans Pro'";
+            context.fillText("", 50, 50)
+            save(image,"text-empty",done)
+        })
+    })
+
 
     it('can measure text',(done) => {
         const fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
