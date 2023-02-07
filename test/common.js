@@ -20,3 +20,15 @@ export function write_png (image,filename) {
     let stream = fs.createWriteStream(pth);
     return pureimage.encodePNGToStream(image, stream)
 }
+
+const DIR = "output"
+
+export function save(image, filename, done) {
+    mkdir(DIR).then(()=>{
+        let pth = path.join(DIR, filename+".png")
+        pureimage.encodePNGToStream(image, fs.createWriteStream(pth)).then(() => {
+            console.log(`wrote out ${pth}`)
+            done()
+        })
+    }).catch(e => console.error(e))
+}

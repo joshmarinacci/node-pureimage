@@ -1,18 +1,8 @@
-import chai, {expect} from "chai"
+import {expect} from "chai"
 import * as pureimage from "../src/index.js"
-import fs from "fs"
-import path from "path";
-import {NAMED_COLORS} from "../src/named_colors.js";
+import {NAMED_COLORS} from "../src/named_colors.js"
+import {save} from './common.js'
 
-const DIR = "output"
-
-function save(image, filename, done) {
-    let pth = path.join(DIR,filename)
-    pureimage.encodePNGToStream(image, fs.createWriteStream(pth)).then(() => {
-        console.log(`wrote out ${pth}`)
-        done()
-    }).catch(e => console.error(e))
-}
 describe('drawing gradients',() => {
 
     let image
@@ -34,10 +24,9 @@ describe('drawing gradients',() => {
         grad.addColorStop(1,'blue')
         c.fillStyle = grad
         c.fillRect(0,0,20,20)
-
         expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
-        save(image, 'linear_gradient_fillrect.png',done)
+        save(image, 'linear_gradient_fillrect',done)
     })
 
     it('fill with linear gradient',(done)=>{

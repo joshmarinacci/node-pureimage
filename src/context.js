@@ -1,7 +1,7 @@
 "use strict";
 
 import {Line} from "./line.js"
-import {NAMED_COLORS} from './named_colors.js'
+import {NAMED_COLORS, TRANSPARENT_BLACK} from './named_colors.js'
 import {Bounds, calc_min_bounds, Point, toDeg, toRad} from "./point.js"
 import * as TEXT from "./text.js"
 import * as trans from "./transform.js"
@@ -330,10 +330,21 @@ export class Context {
      * @memberof Context
      */
     fillRect(x,y,w,h) {
-        for(let i=x; i<x+w; i++) {
-            for(let j=y; j<y+h; j++) {
-                this.fillPixel(i,j);
+        if(this._transform.isIdentity()) {
+            for (let i = x; i < x + w; i++) {
+                for (let j = y; j < y + h; j++) {
+                    this.fillPixelWithColor(i, j, this.calculateRGBA(i, j))
+                }
             }
+        } else {
+            let old_path = this.path
+            let old_closed = this._closed
+            this.beginPath()
+            this.rect(x-0.0001, y-0.0001, w, h)
+            this.closePath()
+            this.fill()
+            this.path = old_path
+            this._closed = old_closed
         }
     }
 
@@ -354,7 +365,7 @@ export class Context {
     clearRect(x,y,w,h) {
         for(let i=x; i<x+w; i++) {
             for(let j=y; j<y+h; j++) {
-                this.bitmap.setPixelRGBA(i,j,0x00000000);
+                this.bitmap.setPixelRGBA(i,j,TRANSPARENT_BLACK);
             }
         }
     }
@@ -398,11 +409,10 @@ export class Context {
         if(!this.pixelInsideClip(x,y)) {
             return
         }
-
+        if(!this.bitmap._isValidCoords(x,y)) return
         const new_pixel = this.calculateRGBA(x, y)
         const old_pixel = this.bitmap.getPixelRGBA(x, y)
         const final_pixel = this.composite(x, y, old_pixel, new_pixel)
-
         this.bitmap.setPixelRGBA(x,y,final_pixel);
     }
 
@@ -446,6 +456,7 @@ export class Context {
             return
         }
 
+        if(!this.bitmap._isValidCoords(x,y)) return
         const new_pixel = col
         const old_pixel = this.bitmap.getPixelRGBA(x, y)
         const final_pixel = this.composite(x, y, old_pixel, new_pixel)
@@ -622,7 +633,7 @@ export class Context {
                 )
                 if(src_bounds.contains(src_pt)) {
                     const rgba = bitmap.getPixelRGBA(src_pt.x, src_pt.y)
-                    if(this.pixelInsideClip(dst_pt.x,dst_pt.y)) {
+                    if(this.pixelInsideClip(dst_pt.x,dst_pt.y) && this.bitmap._isValidCoords(dst_pt.x,dst_pt.y)) {
                         this.bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, rgba)
                     }
                 }

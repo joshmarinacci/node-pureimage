@@ -1,4 +1,4 @@
-import {NAMED_COLORS} from "./named_colors.js"
+import {NAMED_COLORS, OPAQUE_BLACK} from "./named_colors.js"
 import {Context} from "./context.js"
 import {fromBytesBigEndian, getBytesBigEndian} from './uint32.js'
 
@@ -35,7 +35,9 @@ export class Bitmap {
          */
         this.data = Buffer.alloc(w*h*4);
 
-        const fillval = NAMED_COLORS.transparent
+        // per the spec, fill it with opaque black
+        // https://html.spec.whatwg.org/multipage/canvas.html#output-bitmap
+        const fillval = OPAQUE_BLACK
         for(let j=0; j<h; j++) {
             for (let i = 0; i < w; i++) {
                 this.setPixelRGBA(i, j, fillval);
@@ -73,6 +75,7 @@ export class Bitmap {
      * @memberof Bitmap
      */
     setPixelRGBA(x,y,rgba) {
+        this.validate_coords(x,y)
         let i = this.calculateIndex(x, y);
         const bytes = getBytesBigEndian(rgba);
         this.data[i+0] = bytes[0];
@@ -114,6 +117,7 @@ export class Bitmap {
      * @memberof Bitmap
      */
     getPixelRGBA(x,y) {
+        this.validate_coords(x,y)
         let i = this.calculateIndex(x, y);
         return fromBytesBigEndian(
             this.data[i+0],
@@ -176,4 +180,18 @@ export class Bitmap {
         }
     }
 
+    _isValidCoords(x,y) {
+        if(x<0) return false
+        if(y<0) return false
+        if(x>=this.width) return false
+        if(y>=this.height) return false
+        return true
+    }
+
+    validate_coords(x, y) {
+        if(x<0) throw new Error(`Invalid Index: x ${x} <0`)
+        if(y<0) throw new Error(`Invalid Index: y ${y} <0`)
+        if(x>=this.width) throw new Error(`Invalid Index: x ${x} >= width ${this.width}`)
+        if(y>=this.height) throw new Error(`Invalid Index: x ${x} >= width ${this.height}`)
+    }
 }

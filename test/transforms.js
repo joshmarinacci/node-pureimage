@@ -1,8 +1,6 @@
 import * as pureimage from "../src/index.js"
 import chai, {expect} from "chai"
-import fs from 'fs'
-import path from 'path'
-import {mkdir, write_png} from './common.js'
+import {mkdir, save} from './common.js'
 
 
 describe("simple transforms",() => {
@@ -97,8 +95,7 @@ describe("simple transforms",() => {
         context.strokeStyle = 'black'
         context.stroke()
         context.restore();
-        write_png(image,'line_transform').then(done)
-
+        save(image,'line_transform',done)
     })
 
 })
@@ -130,11 +127,9 @@ describe("transform image",()=>{
 
     it('draws image normally',(done)=>{
         context.drawImage(src,0,0)
-        write_png(image,'image_plain').then(() => {
-            expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
-            expect(image.getPixelRGBA(25,0)).to.eq(0x000000FF)
-            done()
-        })
+        expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(25,0)).to.eq(0x000000FF)
+        save(image,'transform_image_plain',done)
     })
 
     it('draws image translated',(done)=>{
@@ -142,13 +137,9 @@ describe("transform image",()=>{
         context.translate(50,50)
         context.drawImage(src,0,0)
         context.restore()
-        write_png(image,'image_translated').then(()=>{
-            expect(image.getPixelRGBA(0+50, 0+50)).to.eq(0xFFFFFFFF)
-            expect(image.getPixelRGBA(25+50,0+50)).to.eq(0x000000FF)
-            done()
-        }).catch(e => {
-            console.error(e)
-        })
+        expect(image.getPixelRGBA(0+50, 0+50)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(25+50,0+50)).to.eq(0x000000FF)
+        save(image,'image_translated',done)
     })
 
     it('draws image scaled',(done)=>{
@@ -156,13 +147,9 @@ describe("transform image",()=>{
         context.scale(3,3)
         context.drawImage(src,0,0)
         context.restore()
-        write_png(image,'image_scaled').then(()=>{
-            expect(image.getPixelRGBA(0*3, 0*3)).to.eq(0xFFFFFFFF)
-            expect(image.getPixelRGBA(25*3,0*3)).to.eq(0x000000FF)
-            done()
-        }).catch(e => {
-            console.error(e)
-        })
+        expect(image.getPixelRGBA(0*3, 0*3)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(25*3,0*3)).to.eq(0x000000FF)
+        save(image,'image_scaled',done)
     })
 
     it('draws image rotated',(done)=>{
@@ -170,13 +157,9 @@ describe("transform image",()=>{
         context.rotate(-30*Math.PI/180)
         context.drawImage(src,0,0)
         context.restore()
-        write_png(image,'image_rotated').then(()=>{
-            expect(image.getPixelRGBA(10, 0)).to.eq(0xFFFFFFFF)
-            expect(image.getPixelRGBA(40,0)).to.eq(0x000000FF)
-            done()
-        }).catch(e => {
-            console.error(e)
-        })
+        expect(image.getPixelRGBA(10, 0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(40,0)).to.eq(0x000000FF)
+        save(image,'image_rotated',done)
     })
 
     it('draws combined',(done)=>{
@@ -186,12 +169,44 @@ describe("transform image",()=>{
         context.translate(-25,-25)
         context.drawImage(src,0,0)
         context.restore()
-        write_png(image,'image_combined').then(()=>{
-            expect(image.getPixelRGBA(100, 103)).to.eq(0xFFFFFFFF)
-            expect(image.getPixelRGBA(100,97)).to.eq(0x000000FF)
-            done()
-        }).catch(e => {
-            console.error(e)
-        })
+        expect(image.getPixelRGBA(100, 103)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(100,97)).to.eq(0x000000FF)
+        save(image,'image_combined',done)
+    })
+})
+
+describe("transform rect",() => {
+    let image
+    let context
+
+    beforeEach(() => {
+        image = pureimage.make(20,20)
+        context = image.getContext('2d')
+        context.fillStyle = 'white'
+        context.fillRect(0,0,20,20)
+    })
+    function fillRect() {
+        context.fillStyle = 'red'
+        context.fillRect(0,0,10,10)
+        context.fillRect(10,10,10,10)
+    }
+
+    it("draws two rects",(done)=>{
+        fillRect()
+        expect(image.getPixelRGBA(0,   0)).to.eq(0xFF0000FF)
+        expect(image.getPixelRGBA(10,  0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(10, 10)).to.eq(0xFF0000FF)
+        save(image,'transform_rect_plain',done)
+    })
+
+    it("draws translated rects",(done)=>{
+        context.save();
+        context.translate(5, 0);
+        fillRect()
+        context.restore();
+        expect(image.getPixelRGBA(0,   0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(10,  0)).to.eq(0xFF0000FF)
+        expect(image.getPixelRGBA(10, 10)).to.eq(0xFFFFFFFF)
+        save(image,'transform_rect_translate',done)
     })
 })

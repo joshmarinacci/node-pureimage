@@ -1,17 +1,6 @@
 import chai, {expect} from "chai"
 import * as pureimage from "../src/index.js"
-import fs from "fs"
-import path from "path"
-const DIR = "output"
-const mkdir = (pth) => {
-    return new Promise((res,rej)=>{
-        fs.mkdir(pth,(e)=>{
-            // console.log("done with mkdir",e)
-            res()
-        })
-    })
-}
-mkdir(DIR)
+import {save} from './common.js'
 describe('draw curve',() => {
 
     let image;
@@ -59,7 +48,6 @@ describe('draw curve',() => {
         done()
     })
 
-    //draw bezier curve
     it('bezier curve', (done) => {
         c.fillStyle = 'white'
         c.fillRect(0,0,200,200)
@@ -70,16 +58,9 @@ describe('draw curve',() => {
         c.bezierCurveTo(50,50, 100,50, 10,100)
         c.lineTo(10,10)
         c.fill()
-        pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'bezier1.png'))).then(() => {
-            console.log('wrote out bezier1.png')
-            expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
-            expect(image.getPixelRGBA(19, 39)).to.eq(BLACK)
-            done()
-        })
-
-        // expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
-        // expect(image.getPixelRGBA(20,15)).to.eq(BLACK)
-        // done()
+        expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(19, 39)).to.eq(BLACK)
+        save(image,'bezier1',done)
     })
 
     it('arc', (done) => {
@@ -114,10 +95,7 @@ describe('draw curve',() => {
                 }
             }
         }
-        pureimage.encodePNGToStream(img, fs.createWriteStream(path.join(DIR,'arc.png'))).then(()=>{
-            console.log('wrote out arc.png')
-            done()
-        })
+        save(img,'arc',done)
     })
     it('north going polygon', (done) => {
         let img = pureimage.make(200, 200);
@@ -131,13 +109,9 @@ describe('draw curve',() => {
         ctx.lineTo(20,120)
         ctx.lineTo(20,50)
         ctx.fill();
-        pureimage.encodePNGToStream(img, fs.createWriteStream(path.join(DIR,'northgoing.png'))).then(()=>{
-            console.log('wrote out northgoing.png')
-            expect(img.getPixelRGBA(25, 110)).to.eq(BLACK)
-            expect(img.getPixelRGBA(25, 90)).to.eq(BLACK)
-            done()
-        })
-
+        expect(img.getPixelRGBA(25, 110)).to.eq(BLACK)
+        expect(img.getPixelRGBA(25, 90)).to.eq(BLACK)
+        save(img,"northgoing",done)
     })
     it('transparent polygon',(done)=>{
         c.beginPath()
@@ -152,9 +126,6 @@ describe('draw curve',() => {
         expect(image.getPixelRGBA(11,11)).to.eq(WHITE)
         expect(image.getPixelRGBA(50,50)).to.eq(WHITE)
         expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-
-
-
         done()
     })
     it("draws thick square",(done) => {
@@ -175,17 +146,11 @@ describe('draw curve',() => {
         c.lineWidth = 4
         c.fillStyle = 'black'
         c.stroke()
-        // c.fillStyle = 'black'
-        // c.fill()
-        pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'thick_stroke_square.png'))).then(() => {
-            console.log('wrote out thick_stroke.png')
-            // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
-            // expect(image.getPixelRGBA(19, 39)).to.eq(BLACK)
-            done()
-        })
+        expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(10, 10)).to.eq(BLACK)
+        save(image,'thick_stroke_square',done)
     })
     it('draws a thin horizontal line',(done) => {
-        let fname = "thin-h-stroke.png"
         let image = pureimage.make(10, 10);
         let c = image.getContext('2d');
         c.imageSmoothingEnabled = true
@@ -198,13 +163,9 @@ describe('draw curve',() => {
         c.strokeStyle = 'black'
         c.lineWidth = 1
         c.stroke()
-        pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,fname))).then(() => {
-            console.log(`wrote out "${fname}"`)
-            // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
-            // expect(image.getPixelRGBA(19, 39)).to.eq(BLACK)
-            done()
-        })
-
+        expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(5, 5)).to.eq(BLACK)
+        save(image,'think-h-stroke',done)
     })
     it("draws thick curve",(done) => {
         c.fillStyle = 'white'
@@ -218,28 +179,12 @@ describe('draw curve',() => {
         c.lineWidth = 2
         c.fillStyle = 'black'
         c.stroke()
-        // c.fillStyle = 'black'
-        // c.fill()
-        pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'thick_stroke_curve.png'))).then(() => {
-            console.log('wrote out thick_stroke.png')
-            // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
-            // expect(image.getPixelRGBA(19, 39)).to.eq(BLACK)
-            done()
-        })
+        save(image,"thick_stroke_curve",done)
     })
-
     it('draws round rect',(done) => {
         create();
-
         let img = create();
-        pureimage.encodePNGToStream(img, fs.createWriteStream(path.join(DIR,'roundrect.png'))).then(() => {
-            console.log('wrote out roundrect.png')
-            done()
-        }).catch((e)=>{
-            console.log("there was an error writing");
-            console.log(e);
-        });
-
+        save(img,"roundrect",done)
         function create() {
             let img = pureimage.make(1200, 628)
             let ctx = img.getContext('2d')
@@ -329,9 +274,6 @@ describe('restroke test',() => {
         ctx.lineTo(280, 140);
         ctx.stroke();
 
-        pureimage.encodePNGToStream(image, fs.createWriteStream(path.join(DIR,'restroke.png'))).then(() => {
-            console.log('wrote out restroke.png')
-            done()
-        })
+        save(image,'restroke',done)
     })
 })
