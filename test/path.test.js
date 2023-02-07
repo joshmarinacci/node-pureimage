@@ -1,18 +1,6 @@
 import chai, {expect} from "chai"
 import * as pureimage from "../src/index.js"
-import fs from "fs"
-import path from "path"
 import {save} from './common.js'
-const DIR = "output"
-const mkdir = (pth) => {
-    return new Promise((res,rej)=>{
-        fs.mkdir(pth,(e)=>{
-            // console.log("done with mkdir",e)
-            res()
-        })
-    })
-}
-mkdir(DIR)
 describe('draw curve',() => {
 
     let image;
