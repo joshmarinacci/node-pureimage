@@ -1,18 +1,8 @@
-import chai, {expect} from "chai"
+import {expect} from "chai"
 import * as pureimage from "../src/index.js"
-import fs from "fs"
-import path from "path";
-import {NAMED_COLORS} from "../src/named_colors.js";
+import {NAMED_COLORS} from "../src/named_colors.js"
+import {save} from './common.js'
 
-const DIR = "output"
-
-function save(image, filename, done) {
-    let pth = path.join(DIR,filename)
-    pureimage.encodePNGToStream(image, fs.createWriteStream(pth)).then(() => {
-        console.log(`wrote out ${pth}`)
-        done()
-    }).catch(e => console.error(e))
-}
 describe('drawing gradients',() => {
 
     let image
