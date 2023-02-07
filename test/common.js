@@ -25,7 +25,7 @@ const DIR = "output"
 
 export function save(image, filename, done) {
     mkdir(DIR).then(()=>{
-        let pth = path.join(DIR, filename)
+        let pth = path.join(DIR, filename+".png")
         pureimage.encodePNGToStream(image, fs.createWriteStream(pth)).then(() => {
             console.log(`wrote out ${pth}`)
             done()
