@@ -1,6 +1,7 @@
 import chai, {expect} from "chai"
 
 import * as pureimage from "../src/index.js"
+import {OPAQUE_BLACK} from '../src/named_colors.js'
 
 describe('color',() => {
     let image
@@ -12,7 +13,7 @@ describe('color',() => {
     })
 
     it('canvas is empty and clear', (done) => {
-        expect(image.getPixelRGBA(0,0)).to.eq(0x00000000)
+        expect(image.getPixelRGBA(0,0)).to.eq(OPAQUE_BLACK)
         done()
     })
 

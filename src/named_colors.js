@@ -154,3 +154,7 @@ export const NAMED_COLORS = {
     yellowgreen: 0x9acd32ff
 }
 
+export const TRANSPARENT_BLACK = 0x00000000
+export const OPAQUE_BLACK = 0x000000FF
+
+

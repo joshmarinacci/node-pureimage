@@ -195,3 +195,39 @@ describe("transform image",()=>{
         })
     })
 })
+
+describe("transform rect",() => {
+    let image
+    let context
+
+    beforeEach(() => {
+        image = pureimage.make(20,20)
+        context = image.getContext('2d')
+        context.fillStyle = 'white'
+        context.fillRect(0,0,20,20)
+    })
+    function fillRect() {
+        context.fillStyle = 'red'
+        context.fillRect(0,0,10,10)
+        context.fillRect(10,10,10,10)
+    }
+
+    it("draws two rects",(done)=>{
+        fillRect()
+        expect(image.getPixelRGBA(0,   0)).to.eq(0xFF0000FF)
+        expect(image.getPixelRGBA(10,  0)).to.eq(0xFFFFFFFF)
+        expect(image.getPixelRGBA(10, 10)).to.eq(0xFF0000FF)
+        write_png(image,'transform_rect_plain').then(() => done())
+    })
+
+    it("draws translated rects",(done)=>{
+        context.save();
+        context.translate(5, 0);
+        fillRect()
+        context.restore();
+        // expect(image.getPixelRGBA(0,   0)).to.eq(0xFFFFFFFF)
+        // expect(image.getPixelRGBA(10,  0)).to.eq(0xFF0000FF)
+        // expect(image.getPixelRGBA(10, 10)).to.eq(0xFFFFFFFF)
+        write_png(image,'transform_rect_translate').then(() => done())
+    })
+})

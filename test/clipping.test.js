@@ -4,6 +4,7 @@ import * as pureimage from "../src/index.js"
 import fs from 'fs'
 import path from 'path'
 import {write_png} from './common.js'
+import {OPAQUE_BLACK} from '../src/named_colors.js'
 
 describe('clipping tests',() => {
     let image
@@ -15,7 +16,7 @@ describe('clipping tests',() => {
     })
 
     it('canvas is empty and clear', (done) => {
-        expect(image.getPixelRGBA(0, 0)).to.eq(0x00000000)
+        expect(image.getPixelRGBA(0, 0)).to.eq(OPAQUE_BLACK)
         done()
     })
 
