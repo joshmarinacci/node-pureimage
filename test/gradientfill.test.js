@@ -24,10 +24,9 @@ describe('drawing gradients',() => {
         grad.addColorStop(1,'blue')
         c.fillStyle = grad
         c.fillRect(0,0,20,20)
-
         expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
-        save(image, 'linear_gradient_fillrect.png',done)
+        save(image, 'linear_gradient_fillrect',done)
     })
 
     it('fill with linear gradient',(done)=>{
