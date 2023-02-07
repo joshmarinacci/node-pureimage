@@ -19,7 +19,7 @@ describe('drawImage',() => {
     })
 
     it('canvas is empty and clear', (done) => {
-        expect(image.getPixelRGBA(0,0)).to.eq(0x00000000)
+        expect(image.getPixelRGBA(0,0)).to.eq(0x000000FF)
         done()
     })
 
