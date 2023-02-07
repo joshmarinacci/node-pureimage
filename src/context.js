@@ -365,7 +365,7 @@ export class Context {
     clearRect(x,y,w,h) {
         for(let i=x; i<x+w; i++) {
             for(let j=y; j<y+h; j++) {
-                this.bitmap.setPixelRGBA(i,j,TRANSPARENT_BLACK);
+                if(this.bitmap._isValidCoords(x,y)) this.bitmap.setPixelRGBA(i,j,TRANSPARENT_BLACK);
             }
         }
     }
@@ -386,12 +386,14 @@ export class Context {
      */
     strokeRect(x,y,w,h) {
         for(let i=x; i<x+w; i++) {
-            this.bitmap.setPixelRGBA(i, y, this._strokeColor);
-            this.bitmap.setPixelRGBA(i, y+h, this._strokeColor);
+            this.fillPixelWithColor(i,y, this.calculateRGBA_stroke(i,y));
+            this.fillPixelWithColor(i,y+h, this.calculateRGBA_stroke(i,y+h));
         }
         for(let j=y; j<y+h; j++) {
             this.bitmap.setPixelRGBA(x, j, this._strokeColor);
             this.bitmap.setPixelRGBA(x+w, j, this._strokeColor);
+            this.fillPixelWithColor(x,j, this.calculateRGBA_stroke(x,j));
+            this.fillPixelWithColor(x+w,j, this.calculateRGBA_stroke(x+w,j));
         }
     }
 

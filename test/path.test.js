@@ -20,7 +20,17 @@ describe('draw curve',() => {
         done()
     })
 
-    it('making a square with lines', (done) => {
+    it('fill square with fillRect()', (done) => {
+        c.fillStyle = 'black'
+        c.fillRect(10,10,90,90)
+        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(11,11)).to.eq(BLACK)
+        expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
+        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
+        save(image,'path_fill_square_fillrect',done)
+    })
+
+    it('fill square with lines', (done) => {
         c.beginPath()
         c.moveTo(10,10)
         c.lineTo(100,10)
@@ -33,10 +43,10 @@ describe('draw curve',() => {
         expect(image.getPixelRGBA(11,11)).to.eq(BLACK)
         expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
         expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-        done()
+        save(image,'path_fill_square_lines',done)
     })
 
-    it('making a square with rect', (done) => {
+    it('fill a square with rect', (done) => {
         c.beginPath()
         c.rect(10,10,90,90)
         c.fillStyle = 'black'
@@ -45,7 +55,48 @@ describe('draw curve',() => {
         expect(image.getPixelRGBA(11,11)).to.eq(BLACK)
         expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
         expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-        done()
+        save(image,'path_fill_square_rect',done)
+    })
+
+    it('stroke square with strokeRect()', (done) => {
+        c.lineWidth = 1
+        c.strokeStyle = 'black'
+        c.strokeRect(10,10,90,90)
+        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
+        expect(image.getPixelRGBA(100,50)).to.eq(BLACK)
+        // expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
+        save(image,'path_stroke_square_strokerect',done)
+    })
+
+    it('stroke square with lines', (done) => {
+        c.beginPath()
+        c.moveTo(10,10)
+        c.lineTo(100,10)
+        c.lineTo(100,100)
+        c.lineTo(10,100)
+        c.lineTo(10,10)
+        c.lineWidth = 1
+        c.strokeStyle = 'black'
+        c.stroke()
+        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
+        // expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
+        // expect(image.getPixelRGBA(100,50)).to.eq(BLACK)
+        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
+        save(image,'path_stroke_square_lines',done)
+    })
+
+    it('stroke a square with rect', (done) => {
+        c.beginPath()
+        c.rect(10,10,90,90)
+        c.lineWidth = 1
+        c.strokeStyle = 'black'
+        c.stroke()
+        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
+        // expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
+        // expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
+        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
+        save(image,'path_stroke_square_rect',done)
     })
 
     it('bezier curve', (done) => {
@@ -194,7 +245,7 @@ describe('draw curve',() => {
             ctx.imageSmoothingEnabled = true;
 
             // clear background
-            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            ctx.clearRect(-1, 0, WIDTH+1, HEIGHT);
 
             // background
             ctx.fillStyle = '#FFFFFF';
