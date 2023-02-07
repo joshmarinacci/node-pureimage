@@ -156,3 +156,24 @@ describe('font loading', () => {
     })
 
 })
+
+describe('otf fonts',() => {
+    it('can draw an otf font with a bezier', (done) => {
+        // const fontRecord = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'MyFont', 10, '', '');
+        // TODO: OTF fonts give a stream with multiple closes, 'Z',
+        // instead of one big path with multiple pieces and 'M'oves
+
+        const fontRecord = pureimage.registerFont('test/bugs/144/Inter-regular.otf', 'Inter')
+        fontRecord.loadSync();
+        const image = PImage.make(100, 100);
+        const ctx = image.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, 100, 100);
+        ctx.font = '50px Inter';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#000';
+        ctx.fillText('B',50,50)
+        save(image,"text_bug_144",done)
+    })
+})
