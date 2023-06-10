@@ -44,6 +44,7 @@ export class Bitmap {
             }
         }
 
+        this._context = new Context(this);
     }
 
     /**
@@ -144,14 +145,17 @@ export class Bitmap {
     }
 
     /**
-     * {@link Context} factory. Creates a new {@link Context} instance object for the current bitmap object
+     * Returns the {@link Context} instance object for the current bitmap object
      *
      * @returns {Context}
      *
      * @memberof Bitmap
      */
     getContext(type) {
-        return new Context(this);
+        if (type === "2d") {
+            return this._context;
+        }
+        return null;
     }
 
     _copySubBitmap(x,y,w,h) {
