@@ -192,6 +192,6 @@ export class Bitmap {
         if(x<0) throw new Error(`Invalid Index: x ${x} <0`)
         if(y<0) throw new Error(`Invalid Index: y ${y} <0`)
         if(x>=this.width) throw new Error(`Invalid Index: x ${x} >= width ${this.width}`)
-        if(y>=this.height) throw new Error(`Invalid Index: x ${x} >= width ${this.height}`)
+        if(y>=this.height) throw new Error(`Invalid Index: y ${y} >= height ${this.height}`)
     }
 }
