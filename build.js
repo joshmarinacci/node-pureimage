@@ -20,12 +20,13 @@ async function go() {
         outfile: 'dist/index.cjs',
     })
 
-    // await build({
-    //     ...sharedConfig,
-    //     platform: 'neutral',
-    //     format: 'esm',
-    //     outfile: 'dist/esm/index.js'
-    // })
+    await build({
+        ...sharedConfig,
+        platform: 'neutral',
+        format: 'esm',
+        outfile: 'dist/index.ems.js',
+        external: ['pngjs','opentype.js']
+    })
 }
 
 go().then(()=>console.log("done")).catch((e)=>console.log(e))
