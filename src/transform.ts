@@ -12,6 +12,7 @@
 import {Point} from './point.js'
 
 const IDENTITY_MATRIX = [1,0,0,1,0,0];
+type Matrix = [number,number,number,number,number,number];
 
 /**
  * @ignore
@@ -62,7 +63,6 @@ export function Transform(context) {
     this.fromDomMatrix = function(dom) {
         return [dom.a,dom.b,dom.c,dom.d,dom.e,dom.f]
     }
-
 
     //==========================================
     // Stack
@@ -203,7 +203,7 @@ export function Transform(context) {
         this.setTransform();
     };
 
-     //==========================================
+    //==========================================
     // Helpers
     //==========================================
 
