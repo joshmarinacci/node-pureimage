@@ -22,21 +22,10 @@
     "pngjs": "^7.0.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^18.0.0",
-    "@rollup/plugin-node-resolve": "^11.2.1",
-    "chai": "^4.3.3",
-    "esdoc": "^1.1.0",
-    "esdoc-integrate-test-plugin": "^1.0.0",
-    "esdoc-member-plugin": "^1.0.0",
-    "esdoc-node": "^1.0.3",
-    "esdoc-standard-plugin": "^1.0.0",
-    "file-type": "^7.6.0",
-    "mocha": "^10.2.0",
-    "rollup": "^2.44.0",
-    "tape": "^5.2.2"
+    "vitest": "^0.34.1"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "vitest",
     "docs": "esdoc",
     "build": "rollup -c",
     "clean": "rm -rf dist/ output/ *.tgz",

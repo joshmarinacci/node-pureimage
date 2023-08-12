@@ -1,4 +1,4 @@
-import chai, {expect} from "chai"
+import {describe, expect, beforeEach, it} from "vitest"
 
 import * as pureimage from "../src/index.js"
 import {OPAQUE_BLACK} from '../src/named_colors.js'
@@ -12,19 +12,17 @@ describe('color',() => {
         context = image.getContext('2d')
     })
 
-    it('canvas is empty and clear', (done) => {
+    it('canvas is empty and clear', () => {
         expect(image.getPixelRGBA(0,0)).to.eq(OPAQUE_BLACK)
-        done()
     })
 
-    it('fillcolor_hex', (done)=>{
+    it('fillcolor_hex', ()=>{
         context.fillStyle = '#000000'
         context.fillRect(0,0,200,200)
         expect(image.getPixelRGBA(0,0)).to.eq(0x000000FF)
-        done()
     })
 
-    it('fillcolor_hex_3', (done)=>{
+    it('fillcolor_hex_3', ()=>{
         function fill_check(hex_string, num) {
             context.fillStyle = hex_string
             context.fillRect(0,0,200,200)
@@ -37,7 +35,6 @@ describe('color',() => {
         fill_check('#ABC',0xAABBCCFF)
         fill_check('#000000',0x000000FF) //reset to black
         fill_check('#FFFFFF88',0x888888ff) //draw 50% white, turns into gray
-        done()
     })
 
 })
