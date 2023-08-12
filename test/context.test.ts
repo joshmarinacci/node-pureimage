@@ -1,5 +1,4 @@
-import chai, {expect} from "chai"
-
+import {describe, beforeEach, expect, it} from "vitest";
 import * as pureimage from "../src/index.js"
 
 describe('context',() => {
@@ -11,14 +10,12 @@ describe('context',() => {
         context = image.getContext('2d')
     })
 
-    it('getContext returns the same context', (done) => {
+    it('getContext returns the same context', () => {
         expect(image.getContext('2d')).to.eq(context)
-        done()
     })
 
-    it('getContext returns null for invalid contextType', (done) => {
+    it('getContext returns null for invalid contextType', () => {
         expect(image.getContext('this is totally made up')).to.eq(null)
-        done()
     })
 
 })

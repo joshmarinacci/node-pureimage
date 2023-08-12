@@ -1,6 +1,6 @@
-import chai, {expect} from "chai"
+import {describe, beforeEach, it, expect} from "vitest";
 import * as pureimage from "../src/index.js"
-import {save} from './common.js'
+import {save} from './common'
 describe('draw curve',() => {
 
     let image;
@@ -15,50 +15,49 @@ describe('draw curve',() => {
         c.fillRect(0,0,200,200)
     })
 
-    it('canvas is empty and clear', (done) => {
+    it('canvas is empty and clear', () => {
         expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
-        done()
     })
 
-    it('fill square with fillRect()', (done) => {
+    it('fill square with fillRect()', async () => {
         c.fillStyle = 'black'
-        c.fillRect(10,10,90,90)
-        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
-        expect(image.getPixelRGBA(11,11)).to.eq(BLACK)
-        expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
-        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-        save(image,'path_fill_square_fillrect',done)
+        c.fillRect(10, 10, 90, 90)
+        expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(11, 11)).to.eq(BLACK)
+        expect(image.getPixelRGBA(50, 50)).to.eq(BLACK)
+        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
+        await save(image, 'path_fill_square_fillrect')
     })
 
-    it('fill square with lines', (done) => {
+    it('fill square with lines', async () => {
         c.beginPath()
-        c.moveTo(10,10)
-        c.lineTo(100,10)
-        c.lineTo(100,100)
-        c.lineTo(10,100)
-        c.lineTo(10,10)
+        c.moveTo(10, 10)
+        c.lineTo(100, 10)
+        c.lineTo(100, 100)
+        c.lineTo(10, 100)
+        c.lineTo(10, 10)
         c.fillStyle = 'black'
         c.fill()
-        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
-        expect(image.getPixelRGBA(11,11)).to.eq(BLACK)
-        expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
-        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-        save(image,'path_fill_square_lines',done)
+        expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(11, 11)).to.eq(BLACK)
+        expect(image.getPixelRGBA(50, 50)).to.eq(BLACK)
+        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
+        await save(image, 'path_fill_square_lines')
     })
 
-    it('fill a square with rect', (done) => {
+    it('fill a square with rect', async () => {
         c.beginPath()
-        c.rect(10,10,90,90)
+        c.rect(10, 10, 90, 90)
         c.fillStyle = 'black'
         c.fill()
-        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
-        expect(image.getPixelRGBA(11,11)).to.eq(BLACK)
-        expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
-        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-        save(image,'path_fill_square_rect',done)
+        expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(11, 11)).to.eq(BLACK)
+        expect(image.getPixelRGBA(50, 50)).to.eq(BLACK)
+        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
+        await save(image, 'path_fill_square_rect')
     })
 
-    it('stroke square with strokeRect()', (done) => {
+    it('stroke square with strokeRect()', async () => {
         c.lineWidth = 1
         c.strokeStyle = 'black'
         c.strokeRect(10,10,90,90)
@@ -66,55 +65,55 @@ describe('draw curve',() => {
         expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
         expect(image.getPixelRGBA(100,50)).to.eq(BLACK)
         // expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-        save(image,'path_stroke_square_strokerect',done)
+        await save(image,'path_stroke_square_strokerect')
     })
 
-    it('stroke square with lines', (done) => {
+    it('stroke square with lines', async () => {
         c.beginPath()
-        c.moveTo(10,10)
-        c.lineTo(100,10)
-        c.lineTo(100,100)
-        c.lineTo(10,100)
-        c.lineTo(10,10)
+        c.moveTo(10, 10)
+        c.lineTo(100, 10)
+        c.lineTo(100, 100)
+        c.lineTo(10, 100)
+        c.lineTo(10, 10)
         c.lineWidth = 1
         c.strokeStyle = 'black'
         c.stroke()
-        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
         // expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
         // expect(image.getPixelRGBA(100,50)).to.eq(BLACK)
-        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-        save(image,'path_stroke_square_lines',done)
+        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
+        await save(image, 'path_stroke_square_lines')
     })
 
-    it('stroke a square with rect', (done) => {
+    it('stroke a square with rect', async () => {
         c.beginPath()
-        c.rect(10,10,90,90)
+        c.rect(10, 10, 90, 90)
         c.lineWidth = 1
         c.strokeStyle = 'black'
         c.stroke()
-        expect(image.getPixelRGBA(0,0)).to.eq(WHITE)
+        expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
         // expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
         // expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
-        expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-        save(image,'path_stroke_square_rect',done)
+        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
+        await save(image, 'path_stroke_square_rect')
     })
 
-    it('bezier curve', (done) => {
+    it('bezier curve', async () => {
         c.fillStyle = 'white'
-        c.fillRect(0,0,200,200)
+        c.fillRect(0, 0, 200, 200)
 
         c.fillStyle = 'black'
         c.beginPath()
-        c.moveTo(10,10)
-        c.bezierCurveTo(50,50, 100,50, 10,100)
-        c.lineTo(10,10)
+        c.moveTo(10, 10)
+        c.bezierCurveTo(50, 50, 100, 50, 10, 100)
+        c.lineTo(10, 10)
         c.fill()
         expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
         expect(image.getPixelRGBA(19, 39)).to.eq(BLACK)
-        save(image,'bezier1',done)
+        await save(image, 'bezier1')
     })
 
-    it('arc', (done) => {
+    it('arc', async () => {
         // should look the same as
         // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/arc
 
@@ -129,11 +128,11 @@ describe('draw curve',() => {
         for (let i = 0; i <= 3; i++) {
             for (let j = 0; j <= 2; j++) {
                 ctx.beginPath();
-                let x             = 25 + j * 50;                 // x coordinate
-                let y             = 25 + i * 50;                 // y coordinate
-                let radius        = 20;                          // Arc radius
-                let startAngle    = 0;                           // Starting point on circle
-                let endAngle      = Math.PI + (Math.PI * j) / 2; // End point on circle
+                let x = 25 + j * 50;                 // x coordinate
+                let y = 25 + i * 50;                 // y coordinate
+                let radius = 20;                          // Arc radius
+                let startAngle = 0;                           // Starting point on circle
+                let endAngle = Math.PI + (Math.PI * j) / 2; // End point on circle
                 let anticlockwise = i % 2 === 1;                  // Draw anticlockwise
 
 
@@ -146,9 +145,9 @@ describe('draw curve',() => {
                 }
             }
         }
-        save(img,'arc',done)
+        await save(img, 'arc')
     })
-    it('north going polygon', (done) => {
+    it('north going polygon', async () => {
         let img = pureimage.make(200, 200);
         let ctx = img.getContext('2d');
         ctx.beginPath();
@@ -162,9 +161,9 @@ describe('draw curve',() => {
         ctx.fill();
         expect(img.getPixelRGBA(25, 110)).to.eq(BLACK)
         expect(img.getPixelRGBA(25, 90)).to.eq(BLACK)
-        save(img,"northgoing",done)
+        await save(img,"northgoing")
     })
-    it('transparent polygon',(done)=>{
+    it('transparent polygon',()=>{
         c.beginPath()
         c.moveTo(10,10)
         c.lineTo(100,10)
@@ -177,21 +176,20 @@ describe('draw curve',() => {
         expect(image.getPixelRGBA(11,11)).to.eq(WHITE)
         expect(image.getPixelRGBA(50,50)).to.eq(WHITE)
         expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-        done()
     })
-    it("draws thick square",(done) => {
+    it("draws thick square",async () => {
         c.fillStyle = 'white'
-        c.fillRect(0,0,200,200)
+        c.fillRect(0, 0, 200, 200)
         c.beginPath()
         //square
-        c.moveTo(10,10)
-        c.lineTo(60,10)
-        c.lineTo(60,60)
-        c.lineTo(120,60)
-        c.lineTo(120,10)
-        c.lineTo(180,10)
-        c.lineTo(180,100)
-        c.lineTo(10,100)
+        c.moveTo(10, 10)
+        c.lineTo(60, 10)
+        c.lineTo(60, 60)
+        c.lineTo(120, 60)
+        c.lineTo(120, 10)
+        c.lineTo(180, 10)
+        c.lineTo(180, 100)
+        c.lineTo(10, 100)
         // c.lineTo(10,10)
         c.strokeStyle = 'black'
         c.lineWidth = 4
@@ -199,43 +197,43 @@ describe('draw curve',() => {
         c.stroke()
         expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
         expect(image.getPixelRGBA(10, 10)).to.eq(BLACK)
-        save(image,'thick_stroke_square',done)
+        await save(image, 'thick_stroke_square')
     })
-    it('draws a thin horizontal line',(done) => {
+    it('draws a thin horizontal line',async () => {
         let image = pureimage.make(10, 10);
         let c = image.getContext('2d');
         c.imageSmoothingEnabled = true
         c.fillStyle = 'white'
-        c.fillRect(0,0,10,10)
+        c.fillRect(0, 0, 10, 10)
         // c.debug = true
         c.beginPath()
-        c.moveTo(2,5)
-        c.lineTo(8,5)
+        c.moveTo(2, 5)
+        c.lineTo(8, 5)
         c.strokeStyle = 'black'
         c.lineWidth = 1
         c.stroke()
         expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
         expect(image.getPixelRGBA(5, 5)).to.eq(BLACK)
-        save(image,'think-h-stroke',done)
+        await save(image, 'think-h-stroke')
     })
-    it("draws thick curve",(done) => {
+    it("draws thick curve",async () => {
         c.fillStyle = 'white'
-        c.fillRect(0,0,200,200)
+        c.fillRect(0, 0, 200, 200)
 
         c.beginPath()
-        c.moveTo(10,10)
-        c.bezierCurveTo(50,50, 100,50, 10,100)
-        c.lineTo(10,10)
+        c.moveTo(10, 10)
+        c.bezierCurveTo(50, 50, 100, 50, 10, 100)
+        c.lineTo(10, 10)
         c.strokeStyle = 'black'
         c.lineWidth = 2
         c.fillStyle = 'black'
         c.stroke()
-        save(image,"thick_stroke_curve",done)
+        await save(image, "thick_stroke_curve")
     })
-    it('draws round rect',(done) => {
+    it('draws round rect',async () => {
         create();
         let img = create();
-        save(img,"roundrect",done)
+        await save(img, "roundrect")
         function create() {
             let img = pureimage.make(1200, 628)
             let ctx = img.getContext('2d')
@@ -245,7 +243,7 @@ describe('draw curve',() => {
             ctx.imageSmoothingEnabled = true;
 
             // clear background
-            ctx.clearRect(-1, 0, WIDTH+1, HEIGHT);
+            ctx.clearRect(-1, 0, WIDTH + 1, HEIGHT);
 
             // background
             ctx.fillStyle = '#FFFFFF';
@@ -292,16 +290,17 @@ describe('draw curve',() => {
                 // ctx.fill_aa();
                 ctx.fill()
             }
+
             return img
         }
     })
 })
 describe('restroke test',() => {
-    it('draws multiple lines',(done) => {
-        let image = pureimage.make(200,200)
+    it('draws multiple lines',async () => {
+        let image = pureimage.make(200, 200)
         let ctx = image.getContext('2d')
         ctx.fillStyle = 'white'
-        ctx.fillRect(0,0,200,200)
+        ctx.fillRect(0, 0, 200, 200)
         ctx.beginPath() // Only needed in pureimage :/
 
 // First sub-path
@@ -325,6 +324,6 @@ describe('restroke test',() => {
         ctx.lineTo(280, 140);
         ctx.stroke();
 
-        save(image,'restroke',done)
+        await save(image, 'restroke')
     })
 })

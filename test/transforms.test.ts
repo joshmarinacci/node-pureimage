@@ -1,7 +1,6 @@
+import {describe, beforeEach, it, expect} from "vitest"
 import * as pureimage from "../src/index.js"
-import chai, {expect} from "chai"
-import {mkdir, save} from './common.js'
-
+import {save, mkdir} from "./common"
 
 describe("simple transforms",() => {
     let image
@@ -72,7 +71,7 @@ describe("simple transforms",() => {
 
     })
 
-    it('transforms a line', (done) => {
+    it('transforms a line', () => {
         context.save();
         // context.transform(1, .2, .8, 1, 0, 0);
         context.setTransform(1, .2, .8, 1, 0, 0);
@@ -95,15 +94,15 @@ describe("simple transforms",() => {
         context.strokeStyle = 'black'
         context.stroke()
         context.restore();
-        save(image,'line_transform',done)
+        save(image,'line_transform')
     })
 
 })
 
 describe("transform image",()=>{
-    let image;
-    let context;
-    let src;
+    let image
+    let context
+    let src
 
     beforeEach(() => {
         mkdir('output')
@@ -125,44 +124,44 @@ describe("transform image",()=>{
         }
     })
 
-    it('draws image normally',(done)=>{
+    it('draws image normally',()=>{
         context.drawImage(src,0,0)
         expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(25,0)).to.eq(0x000000FF)
-        save(image,'transform_image_plain',done)
+        save(image,'transform_image_plain')
     })
 
-    it('draws image translated',(done)=>{
+    it('draws image translated',()=>{
         context.save()
         context.translate(50,50)
         context.drawImage(src,0,0)
         context.restore()
         expect(image.getPixelRGBA(0+50, 0+50)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(25+50,0+50)).to.eq(0x000000FF)
-        save(image,'image_translated',done)
+        save(image,'image_translated')
     })
 
-    it('draws image scaled',(done)=>{
+    it('draws image scaled',()=>{
         context.save()
         context.scale(3,3)
         context.drawImage(src,0,0)
         context.restore()
         expect(image.getPixelRGBA(0*3, 0*3)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(25*3,0*3)).to.eq(0x000000FF)
-        save(image,'image_scaled',done)
+        save(image,'image_scaled')
     })
 
-    it('draws image rotated',(done)=>{
+    it('draws image rotated',()=>{
         context.save()
         context.rotate(-30*Math.PI/180)
         context.drawImage(src,0,0)
         context.restore()
         expect(image.getPixelRGBA(10, 0)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(40,0)).to.eq(0x000000FF)
-        save(image,'image_rotated',done)
+        save(image,'image_rotated')
     })
 
-    it('draws combined',(done)=>{
+    it('draws combined',()=>{
         context.save()
         context.translate(100,100)
         context.rotate(-45*Math.PI/180)
@@ -171,7 +170,7 @@ describe("transform image",()=>{
         context.restore()
         expect(image.getPixelRGBA(100, 103)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(100,97)).to.eq(0x000000FF)
-        save(image,'image_combined',done)
+        save(image,'image_combined')
     })
 })
 
@@ -191,15 +190,15 @@ describe("transform rect",() => {
         context.fillRect(10,10,10,10)
     }
 
-    it("draws two rects",(done)=>{
+    it("draws two rects",()=>{
         fillRect()
         expect(image.getPixelRGBA(0,   0)).to.eq(0xFF0000FF)
         expect(image.getPixelRGBA(10,  0)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(10, 10)).to.eq(0xFF0000FF)
-        save(image,'transform_rect_plain',done)
+        save(image,'transform_rect_plain')
     })
 
-    it("draws translated rects",(done)=>{
+    it("draws translated rects",()=>{
         context.save();
         context.translate(5, 0);
         fillRect()
@@ -207,6 +206,6 @@ describe("transform rect",() => {
         expect(image.getPixelRGBA(0,   0)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(10,  0)).to.eq(0xFF0000FF)
         expect(image.getPixelRGBA(10, 10)).to.eq(0xFFFFFFFF)
-        save(image,'transform_rect_translate',done)
+        save(image,'transform_rect_translate')
     })
 })
