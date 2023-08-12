@@ -1,5 +1,5 @@
 import {describe, beforeEach, expect, it} from "vitest";
-import * as pureimage from "../src/index.js"
+import * as pureimage from "../src/index"
 
 describe('context',() => {
     let image

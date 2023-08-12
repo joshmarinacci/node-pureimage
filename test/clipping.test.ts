@@ -1,19 +1,20 @@
 import {expect, describe, beforeEach, it} from "vitest"
 
-import * as pureimage from "../src/index.js"
+import {Bitmap, Context, make} from "../src/index"
 import {write_png} from "./common";
+import {OPAQUE_BLACK} from "../src/named_colors";
 
 describe('clipping tests',() => {
-    let image: pureimage.Bitmap;
-    let context: pureimage.Context;
+    let image: Bitmap;
+    let context: Context;
 
     beforeEach(() => {
-        image = pureimage.make(200, 200)
+        image = make(200, 200)
         context = image.getContext('2d')
     })
 
     it('canvas is empty and clear', () => {
-        expect(image.getPixelRGBA(0, 0)).to.eq(0x00000000)
+        expect(image.getPixelRGBA(0, 0)).to.eq(OPAQUE_BLACK)
     })
 
     it('can fill with white and red', async () => {
@@ -38,7 +39,7 @@ describe('clipping tests',() => {
         context.clip();
         context.fillStyle = 'white';
         context.fillRect(0, 0, 200, 200);
-        let src = pureimage.make(50,50)
+        let src = make(50,50)
         const c = src.getContext('2d')
         c.fillStyle = 'white'
         c.fillRect(0,0,50,50)

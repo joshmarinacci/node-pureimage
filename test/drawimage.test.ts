@@ -1,5 +1,5 @@
 import {describe, beforeEach, it, expect} from "vitest"
-import * as pureimage from "../src/index.js"
+import * as pureimage from "../src/index"
 
 describe('drawImage',() => {
     let image;
