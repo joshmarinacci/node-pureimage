@@ -17,7 +17,7 @@ async function go() {
     await build({
         ...sharedConfig,
         platform: 'node',
-        outfile: 'dist/index.js',
+        outfile: 'dist/index.cjs',
     })
 
     // await build({
