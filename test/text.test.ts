@@ -1,9 +1,6 @@
-import chai, {expect} from "chai"
-import fs from "fs"
-
+import {describe, beforeEach, it, expect} from "vitest";
 import * as pureimage from "../src/index.js"
-import * as PImage from "../src/index.js";
-import {save} from './common.js'
+import {save} from './common'
 
 describe('text drawing',() => {
     let image
@@ -18,35 +15,35 @@ describe('text drawing',() => {
     });
 
 
-    it('can draw some text',(done) => {
+    it('can draw some text',() => {
         const fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
-        fnt.load(()=>{
+        fnt.load(async () => {
             context.fillStyle = 'blue'
             context.font = "48pt 'Source Sans Pro'";
             context.fillText("some text", 50, 50)
-            expect(image.getPixelRGBA(50+4, 50-2)).to.eq(BLUE)
-            save(image,"text-simple",done)
+            expect(image.getPixelRGBA(50 + 4, 50 - 2)).to.eq(BLUE)
+            await save(image, "text-simple")
         })
     })
 
-    it('can draw empty text without crashing',done => {
+    it('can draw empty text without crashing', () => {
         const fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
-        fnt.load(()=>{
+        fnt.load(async ()=>{
             context.fillStyle = 'blue'
             context.font = "48pt 'Source Sans Pro'";
-            context.fillText("", 50, 50)
-            save(image,"text-empty",done)
+            context.fillText("some text", 50, 50)
+            expect(image.getPixelRGBA(50 + 4, 50 - 2)).to.eq(BLUE)
+            await save(image,"text-empty")
         })
     })
-
-
+    //
+    //
     it('can measure text',(done) => {
         const fnt = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'Source Sans Pro')
         fnt.load(()=> {
             context.font = "48pt 'Source Sans Pro'";
             let metrics = context.measureText('some text')
             expect(metrics.width).to.eq(197.088)
-            done()
         })
     })
 
@@ -143,26 +140,25 @@ describe('text drawing',() => {
 })
 
 describe('font loading', () => {
-    it('uses loadPromise',done => {
-        pureimage.registerFont(
+    it('uses loadPromise',async () => {
+        await pureimage.registerFont(
             'test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'MyFont'
-        ).loadPromise().then(()=>{
-            let image = PImage.make(200,200)
-            let context = image.getContext('2d');
-            context.font = `48px MyFont`;
-            const metrics = context.measureText('some text')
-            done()
-        })
+        ).loadPromise()
+        let image = pureimage.make(200, 200)
+        let context = image.getContext('2d');
+        context.font = `48px MyFont`;
+        const metrics = context.measureText('some text')
+        expect(metrics.width).toBe(197.088)
     })
     it('bug 52', (done) => {
         // const fontRecord = pureimage.registerFont('./lib/fonts/monofonto/monofontorg.otf', 'MyFont', 10, '', '');
         const fontRecord = pureimage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'MyFont', 10, '', '');
         fontRecord.loadSync();
-        let image = PImage.make(200,200)
+        let image = pureimage.make(200,200)
         let context = image.getContext('2d');
         context.font = `48px MyFont`;
         const metrics = context.measureText('some text')
-        done()
+        expect(metrics.width).toBe(197.088)
     })
 
 })
@@ -175,7 +171,7 @@ describe('otf fonts',() => {
 
         const fontRecord = pureimage.registerFont('test/bugs/144/Inter-regular.otf', 'Inter')
         fontRecord.loadSync();
-        const image = PImage.make(100, 100);
+        const image = pureimage.make(100, 100);
         const ctx = image.getContext('2d');
         ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, 100, 100);
