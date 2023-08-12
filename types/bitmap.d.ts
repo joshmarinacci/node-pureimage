@@ -95,13 +95,13 @@ export class Bitmap {
     getPixelRGBA_separate(x: number, y: number): ArrayBuffer;
 
     /**
-     * {@link Context} factory. Creates a new {@link Context} instance object for the current bitmap object
+     * Returns the {@link Context} instance object for the current bitmap object
      *
      * @returns {Context}
      *
      * @memberof Bitmap
      */
-    getContext(type:string): Context;
+    getContext(type:string): Context | null;
 
     private _copySubBitmap(x: number, y: number, w: number, h: number): Bitmap;
 
