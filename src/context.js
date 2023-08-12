@@ -634,9 +634,11 @@ export class Context {
                     remap(src_pt.y, dy,dy+dh, sy,sy+sh)
                 )
                 if(src_bounds.contains(src_pt)) {
-                    const rgba = bitmap.getPixelRGBA(src_pt.x, src_pt.y)
                     if(this.pixelInsideClip(dst_pt.x,dst_pt.y) && this.bitmap._isValidCoords(dst_pt.x,dst_pt.y)) {
-                        this.bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, rgba)
+                        const new_pixel = bitmap.getPixelRGBA(src_pt.x, src_pt.y)
+                        const old_pixel = this.bitmap.getPixelRGBA(dst_pt.x, dst_pt.y)
+                        const final_pixel = this.composite(0, 0, old_pixel, new_pixel)
+                        this.bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, final_pixel)
                     }
                 }
             }
