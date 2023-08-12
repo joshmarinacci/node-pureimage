@@ -1,7 +1,7 @@
-import {expect} from "chai"
+import {describe, expect, beforeEach, it} from "vitest"
 import * as pureimage from "../src/index.js"
-import {NAMED_COLORS} from "../src/named_colors.js"
-import {save} from './common.js'
+import {NAMED_COLORS} from "../src/named_colors";
+import  {save} from './common';
 
 describe('drawing gradients',() => {
 
@@ -18,7 +18,7 @@ describe('drawing gradients',() => {
     })
 
 
-    it('fillRect with linear gradient',(done)=>{
+    it('fillRect with linear gradient',()=>{
         const grad = c.createLinearGradient(0,0,20,20)
         grad.addColorStop(0,'white')
         grad.addColorStop(1,'blue')
@@ -26,10 +26,10 @@ describe('drawing gradients',() => {
         c.fillRect(0,0,20,20)
         expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
-        save(image, 'linear_gradient_fillrect',done)
+        save(image, 'linear_gradient_fillrect')
     })
 
-    it('fill with linear gradient',(done)=>{
+    it('fill with linear gradient',()=>{
         c.imageSmoothingEnabled = true
         const grad = c.createLinearGradient(0,0,20,20)
         grad.addColorStop(0,'#ffffff')
@@ -44,10 +44,10 @@ describe('drawing gradients',() => {
         // for(let i=0; i<20; i++) {
         //     console.log(i, image.getPixelRGBA_separate(i,19))
         // }
-        save(image, 'linear_gradient_fill.png',done)
+        save(image, 'linear_gradient_fill.png')
     })
 
-    it('stroke with linear gradient',(done)=>{
+    it('stroke with linear gradient',()=>{
         c.imageSmoothingEnabled = true
         const grad = c.createLinearGradient(0,0,20,20)
         grad.addColorStop(0,'white')
@@ -61,10 +61,10 @@ describe('drawing gradients',() => {
         c.rect(5,5,10,10)
         c.stroke()
 
-        save(image, 'linar_gradient_stroke.png',done)
+        save(image, 'linar_gradient_stroke.png')
     })
 
-    it('is making a radial gradient',(done)=>{
+    it('is making a radial gradient',()=>{
         const grad = c.createRadialGradient(10,10, 5, 10,10,10)
         grad.addColorStop(0,'white')
         grad.addColorStop(1,'green')
@@ -74,6 +74,6 @@ describe('drawing gradients',() => {
 
         expect(image.getPixelRGBA(0, 0)).to.eq(NAMED_COLORS.green)
         expect(image.getPixelRGBA(10, 10)).to.eq(NAMED_COLORS.white)
-        save(image, 'radial_gradient_fillrect.png',done)
+        save(image, 'radial_gradient_fillrect.png',)
     })
 });

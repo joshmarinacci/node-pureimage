@@ -1,4 +1,4 @@
-import chai, {expect} from "chai"
+import {describe, expect, beforeEach, it} from "vitest"
 
 import {Line} from "../src/line.js"
 import {Point} from "../src/point.js"

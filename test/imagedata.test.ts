@@ -1,4 +1,4 @@
-import chai, {expect} from "chai"
+import {describe, expect, beforeEach, it} from "vitest"
 import * as pureimage from "../src/index.js"
 
 describe('drawImage',() => {
@@ -15,24 +15,22 @@ describe('drawImage',() => {
         context = image.getContext('2d')
     })
 
-    it('canvas has red and white', (done) => {
+    it('canvas has red and white', () => {
         context.fillStyle = 'white'
         context.fillRect(0,0,200,200)
         context.fillStyle = 'red'
         context.fillRect(0,0,100,100)
         expect(image.getPixelRGBA(5,5)).to.eq(RED)
         expect(image.getPixelRGBA(105,105)).to.eq(WHITE)
-        done()
     })
 
-    it('canvas can get image data', (done) => {
+    it('canvas can get image data', () => {
         let id = context.getImageData(0,0,10,10)
         expect(id.width).to.eq(10)
         expect(id.height).to.eq(10)
-        done()
     })
 
-    it('canvas can get offset image data', (done) => {
+    it('canvas can get offset image data', () => {
         context.fillStyle = 'white'
         context.fillRect(0,0,200,200)
         context.fillStyle = 'red'
@@ -47,10 +45,9 @@ describe('drawImage',() => {
 
         expect(id.getPixelRGBA(3,3)).to.eq(RED)
         expect(id.getPixelRGBA(8,8)).to.eq(WHITE)
-        done()
     })
 
-    it('canvas can set image data', (done) => {
+    it('canvas can set image data', () => {
         context.fillStyle = 'white'
         context.fillRect(0,0,200,200)
         let id = context.getImageData(0,0,10,10)
@@ -60,10 +57,9 @@ describe('drawImage',() => {
         id.data[3] = 255
         context.putImageData(id,0,0)
         expect(image.getPixelRGBA(0,0)).to.eq(GREEN)
-        done()
     })
 
-    it('canvas can set offset image data', (done) => {
+    it('canvas can set offset image data', () => {
         context.fillStyle = 'white'
         context.fillRect(0,0,200,200)
         let id = context.getImageData(0,0,10,10)
@@ -72,7 +68,6 @@ describe('drawImage',() => {
         context.putImageData(id,100,100)
         expect(image.getPixelRGBA(100,100)).to.eq(RED)
         expect(image.getPixelRGBA(108,108)).to.eq(GREEN)
-        done()
     })
 
 })
