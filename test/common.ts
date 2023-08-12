@@ -13,11 +13,11 @@ export const mkdir = async (pth) => {
     }
 }
 
-export function write_png (image,filename) {
+export async function write_png (image,filename) {
     let pth = path.join('output',filename+".png")
     console.log("writing to",pth)
     let stream = fs.createWriteStream(pth);
-    return pureimage.encodePNGToStream(image, stream)
+    await pureimage.encodePNGToStream(image, stream)
 }
 
 const DIR = "output"
