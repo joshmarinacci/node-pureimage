@@ -44,19 +44,16 @@ class RegisteredFont {
     }
 
     _load(cb) {
-        console.log("is loaded",this.loaded)
         if(this.loaded) {
             if(cb)cb();
             return;
         }
         const onLoad = (function(err, font) {
-            console.log("doing onload")
             if (err) throw new Error('Could not load font: ' + err);
             this.loaded = true;
             this.font = font;
             if(cb)cb();
         }).bind(this);
-        console.log("loading",this.binary)
         opentype.load(this.binary, onLoad);
     }
     loadSync() {
@@ -146,7 +143,6 @@ export function processTextPath(
     if(vAlign === 'middle') y = y + metrics.emHeightAscent/2+metrics.emHeightDescent/2;
     if(vAlign === 'bottom') y = y + metrics.emHeightDescent;
     const size = ctx._font.size;
-    console.log("processing text path", text)
     if(!font.loaded) {
         console.warn("font not loaded yet",ctx._font)
         return
