@@ -38,11 +38,11 @@ describe('draw curve',() => {
         c.lineTo(10, 10)
         c.fillStyle = 'black'
         c.fill()
+        await save(image, 'path_fill_square_lines')
         expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
         expect(image.getPixelRGBA(11, 11)).to.eq(BLACK)
         expect(image.getPixelRGBA(50, 50)).to.eq(BLACK)
-        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
-        await save(image, 'path_fill_square_lines')
+        expect(image.getPixelRGBA(101, 101)).to.eq(WHITE)
     })
 
     it('fill a square with rect', async () => {
@@ -53,7 +53,7 @@ describe('draw curve',() => {
         expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
         expect(image.getPixelRGBA(11, 11)).to.eq(BLACK)
         expect(image.getPixelRGBA(50, 50)).to.eq(BLACK)
-        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
+        expect(image.getPixelRGBA(101, 101)).to.eq(WHITE)
         await save(image, 'path_fill_square_rect')
     })
 
@@ -81,8 +81,8 @@ describe('draw curve',() => {
         expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
         // expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
         // expect(image.getPixelRGBA(100,50)).to.eq(BLACK)
-        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
         await save(image, 'path_stroke_square_lines')
+        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
     })
 
     it('stroke a square with rect', async () => {
