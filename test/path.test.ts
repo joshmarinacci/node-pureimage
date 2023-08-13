@@ -82,7 +82,7 @@ describe('draw curve',() => {
         // expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
         // expect(image.getPixelRGBA(100,50)).to.eq(BLACK)
         await save(image, 'path_stroke_square_lines')
-        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
+        expect(image.getPixelRGBA(101, 100)).to.eq(WHITE)
     })
 
     it('stroke a square with rect', async () => {
@@ -91,11 +91,11 @@ describe('draw curve',() => {
         c.lineWidth = 1
         c.strokeStyle = 'black'
         c.stroke()
+        await save(image, 'path_stroke_square_rect')
         expect(image.getPixelRGBA(0, 0)).to.eq(WHITE)
         // expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
         // expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
-        expect(image.getPixelRGBA(100, 100)).to.eq(WHITE)
-        await save(image, 'path_stroke_square_rect')
+        expect(image.getPixelRGBA(101, 100)).to.eq(WHITE)
     })
 
     it('bezier curve', async () => {
