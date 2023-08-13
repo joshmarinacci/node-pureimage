@@ -7,9 +7,6 @@ describe('drawing gradients',() => {
 
     let image
     let c
-    const WHITE = 0xFFFFFFFF
-    const BLACK = 0x000000FF
-
     beforeEach(()=>{
         image = pureimage.make(20,20)
         c = image.getContext('2d')
@@ -18,25 +15,25 @@ describe('drawing gradients',() => {
     })
 
 
-    it('fillRect with linear gradient',()=>{
-        const grad = c.createLinearGradient(0,0,20,20)
-        grad.addColorStop(0,'white')
-        grad.addColorStop(1,'blue')
+    it('fillRect with linear gradient',async () => {
+        const grad = c.createLinearGradient(0, 0, 20, 20)
+        grad.addColorStop(0, 'white')
+        grad.addColorStop(1, 'blue')
         c.fillStyle = grad
-        c.fillRect(0,0,20,20)
+        c.fillRect(0, 0, 20, 20)
         expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
         expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
-        save(image, 'linear_gradient_fillrect')
+        await save(image, 'linear_gradient_fillrect')
     })
 
-    it('fill with linear gradient',()=>{
+    it('fill with linear gradient',async () => {
         c.imageSmoothingEnabled = true
-        const grad = c.createLinearGradient(0,0,20,20)
-        grad.addColorStop(0,'#ffffff')
-        grad.addColorStop(1,'blue')
+        const grad = c.createLinearGradient(0, 0, 20, 20)
+        grad.addColorStop(0, '#ffffff')
+        grad.addColorStop(1, 'blue')
         c.fillStyle = grad
         c.beginPath()
-        c.rect(0,0,20,20)
+        c.rect(0, 0, 20, 20)
         c.fill()
         // expect(image.getPixelRGBA(0, 0)).to.eq(NAMED_COLORS.white)
         expect(image.getPixelRGBA(19, 19)).to.eq(0x0c0cFFFF)
@@ -44,36 +41,36 @@ describe('drawing gradients',() => {
         // for(let i=0; i<20; i++) {
         //     console.log(i, image.getPixelRGBA_separate(i,19))
         // }
-        save(image, 'linear_gradient_fill.png')
+        await save(image, 'linear_gradient_fill.png')
     })
 
-    it('stroke with linear gradient',()=>{
+    it('stroke with linear gradient',async () => {
         c.imageSmoothingEnabled = true
-        const grad = c.createLinearGradient(0,0,20,20)
-        grad.addColorStop(0,'white')
-        grad.addColorStop(1,'blue')
+        const grad = c.createLinearGradient(0, 0, 20, 20)
+        grad.addColorStop(0, 'white')
+        grad.addColorStop(1, 'blue')
         // c.fillStyle = grad
         // c.fillStyle = 'red'
         c.strokeStyle = grad
         // c.strokeStyle = 'red'
         c.lineWidth = 3
         c.beginPath()
-        c.rect(5,5,10,10)
+        c.rect(5, 5, 10, 10)
         c.stroke()
 
-        save(image, 'linar_gradient_stroke.png')
+        await save(image, 'linar_gradient_stroke.png')
     })
 
-    it('is making a radial gradient',()=>{
-        const grad = c.createRadialGradient(10,10, 5, 10,10,10)
-        grad.addColorStop(0,'white')
-        grad.addColorStop(1,'green')
+    it('is making a radial gradient',async () => {
+        const grad = c.createRadialGradient(10, 10, 5, 10, 10, 10)
+        grad.addColorStop(0, 'white')
+        grad.addColorStop(1, 'green')
         c.imageSmoothingEnabled = false
         c.fillStyle = grad
-        c.fillRect(0,0,20,20)
+        c.fillRect(0, 0, 20, 20)
 
         expect(image.getPixelRGBA(0, 0)).to.eq(NAMED_COLORS.green)
         expect(image.getPixelRGBA(10, 10)).to.eq(NAMED_COLORS.white)
-        save(image, 'radial_gradient_fillrect.png',)
+        await save(image, 'radial_gradient_fillrect.png',)
     })
 });
