@@ -1,13 +1,82 @@
 import * as opentype from 'opentype.js';
 import type {Context} from './context.js';
-import { Font, TextAlign, TextBaseline } from './types.js';
+import { TextAlign, TextBaseline } from './types.js';
 
 /** Map containing all the fonts available for use */
-const _fonts: Record<string,Font> = {};
+const _fonts: Record<string,RegisteredFont> = {};
 
 /** The default font family to use for text */
 // const DEFAULT_FONT_FAMILY = 'source';
 
+// export type Font = {
+//     /** The font family to set */
+//     family: string;
+//     /** An integer representing the font size to use */
+//     size?: number;
+//     binary?: string;
+//     weight?: number;
+//     style?: string;
+//     variant?: string;
+//     loaded?: boolean;
+//     font?: opentype.Font | null;
+//     load?: (cb: CallableFunction) => void;
+//     loadSync?: () => Font;
+//     loadPromise?: () => Promise<void>;
+// };
+
+
+class RegisteredFont {
+    binary: string
+    family: string
+    weight: number
+    style: string
+    variant: string
+    loaded: boolean;
+    font: null;
+    constructor(binaryPath:string, family:string, weight?:number, style?:string, variant?:string) {
+        this.binary = binaryPath
+        this.family = family
+        this.weight = weight
+        this.style = style
+        this.variant = variant
+        this.loaded = false
+        this.font = null
+    }
+
+    _load(cb) {
+        console.log("is loaded",this.loaded)
+        if(this.loaded) {
+            if(cb)cb();
+            return;
+        }
+        const onLoad = (function(err, font) {
+            console.log("doing onload")
+            if (err) throw new Error('Could not load font: ' + err);
+            this.loaded = true;
+            this.font = font;
+            if(cb)cb();
+        }).bind(this);
+        console.log("loading",this.binary)
+        opentype.load(this.binary, onLoad);
+    }
+    loadSync() {
+        if(this.loaded) {
+            return this;
+        }
+        try {
+            this.font = opentype.loadSync(this.binary);
+            this.loaded = true;
+            return this;
+        } catch (err) {
+            throw new Error('Could not load font: ' + err);
+        }
+    }
+    loadPromise() {
+        return new Promise<void>((res,_rej)=>{
+            this._load(() => res())
+        })
+    }
+}
 
 /**
  * Register Font
@@ -26,45 +95,7 @@ export function registerFont(
     /** Font variant */
     variant?: string,
 ) {
-    _fonts[family] = {
-        binary: binaryPath,
-        family: family,
-        weight: weight,
-        style: style,
-        variant: variant,
-        loaded: false,
-        font: null,
-        load: function(cb) {
-            if(this.loaded) {
-                if(cb)cb();
-                return;
-            }
-            const onLoad = (function(err, font) {
-                if (err) throw new Error('Could not load font: ' + err);
-                this.loaded = true;
-                this.font = font;
-                if(cb)cb();
-            }).bind(this);
-            opentype.load(binaryPath, onLoad);
-        },
-        loadSync: function() {
-            if(this.loaded) {
-                return;
-            }
-            try {
-                this.font = opentype.loadSync(binaryPath);
-                this.loaded = true;
-                return this;
-            } catch (err) {
-                throw new Error('Could not load font: ' + err);
-            }
-        },
-        loadPromise: function() {
-            return new Promise<void>((res,_rej)=>{
-                this.load(() => res())
-            })
-        }
-    };
+    _fonts[family] = new RegisteredFont(binaryPath, family, weight, style, variant)
     return _fonts[family];
 }
 
@@ -79,7 +110,7 @@ export const debug_list_of_fonts = _fonts;
 function findFont(
     /** The name of the font family to search for */
     family: string
-) {
+):RegisteredFont|undefined {
     if(_fonts[family]) return _fonts[family];
     family =  Object.keys(_fonts)[0];
     return _fonts[family];
@@ -115,23 +146,26 @@ export function processTextPath(
     if(vAlign === 'middle') y = y + metrics.emHeightAscent/2+metrics.emHeightDescent/2;
     if(vAlign === 'bottom') y = y + metrics.emHeightDescent;
     const size = ctx._font.size;
-    font.load(function(){
-        const path = font.font.getPath(text, x, y, size);
-        ctx.beginPath();
-        path.commands.forEach(function(cmd) {
-            switch(cmd.type) {
-            case 'M': ctx.moveTo(cmd.x,cmd.y); break;
-            case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
-            case 'L': ctx.lineTo(cmd.x,cmd.y); break;
-            case 'Z':
-            {
-                ctx.closePath();
-                fill ? ctx.fill() : ctx.stroke();
-                ctx.beginPath();
-                break;
-            }
-            }
-        });
+    console.log("processing text path", text)
+    if(!font.loaded) {
+        console.warn("font not loaded yet",ctx._font)
+        return
+    }
+    const path = font.font.getPath(text, x, y, size);
+    ctx.beginPath();
+    path.commands.forEach(function(cmd) {
+        switch(cmd.type) {
+        case 'M': ctx.moveTo(cmd.x,cmd.y); break;
+        case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
+        case 'L': ctx.lineTo(cmd.x,cmd.y); break;
+        case 'Z':
+        {
+            ctx.closePath();
+            fill ? ctx.fill() : ctx.stroke();
+            ctx.beginPath();
+            break;
+        }
+        }
     });
 }
 

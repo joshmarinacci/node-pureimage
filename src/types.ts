@@ -11,21 +11,6 @@ export enum PATH_COMMAND {
 }
 export type RGBA = [number,number,number,number]
 export type RGB = [number,number,number]
-export type Font = {
-    /** The font family to set */
-    family: string;
-    /** An integer representing the font size to use */
-    size?: number;
-    binary?: string;
-    weight?: number;
-    style?: string;
-    variant?: string;
-    loaded?: boolean;
-    font?: opentype.Font | null;
-    load?: (cb: CallableFunction) => void;
-    loadSync?: () => Font;
-    loadPromise?: () => Promise<void>;
-};
 export type TextAlign = 'start' | 'end' | 'left' | 'center' | 'right';
 export type TextBaseline = 'top' | 'middle' | 'alphabetic' | 'bottom';
 export type PathCmd = {
