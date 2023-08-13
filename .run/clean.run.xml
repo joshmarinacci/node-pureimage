@@ -5,7 +5,7 @@
     <scripts>
       <script value="clean" />
     </scripts>
-    <node-interpreter value="project" />
+    <node-interpreter value="$USER_HOME$/.nvm/versions/node/v18.0.0/bin/node" />
     <envs />
     <method v="2" />
   </configuration>

@@ -7,6 +7,16 @@ It has no native dependencies. You can use it to resize images, draw text, rende
 convert to grayscale, or anything else you could do with the standard Canvas 2D API. It also has
 additional APIs to save an image as PNG and JPEG.
 
+
+Typescript Rewrite
+=================
+As of version 0.4.* PureImage has been rewritten in 100% Typescript. The module is compiled
+to both Common JS and ES Modules. If it was working for you before it should still work, but
+if you notice anything off please file a bug report.  
+
+Also *note* that `font.load()` now returns a promise instead of using a callback. If you
+need synchronous support you can still fuse `font.loadSync()`.
+
 Installation
 ==============
 
@@ -78,16 +88,16 @@ On the roadmap, but still missing
 Why?
 ====
 
-The are more than enough drawing APIs out there. Why do we need another? My
+There are more than enough drawing APIs out there. Why do we need another? My
 personal hatred of C/C++ compilers is [widely known](https://joshondesign.com/2014/09/17/rustlang).
-The popular Node modules [Canvas.js](https://github.com/Automattic/node-canvas) does a great
+The popular Node module [Canvas.js](https://github.com/Automattic/node-canvas) does a great
 job, but it's backed by Cairo, a C/C++ layer. I hate having native dependencies
 in Node modules. They often don't compile, or break after a system update. They
 often don't support non-X86 architectures (like the Raspberry Pi). You have
 to have a compiler already installed to use them, along with any other native
 dependencies pre-installed (like Cairo).
 
-So, I made PureImage. It's goal is to implement the HTML Canvas spec in a headless
+So, I made PureImage. Its goal is to implement the HTML Canvas spec in a headless
 Node buffer. No browser or window required.
 
 PureImage is meant to be a small and maintainable Canvas library.
@@ -141,13 +151,12 @@ of 48 points.
 ```js
 test('font test', (t) => {
     var fnt = PImage.registerFont('test/fonts/SourceSansPro-Regular.ttf','Source Sans Pro');
-    fnt.load(() => {
-        var img = PImage.make(200,200);
-        var ctx = img.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.font = "48pt 'Source Sans Pro'";
-        ctx.fillText("ABC", 80, 80);
-    });
+    fnt.loadSync()
+    var img = PImage.make(200,200);
+    var ctx = img.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.font = "48pt 'Source Sans Pro'";
+    ctx.fillText("ABC", 80, 80);
 });
 ```
 
@@ -186,26 +195,24 @@ This examples streams an image from a URL to a memory buffer, draws the current 
 import * as PImage from "pureimage"
 import fs from 'fs'
 import * as client from "https"
-
 let url = "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png"
-let filepath = "output.png"
+let filepath = "output_stream_sync.png"
 //register font
-const font = PImage.registerFont('test/unit/fixtures/fonts/SourceSansPro-Regular.ttf','MyFont');
+const font = PImage.registerFont('../test/unit/fixtures/fonts/SourceSansPro-Regular.ttf','MyFont');
 //load font
-font.load(() => {
-    //get image
-    client.get(url, (image_stream)=>{
-        //decode image
-        PImage.decodePNGFromStream(image_stream).then(img => {
-            //get context
-            const ctx = img.getContext('2d');
-            ctx.fillStyle = '#000000';
-            ctx.font = "60pt MyFont";
-            ctx.fillText(new Date().toDateString(), 50, 80);
-            PImage.encodePNGToStream(img, fs.createWriteStream(filepath)).then(()=>{
-                console.log("done writing to ",filepath)
-            })
-        });
+font.loadSync()
+//get image
+client.get(url, (image_stream)=>{
+    //decode image
+    PImage.decodePNGFromStream(image_stream).then(img => {
+        //get context
+        const ctx = img.getContext('2d');
+        ctx.fillStyle = '#000000';
+        ctx.font = "60pt MyFont";
+        ctx.fillText(new Date().toDateString(), 50, 80);
+        PImage.encodePNGToStream(img, fs.createWriteStream(filepath)).then(()=>{
+            console.log("done writing to ",filepath)
+        })
     })
 })
 ```
@@ -246,22 +253,28 @@ The same as above but with async await
 ```javascript
 import fs from 'fs'
 import * as https from "https"
+const https_get_P = (url) => new Promise(res => https.get(url,res))
+
 async function doit() {
     let url = "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png"
-    let filepath = "output.png"
-    let fontpath = 'test/unit/fixtures/fonts/SourceSansPro-Regular.ttf'
-    await PImage.registerFont(fontpath,'MyFont').loadPromise()
-    //Promise hack because https module doesn't support promises natively)
-    let stream = await (new Promise(res => https.get(url,res)))
-    let img = await PImage.decodePNGFromStream(stream)
+    let filepath = "output_stream_async.png"
+    //register font
+    const font = PImage.registerFont('../test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'MyFont');
+    //load font
+    await font.load()
+    //get image
+    let image_stream = await https_get_P(url)
+    //decode image
+    let img = await PImage.decodePNGFromStream(image_stream)
+    //get context
     const ctx = img.getContext('2d');
     ctx.fillStyle = '#000000';
     ctx.font = "60pt MyFont";
     ctx.fillText(new Date().toDateString(), 50, 80);
     await PImage.encodePNGToStream(img, fs.createWriteStream(filepath))
-    console.log('done writing',filepath)
+    console.log("done writing to ", filepath)
 }
-doit().then(()=>console.log("done")).catch(e => console.error(e))
+doit().then(()=>console.log("done")).catch(e=>console.error(e))
 ```
 
 
@@ -305,6 +318,19 @@ setting. You can learn how to increase the default [here](https://stackoverflow.
 
 
 
+New 0.4.x release
+=================
+
+After another long lull, I've ported PureImage to Typescript. Most of the work
+was actually done by the amazing and talented [Josh Hemphill](https://github.com/josh-hemphill).
+As part of this port I switched to using [esbuild](https://esbuild.github.io) for compiling 
+& packaging the Typescript, and [Vitest](https://vitest.dev) for unit tests. 
+They are vastly faster than our old system.
+
+This release also fixes tons of bugs and adds some small features:
+* updated PngJS, OpenType.jS and JPegJS to their latest version.
+* Node 14 is now the minimum supported version
+* linear and radial gradient fills are supported. See [test/gradientfill.test.ts](test/gradientfill.test.ts))
 
 
 New 0.3.x release
