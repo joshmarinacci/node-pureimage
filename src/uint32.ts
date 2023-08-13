@@ -110,7 +110,7 @@ export const or = function(
     ...argv: number[]
 ) {
     let result = uint32val0;
-    for (let index = 1; index < argv.length; index += 1) {
+    for (let index = 0; index < argv.length; index += 1) {
         result = (result | argv[index]);
     }
     return result >>> 0;
@@ -127,7 +127,7 @@ export const and = function(
     ...argv: number[]
 ) {
     let result = uint32val0;
-    for (let index = 1; index < argv.length; index += 1) {
+    for (let index = 0; index < argv.length; index += 1) {
         result = (result & argv[index]);
     }
     return result >>> 0;
@@ -144,7 +144,7 @@ export const xor = function(
     ...argv: number[]
 ) {
     let result = uint32val0;
-    for (let index = 1; index < argv.length; index += 1) {
+    for (let index = 0; index < argv.length; index += 1) {
         result = (result ^ argv[index]);
     }
     return result >>> 0;
@@ -243,7 +243,7 @@ export const addMod32 = function(
     ...argv: number[]
 ) {
     let result = uint32val;
-    for (let index = 1; index < argv.length; index += 1) {
+    for (let index = 0; index < argv.length; index += 1) {
         result += argv[index];
     }
     return result >>> 0;
