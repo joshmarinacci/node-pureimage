@@ -11,7 +11,7 @@ import * as client from "https"
 let url = "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png"
 let filepath = "output_stream_promise.png"
 let fontpath = '../test/unit/fixtures/fonts/SourceSansPro-Regular.ttf'
-PImage.registerFont(fontpath,'MyFont').loadPromise()
+PImage.registerFont(fontpath,'MyFont').load()
     //Promise hack because https module doesn't support promises)
     .then(()=>new Promise(res => client.get(url,res)))
     .then(stream => PImage.decodePNGFromStream(stream))

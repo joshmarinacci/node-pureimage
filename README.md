@@ -7,6 +7,16 @@ It has no native dependencies. You can use it to resize images, draw text, rende
 convert to grayscale, or anything else you could do with the standard Canvas 2D API. It also has
 additional APIs to save an image as PNG and JPEG.
 
+
+Typescript Rewrite
+=================
+As of version 0.4.* PureImage has been rewritten in 100% Typescript. The module is compiled
+to both Common JS and ES Modules. If it was working for you before it should still work, but
+if you notice anything off please file a bug report.  
+
+Also *note* that `font.load()` now returns a promise instead of using a callback. If you
+need synchronous support you can still fuse `font.loadSync()`.
+
 Installation
 ==============
 

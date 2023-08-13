@@ -16,7 +16,7 @@ async function doit() {
     //register font
     const font = PImage.registerFont('../test/unit/fixtures/fonts/SourceSansPro-Regular.ttf', 'MyFont');
     //load font
-    await font.loadPromise()
+    await font.load()
     //get image
     let image_stream = await https_get_P(url)
     //decode image

@@ -68,6 +68,9 @@ class RegisteredFont {
             throw new Error('Could not load font: ' + err);
         }
     }
+    load() {
+        return this.loadPromise()
+    }
     loadPromise() {
         return new Promise<void>((res,_rej)=>{
             this._load(() => res())
