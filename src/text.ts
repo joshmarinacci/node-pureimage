@@ -154,16 +154,17 @@ export function processTextPath(
     ctx.beginPath();
     path.commands.forEach(function(cmd) {
         switch(cmd.type) {
-        case 'M': ctx.moveTo(cmd.x,cmd.y); break;
-        case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
-        case 'L': ctx.lineTo(cmd.x,cmd.y); break;
-        case 'Z':
-        {
-            ctx.closePath();
-            fill ? ctx.fill() : ctx.stroke();
-            ctx.beginPath();
-            break;
-        }
+            case 'M': ctx.moveTo(cmd.x,cmd.y); break;
+            case 'Q': ctx.quadraticCurveTo(cmd.x1,cmd.y1,cmd.x,cmd.y); break;
+            case 'L': ctx.lineTo(cmd.x,cmd.y); break;
+            case 'C': ctx.bezierCurveTo(cmd.x1,cmd.y1,cmd.x2,cmd.y2,cmd.x,cmd.y); break;
+            case 'Z':
+            {
+                ctx.closePath();
+                fill ? ctx.fill() : ctx.stroke();
+                ctx.beginPath();
+                break;
+            }
         }
     });
 }
