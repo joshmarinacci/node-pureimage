@@ -10,31 +10,28 @@ import {FIXTURES_DIR} from './common.js'
  */
 describe('PNG image', () => {
 
-    let PImage
+    let canvas
     let context
 
     beforeEach(() => {
-        PImage  = pureimage.make(200, 200);
-        context = PImage.getContext('2d');
+        canvas  = pureimage.make(200, 200);
+        context = canvas.getContext('2d');
     });
 
-    /**
-     * @test {encodePNGToStream}
-     */
-    it('can be encoded to a stream', () => {
 
+    it('saves to a nodejs buffer', async () => {
         const passThroughStream = new PassThrough();
-        const PNGData           = [];
-
-        const PNGPromise =
-        passThroughStream.on('data', chunk => PNGData.push(chunk));
-        passThroughStream.on('end', async () => {
-            // expect(Buffer.concat(PNGData)).toBeOfFileType('png');
-            await pureimage.encodePNGToStream(PImage, passThroughStream);
-            // PNGPromise.then(done).catch(e => console.error(e));
+        const pngData = [];
+        passThroughStream.on('data', chunk => pngData.push(chunk));
+        passThroughStream.on('end', () => {
         });
-        passThroughStream.on('error',e => console.error(e))
-    });
+        await pureimage.encodePNGToStream(canvas, passThroughStream)
+        let buf = Buffer.concat(pngData);
+        expect(buf[0]).to.eq(0x89)
+        expect(buf[1]).to.eq(0x50)
+        expect(buf[2]).to.eq(0x4E)
+        expect(buf[3]).to.eq(0x47)
+    })
 
     /**
      * @test {encodePNGToStream}
@@ -57,9 +54,19 @@ describe('PNG image', () => {
         expect(png.height).to.eq(133);
         expect(png.getPixelRGBA(3, 3)).to.eq(0xEAE9EEFF);
     });
+    it('must save with compression', async () => {
+        let filestream = fs.createWriteStream('foo.png')
+        await pureimage.encodePNGToStream(canvas, filestream, {deflateLevel: 5})
+        let buf = await fs.promises.readFile('foo.png')
+        expect(buf[0]).to.eq(0x89)
+        expect(buf[1]).to.eq(0x50)
+        expect(buf[2]).to.eq(0x4E)
+        expect(buf[3]).to.eq(0x47)
+    })
+
 
     afterEach(() => {
-        PImage  = undefined;
+        canvas  = undefined;
         context = undefined;
     });
 });
@@ -137,19 +144,6 @@ describe('JPEG image', () => {
         }
     });
 
-    it('saves to a nodejs buffer', async () => {
-        const passThroughStream = new PassThrough();
-        const pngData = [];
-        passThroughStream.on('data', chunk => pngData.push(chunk));
-        passThroughStream.on('end', () => {
-        });
-        await pureimage.encodePNGToStream(canvas, passThroughStream)
-        let buf = Buffer.concat(pngData);
-        expect(buf[0]).to.eq(0x89)
-        expect(buf[1]).to.eq(0x50)
-        expect(buf[2]).to.eq(0x4E)
-        expect(buf[3]).to.eq(0x47)
-    })
 
     afterEach(() => {
         canvas  = undefined;

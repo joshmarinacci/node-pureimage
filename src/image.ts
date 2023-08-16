@@ -10,21 +10,27 @@ export function make(w: number,h: number,options?: unknown) {
     return new Bitmap(w,h,options);
 }
 
+export type PNGOptions = {
+    deflateLevel?:number,
+    deflateStrategy?:number,
+}
 /** Encode the PNG image to output stream */
 export function encodePNGToStream(
     /** An instance of {@link Bitmap} to be encoded to PNG, `bitmap.data` must be a buffer of raw PNG data */
     bitmap: Bitmap,
     /** The stream to write the PNG file to */
-    outstream: WriteStream
+    outstream: WriteStream,
+    options:PNGOptions = {}
 ): Promise<void> {
     return new Promise((res,rej)=>{
         if(!hasOwnProperty.call(bitmap,'data') || !hasOwnProperty.call(bitmap,'width') || !hasOwnProperty.call(bitmap,'height')) {
             return rej(new TypeError('Invalid bitmap image provided'));
         }
-
         const png = new PNG({
             width: bitmap.width,
-            height: bitmap.height
+            height: bitmap.height,
+            deflateLevel:options.deflateLevel||9,
+            deflateStrategy:options.deflateStrategy||3,
         });
 
         for(let i=0; i<bitmap.width; i++) {
