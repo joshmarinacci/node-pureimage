@@ -17,10 +17,36 @@ export class CanvasGradient {
     protected _lerpStops(
         t: number
     ) {
-        const first = getBytesBigEndian(this.stops[0].color).map(b=>b/255);
-        const second = getBytesBigEndian(this.stops[1].color).map(b=>b/255);
-        const fc = first.map((f,i) => lerp(f,second[i],t)).map(c=>c*255);
-        return fromBytesBigEndian(fc[0],fc[1],fc[2],0xFF);
+        if(t < 0) t += 1.0
+        if(t > 1) t -= 1.0
+        // find the stops that T is inbetween
+        let start = this.stops.slice().reverse().find(stop => stop.t <= t)
+        let end = this.stops.find(stop => stop.t > t)
+        if(!end) end = this.stops.at(-1)
+
+        // calculate relative T between those stops
+        let rt = remap(t, start.t, end.t, 0, 1)
+
+        // convert colors to components, 0->1
+        const intToRGBA = (int:number) => {
+            return getBytesBigEndian(int).map(b => b/255)
+        }
+        const rgba_start = intToRGBA(start.color)
+        const rgba_end = intToRGBA(end.color)
+
+        //lerp the final color
+        const final_color = rgba_start.map((c,i) => lerp(c,rgba_end[i],rt));
+
+        // console.log(`t = ${t.toFixed(3)} tt = ${rt.toFixed(3)} color ${rgba_start}, ${rgba_end} -> ${final_color.map(v => v.toFixed(2))}`)
+
+        // convert back to bytes, force alpha to 100%
+        const RGBAToInt = (rgba:number[]) => {
+            const fc = rgba.map(c => c*255)
+            return fromBytesBigEndian(fc[0],fc[1],fc[2],0xff)
+        }
+        return RGBAToInt(final_color)
+        // const fc = final_color.map(c => c*255)
+        // return fromBytesBigEndian(fc[0],fc[1],fc[2],0xff)
     }
 }
 
@@ -103,10 +129,7 @@ export class ConicalGradient extends CanvasGradient {
     ) {
         const pt = this.start.subtract(new Point(x, y))
         let ang = Math.atan2(pt.y,pt.x) - this.angle
-        //ang is -1 to 1. remap into the range of 0 to 1
-        //ang i -PI to Pi
         const t = remap(ang, -Math.PI, Math.PI, 0, 1)
-        // if(y == 25)  console.log(x,y,ang, toDeg(ang), remap(ang, -Math.PI, Math.PI, 0, 1))
         return this._lerpStops(t);
     }
 }

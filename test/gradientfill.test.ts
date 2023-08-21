@@ -7,8 +7,8 @@ describe('drawing gradients',() => {
 
     let image
     let c
-    let w = 256
-    let h = 256
+    let w = 200
+    let h = 200
     beforeEach(()=>{
         image = pureimage.make(w,h)
         c = image.getContext('2d')
@@ -18,13 +18,13 @@ describe('drawing gradients',() => {
 
 
     it('fillRect with linear gradient',async () => {
-        const grad = c.createLinearGradient(0, 0, 20, 20)
+        const grad = c.createLinearGradient(0, 0, w,h)
         grad.addColorStop(0, 'white')
         grad.addColorStop(1, 'blue')
         c.fillStyle = grad
-        c.fillRect(0, 0, 20, 20)
+        c.fillRect(0, 0, w,h)
         expect(image.getPixelRGBA(0, 0)).to.eq(0xFFFFFFFF)
-        expect(image.getPixelRGBA(19, 19)).to.eq(0x0C0CFFFF)
+        expect(image.getPixelRGBA(w-1, h-1)).to.eq(0x0000FFFF)
         await save(image, 'linear_gradient_fillrect')
     })
 
@@ -44,6 +44,16 @@ describe('drawing gradients',() => {
         //     console.log(i, image.getPixelRGBA_separate(i,19))
         // }
         await save(image, 'linear_gradient_fill.png')
+    })
+
+    it('linear gradient with multiple stops', async () => {
+        const grad = c.createLinearGradient(0, 0, w, 0)
+        grad.addColorStop(0, '#ff0000')
+        grad.addColorStop(0.5, '#00ff00')
+        grad.addColorStop(1, '#0000ff')
+        c.fillStyle = grad
+        c.fillRect(0,0,w,h)
+        await save(image, 'linear_gradient_rgb_stops.png')
     })
 
     it('stroke with linear gradient',async () => {
@@ -93,17 +103,14 @@ describe('drawing gradients',() => {
         await save(image, 'conic_gradient_smooth_90')
     })
     it('is drawing a conical gradient with hard colors', async() => {
-        const grad = c.createConicGradient(0, w/2,h/2)
-        grad.addColorStop(0, '#00ff00')
-        grad.addColorStop(1, '#ff0000')
-        // grad.addColorStop(0.1, 'blue')
-        // grad.addColorStop(0, "#f00");
-        // grad.addColorStop(0.2, "#00f");
-        // grad.addColorStop(0.4, "#0ff");
-        // grad.addColorStop(1.0,'black')
-        // grad.addColorStop(0.6, "#f0f");
-        // grad.addColorStop(0.8, "#ff0");
-        // grad.addColorStop(1, "#f00");
+
+        const grad = c.createConicGradient(Math.PI/3, w/2, h/2)
+        grad.addColorStop(0, "#f00");
+        grad.addColorStop(0.2, "#00f");
+        grad.addColorStop(0.4, "#0ff");
+        grad.addColorStop(0.6, "#f0f");
+        grad.addColorStop(0.8, "#ff0");
+        grad.addColorStop(1, "#f00");
         // grad.addColorStop(0, "#f00");
         // grad.addColorStop(0.2, "#00f");
         // grad.addColorStop(0.4, "#0ff");
