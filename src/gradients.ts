@@ -82,4 +82,33 @@ export class RadialGradient extends CanvasGradient {
     }
 }
 
-export type ColorGradient = RadialGradient | LinearGradient;
+function remap(val: number, smin: number, smax: number, omin: number, omax: number) {
+    // map into range of 0 to 1
+    let t= (val-smin)/(smax-smin)
+    // map into new range
+    return (t * (omax - omin)) + omin
+}
+
+export class ConicalGradient extends CanvasGradient {
+    private angle: number;
+    private start: Point;
+    constructor(angle:number, x0:number, y0:number) {
+        super();
+        this.angle = angle
+        this.start = new Point(x0,y0)
+    }
+    colorAt(
+        x: number,
+        y: number,
+    ) {
+        const pt = this.start.subtract(new Point(x, y))
+        let ang = Math.atan2(pt.y,pt.x) - this.angle
+        //ang is -1 to 1. remap into the range of 0 to 1
+        //ang i -PI to Pi
+        const t = remap(ang, -Math.PI, Math.PI, 0, 1)
+        // if(y == 25)  console.log(x,y,ang, toDeg(ang), remap(ang, -Math.PI, Math.PI, 0, 1))
+        return this._lerpStops(t);
+    }
+}
+
+export type ColorGradient = RadialGradient | LinearGradient | ConicalGradient;

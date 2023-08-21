@@ -165,6 +165,10 @@ export class Context {
         return new G.RadialGradient(x0, y0)
     }
 
+    createConicGradient(angle:number, x0:number, y0:number) {
+        return new G.ConicalGradient(angle,x0,y0)
+    }
+
 
     /**
      * Saves the entire state of the canvas by pushing the current state onto a stack

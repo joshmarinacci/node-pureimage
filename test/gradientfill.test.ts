@@ -7,11 +7,13 @@ describe('drawing gradients',() => {
 
     let image
     let c
+    let w = 256
+    let h = 256
     beforeEach(()=>{
-        image = pureimage.make(20,20)
+        image = pureimage.make(w,h)
         c = image.getContext('2d')
         c.fillStyle = 'black'
-        c.fillRect(0,0,200,200)
+        c.fillRect(0,0,w,h)
     })
 
 
@@ -72,5 +74,47 @@ describe('drawing gradients',() => {
         expect(image.getPixelRGBA(0, 0)).to.eq(NAMED_COLORS.green)
         expect(image.getPixelRGBA(10, 10)).to.eq(NAMED_COLORS.white)
         await save(image, 'radial_gradient_fillrect.png',)
+    })
+
+    it('is drawing a conical gradient with smooth colors', async () => {
+        const grad = c.createConicGradient(0, w/2, h/2)
+        grad.addColorStop(0, 'white')
+        grad.addColorStop(1, 'blue')
+        c.fillStyle = grad
+        c.fillRect(0, 0, w,h)
+        await save(image, 'conic_gradient_smooth')
+    })
+    it('is drawing a conical gradient with a different angle', async () => {
+        const grad = c.createConicGradient(Math.PI/3, w/2, h/2)
+        grad.addColorStop(0, 'white')
+        grad.addColorStop(1, 'blue')
+        c.fillStyle = grad
+        c.fillRect(0, 0, w,h)
+        await save(image, 'conic_gradient_smooth_90')
+    })
+    it('is drawing a conical gradient with hard colors', async() => {
+        const grad = c.createConicGradient(0, w/2,h/2)
+        grad.addColorStop(0, '#00ff00')
+        grad.addColorStop(1, '#ff0000')
+        // grad.addColorStop(0.1, 'blue')
+        // grad.addColorStop(0, "#f00");
+        // grad.addColorStop(0.2, "#00f");
+        // grad.addColorStop(0.4, "#0ff");
+        // grad.addColorStop(1.0,'black')
+        // grad.addColorStop(0.6, "#f0f");
+        // grad.addColorStop(0.8, "#ff0");
+        // grad.addColorStop(1, "#f00");
+        // grad.addColorStop(0, "#f00");
+        // grad.addColorStop(0.2, "#00f");
+        // grad.addColorStop(0.4, "#0ff");
+        // grad.addColorStop(0.6, "#f0f");
+        // grad.addColorStop(0.8, "#ff0");
+        // grad.addColorStop(1, "#f00");
+        c.fillStyle = grad
+        c.fillRect(0, 0, w,h)
+        await save(image, 'conic_gradient_smooth_rainbow')
+    })
+    it('is drawing a conical gradient with one color', async () => {
+
     })
 });

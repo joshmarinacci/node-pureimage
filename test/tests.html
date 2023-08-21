@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas" width="256" height="256"></canvas>
+<button id="conic1">conic 1</button>
+<button id="conic2">conic 2</button>
+<button id="conic3">conic 3</button>
+<button id="conic4">conic 4</button>
+
+<script type="module">
+    const $ = (sel) => document.querySelector(sel)
+    const on = (el, type, cb) => el.addEventListener(type,cb)
+
+    const w = $("#canvas").width
+    const h = $("#canvas").height
+
+    on($("#conic1"),'click',() => {
+        console.log(w,h)
+        const can = $("#canvas")
+        const c = can.getContext('2d')
+        const grad = c.createConicGradient(0, w/2, h/2)
+        grad.addColorStop(0, 'white')
+        grad.addColorStop(1, 'blue')
+        c.fillStyle = grad
+        c.fillRect(0, 0, w,h)
+    })
+    on($("#conic2"),'click',() => {
+        const can = $("#canvas")
+        const c = can.getContext('2d')
+        const grad = c.createConicGradient(Math.PI/3, w/2, h/2)
+        grad.addColorStop(0, 'white')
+        grad.addColorStop(1, 'blue')
+        c.fillStyle = grad
+        c.fillRect(0, 0, w,h)
+    })
+    on($("#conic3"),'click',() => {
+        const can = $("#canvas")
+        const c = can.getContext('2d')
+        const grad = c.createConicGradient(Math.PI/3, w/2, h/2)
+        grad.addColorStop(0, "#f00");
+        grad.addColorStop(0.2, "#00f");
+        grad.addColorStop(0.4, "#0ff");
+        grad.addColorStop(0.6, "#f0f");
+        grad.addColorStop(0.8, "#ff0");
+        grad.addColorStop(1, "#f00");
+        c.fillStyle = grad
+        c.fillRect(0, 0, w,h)
+    })
+    on($("#conic4"),'click',() => {
+        const can = $("#canvas")
+        const c = can.getContext('2d')
+        const grad = c.createConicGradient(0, w/2, h/2)
+        grad.addColorStop(0, '#ff0000')
+        grad.addColorStop(1, '#00ff00')
+        c.fillStyle = grad
+        c.fillRect(0, 0, w,h)
+    })
+</script>
+</body>
+</html>
