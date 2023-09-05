@@ -24,7 +24,7 @@ async function go() {
         ...sharedConfig,
         platform: 'neutral',
         format: 'esm',
-        outfile: 'dist/index.ems.js',
+        outfile: 'dist/index.esm.js',
         external: ['pngjs','opentype.js','jpeg-js']
     })
 }
