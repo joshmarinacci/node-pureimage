@@ -108,14 +108,6 @@ export function encodeJPEGToStream(
     });
 }
 
-type JPegOptions = {
-    useTArray?: false;
-    colorTransform?: boolean;
-    formatAsRGBA?: boolean;
-    tolerantDecoding?: boolean;
-    maxResolutionInMP?: number;
-    maxMemoryUsageInMB?: number;
-}
 /**
  * Decode JPEG From Stream
  *
@@ -123,8 +115,7 @@ type JPegOptions = {
  */
 export function decodeJPEGFromStream(
     /** A readable stream to decode JPEG data from */
-    data: ReadStream,
-    opts?:JPegOptions,
+    data: ReadStream
 ): Promise<Bitmap> {
     return new Promise((res,rej)=>{
         try {
@@ -134,7 +125,7 @@ export function decodeJPEGFromStream(
                 const buf = typedArrConcat(chunks);
                 let rawImageData = null;
                 try {
-                    rawImageData = JPEG.decode(buf, opts);
+                    rawImageData = JPEG.decode(buf);
                 } catch(err) {
                     rej(err);
                     return;

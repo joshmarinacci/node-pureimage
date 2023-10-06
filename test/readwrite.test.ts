@@ -11,9 +11,11 @@ import {FIXTURES_DIR} from './common.js'
 describe('PNG image', () => {
 
     let canvas
+    let context
 
     beforeEach(() => {
         canvas  = pureimage.make(200, 200);
+        context = canvas.getContext('2d');
     });
 
 
@@ -37,7 +39,6 @@ describe('PNG image', () => {
     it('must be generated from a valid bitmap buffer', async () => {
         expect.assertions(1)
         try {
-            // @ts-ignore
             await pureimage.encodePNGToStream('this is a string, not a bitmap buffer', new PassThrough())
         } catch (e) {
             expect(true)
@@ -66,6 +67,7 @@ describe('PNG image', () => {
 
     afterEach(() => {
         canvas  = undefined;
+        context = undefined;
     });
 });
 
@@ -75,9 +77,11 @@ describe('PNG image', () => {
 describe('JPEG image', () => {
 
     let canvas
+    let context
 
     beforeEach(() => {
         canvas  = pureimage.make(200, 200);
+        context = canvas.getContext('2d');
     });
 
     /**
@@ -102,7 +106,6 @@ describe('JPEG image', () => {
     it('must be generated from a valid bitmap buffer', async () => {
         expect.assertions(1)
         try {
-            // @ts-ignore
             await pureimage.encodeJPEGToStream('this is a string, not a bitmap buffer', new PassThrough())
         } catch (e) {
             expect(true)
@@ -144,5 +147,6 @@ describe('JPEG image', () => {
 
     afterEach(() => {
         canvas  = undefined;
+        context = undefined;
     });
 });
