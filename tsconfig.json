@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"allowJs": true,
-		"checkJs": true,
+		"allowJs": false,
+		"checkJs": false,
 		"target": "es2017",
 		"moduleResolution": "node",
 		"module": "ES6",
@@ -35,22 +35,10 @@
 		"lib": [
 			"es2020"
 		],
-		"types": [
-			"@types/node",
-			"@types/mocha",
-		],
-		"typeRoots": [
-			"node_modules/@types",
-			"types"
-		]
 	},
 	"include": [
 		"src/**/*",
-		"test/**/*",
-		"*.ts",
-		"*.js",
-		"*.mjs",
-		"*.cjs"
+//		"test/**/*",
 	],
 	"exclude": [
 		"node_modules/**",

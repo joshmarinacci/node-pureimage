@@ -8,21 +8,21 @@ const _fonts: Record<string,RegisteredFont> = {};
 /** The default font family to use for text */
 // const DEFAULT_FONT_FAMILY = 'source';
 
-// export type Font = {
-//     /** The font family to set */
-//     family: string;
-//     /** An integer representing the font size to use */
-//     size?: number;
-//     binary?: string;
-//     weight?: number;
-//     style?: string;
-//     variant?: string;
-//     loaded?: boolean;
-//     font?: opentype.Font | null;
-//     load?: (cb: CallableFunction) => void;
-//     loadSync?: () => Font;
-//     loadPromise?: () => Promise<void>;
-// };
+export type Font = {
+    /** The font family to set */
+    family: string;
+    /** An integer representing the font size to use */
+    size?: number;
+    binary?: string;
+    weight?: number;
+    style?: string;
+    variant?: string;
+    loaded?: boolean;
+    font?: opentype.Font | null;
+    load?: (cb: CallableFunction) => void;
+    loadSync?: () => Font;
+    loadPromise?: () => Promise<void>;
+};
 
 
 class RegisteredFont {
@@ -32,7 +32,7 @@ class RegisteredFont {
     style: string
     variant: string
     loaded: boolean;
-    font: null;
+    font: opentype.Font;
     constructor(binaryPath:string, family:string, weight?:number, style?:string, variant?:string) {
         this.binary = binaryPath
         this.family = family
@@ -135,6 +135,7 @@ export function processTextPath(
     if(!font) {
         // eslint-disable-next-line no-console
         console.warn('Font missing',ctx._font);
+        return
     }
     const metrics = measureText(ctx,text);
     /* if(hAlign === 'start' || hAlign === 'left')  x = x; */
@@ -168,6 +169,11 @@ export function processTextPath(
         }
     });
 }
+type TextMetrics = {
+    width:number,
+    emHeightAscent:number,
+    emHeightDescent:number,
+}
 
 /** Process Text Path */
 export function measureText(
@@ -175,10 +181,16 @@ export function measureText(
     ctx: Context,
     /** The name to give the font */
     text: string,
-) {
+):TextMetrics {
     const font = findFont(ctx._font.family);
-    if(!font) console.warn("WARNING. Can't find font family ", ctx._font);
-    if(!font.font) console.warn("WARNING. Can't find font family ", ctx._font);
+    if(!font) {
+        console.warn("WARNING. Can't find font family ", ctx._font);
+        return {width:10,emHeightAscent:8,emHeightDescent:2}
+    }
+    if(!font.font) {
+        console.warn("WARNING. Can't find font family ", ctx._font);
+        return {width:10,emHeightAscent:8,emHeightDescent:2}
+    }
     const fsize = ctx._font.size;
     const glyphs = font.font.stringToGlyphs(text);
     let advance = 0;

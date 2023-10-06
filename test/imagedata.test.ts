@@ -4,10 +4,9 @@ import * as pureimage from "../src/index.js"
 describe('drawImage',() => {
     let image;
     let context;
-    let src;
     const RED   = 0xFF0000FF
     const WHITE = 0xFFFFFFFF
-    const BLACK = 0x000000FF
+    // const BLACK = 0x000000FF
     const GREEN = 0x00FF00FF
 
     beforeEach(() => {

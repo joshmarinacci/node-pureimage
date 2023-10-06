@@ -1,6 +1,4 @@
 import * as PImage from '../../src/index.js'
-import {Line} from "../../src/line.js"
-import {Point} from "../../src/point.js"
 // import {calcSortedIntersections} from "../../src/context.js"
 
 import fs from 'fs'

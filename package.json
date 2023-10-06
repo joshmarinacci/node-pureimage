@@ -1,6 +1,6 @@
 {
   "name": "pureimage",
-  "version": "0.4.9",
+  "version": "0.4.10",
   "description": "Pure JS image drawing API based on Canvas. Export to PNG streams.",
   "author": {
     "name": "Josh Marinacci",
@@ -25,6 +25,7 @@
     "pngjs": "^7.0.0"
   },
   "devDependencies": {
+    "@types/opentype.js": "^1.3.6",
     "esbuild": "^0.18.19",
     "npm-dts": "^1.3.12",
     "typescript": "^5.1.6",
@@ -33,8 +34,9 @@
   "scripts": {
     "test": "vitest",
     "build": "node build.js",
+    "type-check": "tsc",
     "clean": "rm -rf dist/ output/ *.tgz",
-    "release": "npm run clean && npm run build && npm run test && npm version patch && npm publish"
+    "release": "npm run clean && npm run build && npm run test && npm run type-check && npm version patch && npm publish"
   },
   "engines": {
     "node": ">=14.19.0"

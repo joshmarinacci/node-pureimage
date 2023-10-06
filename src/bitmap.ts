@@ -17,10 +17,9 @@ export class Bitmap {
      * Creates an instance of Bitmap.
      * @param {number} w      Width
      * @param {number} h      Height
-     * @param {any}   options Currently unused
      * @memberof Bitmap
      */
-    constructor(w:number,h:number, options?) {
+    constructor(w:number,h:number) {
 
         this.width = Math.floor(w);
         this.height = Math.floor(h);
@@ -153,7 +152,7 @@ export class Bitmap {
         w: number,
         h: number
     ) {
-        const dst = new Bitmap(w,h,{})
+        const dst = new Bitmap(w,h)
         for(let i=0; i<w; i++) {
             for(let j=0; j<h; j++) {
                 const indexA = this.calculateIndex(x+i,y+j)

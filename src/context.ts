@@ -1,20 +1,14 @@
 import {Line} from './line.js';
 import {NAMED_COLORS, TRANSPARENT_BLACK} from './named_colors';
-import {Bounds, calc_min_bounds, Point, toRad} from './point';
+import {Bounds, calc_min_bounds, Point, PointIsh, toRad} from './point';
 import * as TEXT from './text';
+import {Font} from './text';
 import * as G from "./gradients"
-import {and, fromBytesBigEndian, getBytesBigEndian, or, shiftLeft, toUint32} from './uint32';
+import {and, fromBytesBigEndian, getBytesBigEndian, or} from './uint32';
 import type {Bitmap} from './bitmap';
-import {
-    PATH_COMMAND,
-    Font,
-    TextAlign,
-    TextBaseline,
-    PathCmd,
-    RGBA,
-} from './types.js'
-import {colorStringToUint32} from "./util";
-import {Transform} from "./transform";
+import {MinimumBounds, PATH_COMMAND, PathCmd, RGBA, TextAlign, TextBaseline,} from './types.js'
+import {clamp, colorStringToUint32} from "./util";
+import {Matrix, Transform} from "./transform";
 
 
 /**
@@ -25,30 +19,25 @@ import {Transform} from "./transform";
  * @class Context
  */
 export class Context {
-    /**  A 32-bit unsigned integer (uint32) number representing the fill color of the 2D drawing context */
-    private _fillColor: number | G.ColorGradient;
-    private _strokeColor: number | G.ColorGradient;
-    private _lineWidth: number;
-    private _globalAlpha: number;
-    private _clip?: Line[];
-    private _fillStyle_text: string;
-    private _strokeStyle_text: string;
-    private _closed?: boolean;
-    private pathStart?: Point;
-    private debug?: boolean;
     public path?: PathCmd[];
-    /** Plain js object wrapping the font name and size */
-    public _font: Font & { size: number };
-    private _transform: Transform;
     /** Horizontal text alignment, one of start, end, left, center, right. start is the default */
     public textAlign: TextAlign;
     /** vertical text alignment, relative to the baseline. one of top, middle, alphabetic(default) and bottom. */
     public textBaseline: TextBaseline;
     /** Enable or disable image smoothing(anti-aliasing)*/
     public imageSmoothingEnabled: boolean;
+    /**  A 32-bit unsigned integer (uint32) number representing the fill color of the 2D drawing context */
+    private _fillColor: number | G.ColorGradient;
+    private _strokeColor: number | G.ColorGradient;
+    private _clip?: Line[];
+    private _fillStyle_text: string;
+    private _strokeStyle_text: string;
+    private _closed?: boolean;
+    private pathstart?: Point;
+    private debug?: boolean;
+    private _transform: Transform;
     private _bitmap: Bitmap;
     private states: any[];
-
 
     /** Creates a new pure image Context */
     constructor(
@@ -72,6 +61,57 @@ export class Context {
         this._fillStyle_text = '';
         this._strokeStyle_text = '';
         this.states = []
+    }
+
+    private _lineWidth: number;
+
+    /**
+     * The thickness of lines in space units. When getting, it returns the current value (1.0 by default). When setting, zero, negative, `Infinity` and `NaN` values are ignored; otherwise the current value is set to the new value.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineWidth
+     */
+    get lineWidth() {
+        return this._lineWidth;
+    };
+
+    /** @example ctx.lineWidth = 15; */
+    set lineWidth(val) {
+        this._lineWidth = val;
+    };
+
+    private _globalAlpha: number;
+
+    /**
+     * The alpha value that is applied to shapes and images before they are drawn onto the canvas. The value is in the range from 0.0 (fully transparent) to 1.0 (fully opaque).
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalAlpha
+     */
+    get globalAlpha(): number {
+        return this._globalAlpha;
+    };
+
+    /** @example ctx.globalAlpha = 1; */
+    set globalAlpha(val: number) {
+        this._globalAlpha = clamp(val, 0, 1);
+    }
+
+    /** Plain js object wrapping the font name and size */
+    public _font: Font;
+
+    /**
+     * The current text style being used when drawing text. This string uses the same syntax as the CSS font specifier
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font
+     */
+    get font(): string {
+        return `${this._font.size} ${this._font.family}`;
+    }
+
+    /** @example ctx.font = '12 someFont'; */
+    set font(val: string) {
+        const n = val.trim().indexOf(' ')
+        this._font.size = parseInt(val.slice(0, n))
+        this._font.family = val.slice(n).trim();
     }
 
     /**
@@ -105,68 +145,23 @@ export class Context {
     /** @example ctx.strokeStyle = 'rgba(0, 25, 234, 0.6)'; */
     set strokeStyle(val: string | G.CanvasGradient) {
         if (val instanceof G.CanvasGradient) {
-            this._strokeStyle_text = val
+            this._strokeStyle_text = val.toString()
         } else {
             this._strokeColor = colorStringToUint32(val);
             this._strokeStyle_text = val;
         }
     };
 
-    /**
-     * The thickness of lines in space units. When getting, it returns the current value (1.0 by default). When setting, zero, negative, `Infinity` and `NaN` values are ignored; otherwise the current value is set to the new value.
-     *
-     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineWidth
-     */
-    get lineWidth() {
-        return this._lineWidth;
-    };
-
-    /** @example ctx.lineWidth = 15; */
-    set lineWidth(val) {
-        this._lineWidth = val;
-    };
-
-    /**
-     * The alpha value that is applied to shapes and images before they are drawn onto the canvas. The value is in the range from 0.0 (fully transparent) to 1.0 (fully opaque).
-     *
-     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalAlpha
-     */
-    get globalAlpha(): number {
-        return this._globalAlpha;
-    };
-
-    /** @example ctx.globalAlpha = 1; */
-    set globalAlpha(val: number) {
-        this._globalAlpha = clamp(val, 0, 1);
-    }
-
-    /**
-     * The current text style being used when drawing text. This string uses the same syntax as the CSS font specifier
-     *
-     * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font
-     */
-    get font(): string {
-        return `${this._font.size} ${this._font.family}`;
-    }
-
-    /** @example ctx.font = '12 someFont'; */
-    set font(val: string) {
-        const n = val.trim().indexOf(' ')
-        this._font.size = parseInt(val.slice(0, n))
-        this._font.family = val.slice(n).trim();
-    }
-
-
-    createLinearGradient(x0, y0, x1, y1) {
+    createLinearGradient(x0: number, y0: number, x1: number, y1: number) {
         return new G.LinearGradient(x0, y0, x1, y1)
     }
 
-    createRadialGradient(x0, y0) {
+    createRadialGradient(x0: number, y0: number) {
         return new G.RadialGradient(x0, y0)
     }
 
-    createConicGradient(angle:number, x0:number, y0:number) {
-        return new G.ConicalGradient(angle,x0,y0)
+    createConicGradient(angle: number, x0: number, y0: number) {
+        return new G.ConicalGradient(angle, x0, y0)
     }
 
 
@@ -239,7 +234,7 @@ export class Context {
 
     transform(...args) {
         let new_mat = [...args]
-        this._transform.multiply(new_mat)
+        this._transform.multiply(new_mat as Matrix)
     }
 
     setTransform(...args) {
@@ -248,7 +243,7 @@ export class Context {
             let new_mat = this._transform.fromDomMatrix(args[0])
             this._transform.multiply(new_mat)
         } else {
-            this._transform.multiply([...args])
+            this._transform.multiply([...args] as Matrix)
         }
     }
 
@@ -266,7 +261,7 @@ export class Context {
      *
      * @memberof Context
      */
-    restore() {
+    restore(): void {
         this._transform.restore();
         let state = this.states.pop()
         if (state) {
@@ -289,12 +284,7 @@ export class Context {
      *
      * @memberof Context
      */
-    fillRect(
-        x: number,
-        y: number,
-        w: number,
-        h: number,
-    ) {
+    fillRect(x: number, y: number, w: number, h: number):void {
         if (this._transform.isIdentity()) {
             for (let i = x; i < x + w; i++) {
                 for (let j = y; j < y + h; j++) {
@@ -327,7 +317,7 @@ export class Context {
      *
      * @memberof Context
      */
-    clearRect(x, y, w, h) {
+    clearRect(x: number, y: number, w: number, h: number):void {
         for (let i = x; i < x + w; i++) {
             for (let j = y; j < y + h; j++) {
                 if (this._bitmap._isValidCoords(x, y)) this._bitmap.setPixelRGBA(i, j, TRANSPARENT_BLACK);
@@ -349,40 +339,17 @@ export class Context {
      *
      * @memberof Context
      */
-    strokeRect(x, y, w, h) {
+    strokeRect(x: number, y: number, w: number, h: number):void {
         for (let i = x; i < x + w; i++) {
             this.fillPixelWithColor(i, y, this.calculateRGBA_stroke(i, y));
             this.fillPixelWithColor(i, y + h, this.calculateRGBA_stroke(i, y + h));
         }
         for (let j = y; j < y + h; j++) {
-            this._bitmap.setPixelRGBA(x, j, this._strokeColor);
-            this._bitmap.setPixelRGBA(x + w, j, this._strokeColor);
             this.fillPixelWithColor(x, j, this.calculateRGBA_stroke(x, j));
             this.fillPixelWithColor(x + w, j, this.calculateRGBA_stroke(x + w, j));
         }
     }
 
-    /**
-     * Set the background colour of a single pixel denoted by the `x` and `y` co-ordinates
-     *
-     * @param {number} x The x axis of the pixel
-     * @param {number} y The y axis of the pixel
-     *
-     * @returns {void}
-     *
-     * @memberof Context
-     */
-    fillPixel(x, y) {
-        if (!this.pixelInsideClip(x, y)) {
-            return
-        }
-        if (!this._bitmap._isValidCoords(x, y)) return
-        const new_pixel = this.calculateRGBA(x, y)
-        const old_pixel = this._bitmap.getPixelRGBA(x, y)
-        const final_pixel = this.composite(x, y, old_pixel, new_pixel)
-
-        this._bitmap.setPixelRGBA(x, y, final_pixel);
-    }
 
     /**
      * Paints a pixel which has an x axis position of `x` and a y axis position of `y`
@@ -394,14 +361,14 @@ export class Context {
      *
      * @memberof Context
      */
-    strokePixel(x, y) {
+    strokePixel(x: number, y: number): void {
         if (!this.pixelInsideClip(x, y)) {
             return
         }
 
         const new_pixel = this.calculateRGBA_stroke(x, y)
         const old_pixel = this._bitmap.getPixelRGBA(x, y)
-        const final_pixel = this.composite(x, y, old_pixel, new_pixel)
+        const final_pixel = this.composite(old_pixel, new_pixel)
 
         this._bitmap.setPixelRGBA(x, y, final_pixel);
     }
@@ -419,7 +386,7 @@ export class Context {
      *
      * @memberof Context
      */
-    fillPixelWithColor(x, y, col) {
+    fillPixelWithColor(x:number, y:number, col:number):void {
         if (!this.pixelInsideClip(x, y)) {
             return
         }
@@ -427,26 +394,11 @@ export class Context {
         if (!this._bitmap._isValidCoords(x, y)) return
         const new_pixel = col
         const old_pixel = this._bitmap.getPixelRGBA(x, y)
-        const final_pixel = this.composite(x, y, old_pixel, new_pixel)
+        const final_pixel = this.composite(old_pixel, new_pixel)
 
         this._bitmap.setPixelRGBA(x, y, final_pixel);
     }
-
-    /**
-     * Composite
-     *
-     * @param {number} i Unused
-     * @param {number} j Unused
-     * @param {number} old_pixel
-     * @param {number} new_pixel
-     *
-     * @ignore
-     *
-     * @returns {void}
-     *
-     * @memberof Context
-     */
-    composite(i, j, old_pixel, new_pixel) {
+    private composite(old_pixel:number, new_pixel:number):number {
         const old_rgba = getBytesBigEndian(old_pixel);
         const new_rgba = getBytesBigEndian(new_pixel);
 
@@ -458,11 +410,11 @@ export class Context {
         A[3] = A[3] * this._globalAlpha;
 
         // do a standard composite (SRC_OVER) on RGB values
-        function compit(ca, cb, aa, ab) {
+        function compit(ca:number, cb:number, aa:number, ab:number):number {
             return (ca * aa + cb * ab * (1 - aa)) / (aa + ab * (1 - aa));
         }
 
-        const C = A.slice(0, 3).map((comp, i) => compit(A[i], B[i], A[3], B[3]));
+        const C = A.slice(0, 3).map((_, i) => compit(A[i], B[i], A[3], B[3]));
 
         // convert back to 0->255 range
         const Cf = C.map((c) => c * 255);
@@ -486,7 +438,7 @@ export class Context {
      *
      * @memberof Context
      */
-    calculateRGBA(x, y) {
+    calculateRGBA(x:number, y:number):number {
         if (this._fillColor instanceof G.CanvasGradient) {
             return this._fillColor.colorAt(x, y)
         }
@@ -505,7 +457,10 @@ export class Context {
      *
      * @memberof Context
      */
-    calculateRGBA_stroke(x, y) {
+    calculateRGBA_stroke(x:number, y:number):number {
+        if(this._strokeColor instanceof G.CanvasGradient) {
+            return this._strokeColor.colorAt(x,y)
+        }
         return this._strokeColor;
     }
 
@@ -524,7 +479,7 @@ export class Context {
      *
      * @memberof Context
      */
-    getImageData(x, y, w, h) {
+    getImageData(x:number, y:number, w:number, h:number):Bitmap {
         return this._bitmap._copySubBitmap(x, y, w, h)
     }
 
@@ -564,7 +519,7 @@ export class Context {
      *
      * @memberof Context
      */
-    drawImage(bitmap, sx, sy, sw, sh, dx, dy, dw, dh) {
+    drawImage(bitmap: Bitmap, sx: number, sy: number, sw?: number, sh?: number, dx?: number, dy?: number, dw?: number, dh?: number) {
         // two argument form
         if (typeof sw === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, bitmap.width, bitmap.height)
         // four argument form
@@ -604,7 +559,7 @@ export class Context {
                     if (this.pixelInsideClip(dst_pt.x, dst_pt.y) && this._bitmap._isValidCoords(dst_pt.x, dst_pt.y)) {
                         const new_pixel = bitmap.getPixelRGBA(src_pt.x, src_pt.y)
                         const old_pixel = this._bitmap.getPixelRGBA(dst_pt.x, dst_pt.y)
-                        const final_pixel = this.composite(0, 0, old_pixel, new_pixel)
+                        const final_pixel = this.composite(old_pixel, new_pixel)
                         this._bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, final_pixel)
                     }
                 }
@@ -825,7 +780,7 @@ export class Context {
      *
      * @memberof Context
      */
-    rect(x, y, width, height) {
+    rect(x:number, y:number, width:number, height:number):void {
         this.moveTo(x, y);
         this.lineTo(x + width, y);
         this.lineTo(x + width, y + height);
@@ -855,7 +810,7 @@ export class Context {
      *
      * @memberof Context
      */
-    clip() {
+    clip():void {
         this._clip = pathToLines(this.path);
     }
 
@@ -868,8 +823,8 @@ export class Context {
      *
      * @memberof Context
      */
-    measureText(string) {
-        return TEXT.measureText(this, string)
+    measureText(text:string) {
+        return TEXT.measureText(this, text)
     }
 
     /**
@@ -1013,8 +968,8 @@ export class Context {
 
         let err = dx - dy, e2, x2, y2;
         let ed = dx + dy === 0 ? 1 : Math.sqrt(dx * dx + dy * dy);
-        let rgb = and(this._strokeColor, 0xFFFFFF00);
-        let a1 = and(this._strokeColor, 0x000000FF);
+        let rgb = and(this.calculateRGBA_stroke(x0,y0), 0xFFFFFF00);
+        let a1 = and(this.calculateRGBA_stroke(x0,y0), 0x000000FF);
         for (width = (width + 1) / 2; ;) {
             const alpha = ~~Math.max(0, 255 * (Math.abs(err - dx + dy) / ed - width + 1));
             const a2 = 255 - alpha
@@ -1070,10 +1025,8 @@ export class Context {
      *
      * @memberof Context
      */
-    fill_aa(lines) {
+    fill_aa(lines):void {
         //get just the color part
-        const rgb = and(this._fillColor, 0xFFFFFF00)
-        const alpha = and(this._fillColor, 0xFF)
         const bounds = calcMinimumBounds(lines)
 
         const startY = Math.min(bounds.y2 + 1, this._bitmap.height)
@@ -1089,6 +1042,8 @@ export class Context {
                 const start = Math.floor(ints[i])
                 const end = Math.floor(ints[i + 1])
                 for (let ii = start; ii <= end; ii++) {
+                    const rgb = and(this.calculateRGBA(ii,j), 0xFFFFFF00)
+                    const alpha = and(this.calculateRGBA(ii,j), 0xFF)
                     let col = this.calculateRGBA(ii, j)
                     if (ii === start) {
                         //first
@@ -1116,9 +1071,8 @@ export class Context {
      *
      * @memberof Context
      */
-    fill_noaa(lines) {
+    fill_noaa(lines):void {
         //get just the color part
-        const rgb = and(this._fillColor, 0xFFFFFF00)
         const bounds = calcMinimumBounds(lines)
         const startY = Math.min(bounds.y2 + 1, this._bitmap.height)
         const endY = Math.max(bounds.y - 1, 0)
@@ -1162,7 +1116,7 @@ export class Context {
      *
      * @memberof Context
      */
-    pixelInsideClip(x, y) {
+    pixelInsideClip(x:number, y:number):boolean {
         if (!this._clip) return true;
         //turn into a list of lines
         // calculate intersections with a horizontal line at j
@@ -1189,7 +1143,7 @@ export class Context {
      *
      * @memberof Context
      */
-    fillText(text, x, y) {
+    fillText(text:string, x:number, y:number):void {
         TEXT.processTextPath(this, text, x, y, true, this.textAlign, this.textBaseline);
     }
 
@@ -1204,7 +1158,7 @@ export class Context {
      *
      * @memberof Context
      */
-    strokeText(text, x, y) {
+    strokeText(text:string, x:number, y:number):void {
         TEXT.processTextPath(this, text, x, y, false, this.textAlign, this.textBaseline);
     }
 }
@@ -1219,7 +1173,9 @@ export class Context {
  *
  * @returns {number}
  */
-function fract(v) {  return v-Math.floor(v);   }
+function fract(v) {
+    return v - Math.floor(v);
+}
 
 /**
  * Convert a path of points to an array of lines
@@ -1232,27 +1188,27 @@ function pathToLines(path) {
     const lines = []
     let curr = null
 
-    path.forEach(function(cmd) {
-        if(cmd[0] === PATH_COMMAND.MOVE) {
+    path.forEach(function (cmd) {
+        if (cmd[0] === PATH_COMMAND.MOVE) {
             curr = cmd[1];
         }
-        if(cmd[0] === PATH_COMMAND.LINE) {
+        if (cmd[0] === PATH_COMMAND.LINE) {
             const pt = cmd[1]
             lines.push(new Line(curr, pt));
             curr = pt;
         }
-        if(cmd[0] === PATH_COMMAND.QUADRATIC_CURVE) {
+        if (cmd[0] === PATH_COMMAND.QUADRATIC_CURVE) {
             const pts = [curr, cmd[1], cmd[2]];
-            for(let t=0; t<1; t+=0.1) {
-                let pt = calcQuadraticAtT(pts,t);
+            for (let t = 0; t < 1; t += 0.1) {
+                let pt = calcQuadraticAtT(pts, t);
                 lines.push(new Line(curr, pt));
                 curr = pt;
             }
         }
-        if(cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
+        if (cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
             const pts = [curr, cmd[1], cmd[2], cmd[3]];
-            bezierToLines(pts,10).forEach(pt => {
-                lines.push(new Line(curr,pt))
+            bezierToLines(pts, 10).forEach(pt => {
+                lines.push(new Line(curr, pt))
                 curr = pt
             })
         }
@@ -1260,25 +1216,27 @@ function pathToLines(path) {
     return lines;
 }
 
-function flatten_path(A) {
-    let B = []
+type PathInstruction = [PATH_COMMAND, Point]
+
+function flatten_path(A:PathCmd[]) {
+    let B:PathInstruction[] = []
     let curr = null
-    A.forEach(cmd => {
-        if(cmd[0] === PATH_COMMAND.MOVE) {
+    A.forEach((cmd:PathCmd):void => {
+        if (cmd[0] === PATH_COMMAND.MOVE) {
             curr = cmd[1];
-            // console.log("move",curr)
-            return B.push([PATH_COMMAND.MOVE, new Point(curr.x,curr.y)])
+            B.push([PATH_COMMAND.MOVE, new Point(curr.x, curr.y)])
+            return
         }
-        if(cmd[0] === PATH_COMMAND.LINE) {
+        if (cmd[0] === PATH_COMMAND.LINE) {
             curr = cmd[1];
-            // console.log("line",curr)
-            return B.push([PATH_COMMAND.LINE, new Point(curr.x,curr.y)])
+            B.push([PATH_COMMAND.LINE, new Point(curr.x, curr.y)])
+            return
         }
-        if(cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
+        if (cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
             const pts = [curr, cmd[1], cmd[2], cmd[3]];
-            let pts2 = bezierToLines(pts,10)
-            for(let i=1; i<pts2.length; i+=2) {
-                B.push([PATH_COMMAND.LINE,new Point(pts2[i].x,pts2[i].y)])
+            let pts2 = bezierToLines(pts, 10)
+            for (let i = 1; i < pts2.length; i += 2) {
+                B.push([PATH_COMMAND.LINE, new Point(pts2[i].x, pts2[i].y)])
             }
             curr = cmd[3]
         }
@@ -1286,39 +1244,40 @@ function flatten_path(A) {
     return B
 }
 
-function path_to_stroked_path(path, w) {
+function path_to_stroked_path(path:PathInstruction[], w:number) {
     //split the path into sub-paths based on the MOVE command
-    let subs = []
-    let curr_sub = []
+    let subs:PathInstruction[][] = []
+    let curr_sub:PathInstruction[] = []
     path.forEach(pth => {
-        if(pth[0] === PATH_COMMAND.MOVE) {
-            if(curr_sub.length > 0) subs.push(curr_sub)
+        if (pth[0] === PATH_COMMAND.MOVE) {
+            if (curr_sub.length > 0) subs.push(curr_sub)
             curr_sub = []
         }
         curr_sub.push(pth)
     })
-    if(curr_sub.length > 0) subs.push(curr_sub)
+    if (curr_sub.length > 0) subs.push(curr_sub)
 
     // warn if there's missing MOVEs
     subs.forEach(sub => {
-        if(sub[0][0] !== PATH_COMMAND.MOVE) console.warn("missing a starting move command!");
+        if (sub[0][0] !== PATH_COMMAND.MOVE) console.warn("missing a starting move command!");
     })
 
     // stroke each sub-path
-    let fsubs = subs.map(sub => sub_path_to_stroked_sub_path(sub,w))
+    let fsubs = subs.map(sub => sub_path_to_stroked_sub_path(sub, w))
     // flatten back into a single string of commands
     let final_path = []
     fsubs.forEach(sub => sub.forEach(cmd => final_path.push(cmd)))
     return final_path
 }
-function sub_path_to_stroked_sub_path(path, w) {
-    let curr = null
-    let outside = []
-    let inside = []
-    let path_start = 0
 
-    function project(A,B,scale) {
-        if(A.equals(B)) console.log("same points!",A,B)
+function sub_path_to_stroked_sub_path(path:PathInstruction[], w:number):PathInstruction[] {
+    let curr:Point = null
+    let outside:PathInstruction[] = []
+    let inside = []
+    let path_start:Point = null
+
+    function project(A:Point, B:Point, scale:number) {
+        if (A.equals(B)) console.log("same points!", A, B)
         let delta_unit = A.subtract(B).unit()
         let C_unit = delta_unit.rotate(toRad(90))
         let D_unit = delta_unit.rotate(toRad(-90))
@@ -1330,88 +1289,77 @@ function sub_path_to_stroked_sub_path(path, w) {
     }
 
 
-    let prev_cmd = null
+    let prev_cmd:PathInstruction = null
 
-    function normalize_angle(turn) {
-        if(turn < -Math.PI) return turn + Math.PI*2
-        if(turn > +Math.PI) return turn - Math.PI*2
+    function normalize_angle(turn:number) {
+        if (turn < -Math.PI) return turn + Math.PI * 2
+        if (turn > +Math.PI) return turn - Math.PI * 2
         return turn
     }
 
-    function average(a, b) {
-        return a.add(b).divide(2)
-    }
-
-    path.forEach(function(cmd,i) {
+    path.forEach(function (cmd, i) {
         // console.log("converting",cmd)
-        if(cmd[0] === PATH_COMMAND.MOVE) {
+        if (cmd[0] === PATH_COMMAND.MOVE) {
             curr = cmd[1];
             prev_cmd = cmd
             path_start = curr.clone()
-            outside.push([PATH_COMMAND.MOVE,path_start.clone()])
+            outside.push([PATH_COMMAND.MOVE, path_start.clone()])
         }
 
-        function first(arr) {
-            return arr[0]
-        }
-        function last(arr) {
-            return arr[arr.length-1]
-        }
-
-        if(cmd[0] === PATH_COMMAND.LINE) {
+        if (cmd[0] === PATH_COMMAND.LINE) {
             const A = curr
             const B = cmd[1]
-            if(A.equals(B)) return console.log("can't project the same paths",i,cmd,A,B)
+            if (A.equals(B)) return console.log("can't project the same paths", i, cmd, A, B)
             // console.log(i,"====",B)
-            let next = path[i+1]
+            let next = path[i + 1]
             //if first
-            if(prev_cmd[0] === PATH_COMMAND.MOVE) {
+            if (prev_cmd[0] === PATH_COMMAND.MOVE) {
                 // console.log("doing the first")
-                let pts1 = project(B,A,w)
+                let pts1 = project(B, A, w)
                 outside.push([PATH_COMMAND.LINE, pts1[1]])
-                inside.push([PATH_COMMAND.LINE,pts1[0]])
+                inside.push([PATH_COMMAND.LINE, pts1[0]])
             }
             prev_cmd = cmd
             // if last
-            if(!next) {
+            if (!next) {
                 // console.log("doing last")
-                let pts1 = project(A,B,w)
+                let pts1 = project(A, B, w)
                 outside.push([PATH_COMMAND.LINE, pts1[0]])
                 inside.push([PATH_COMMAND.LINE, pts1[1]])
                 return
             }
             const C = next[1]
-            if(C.equals(B)) return console.log("can't project the same paths",i,cmd,A,B)
+            if (C.equals(B)) return console.log("can't project the same paths", i, cmd, A, B)
             // console.log(i,A,B,C)
             // console.log("next",next)
             let BA = A.subtract(B)
             let BC = C.subtract(B)
             // console.log(i,'B',B,'BA',BA,'BC',BC)
-            let BA_angle = Math.atan2(BA.y,BA.x)
-            let BC_angle = Math.atan2(BC.y,BC.x)
+            let BA_angle = Math.atan2(BA.y, BA.x)
+            let BC_angle = Math.atan2(BC.y, BC.x)
             // console.log("angles",toDeg(turn))
-            let turn = normalize_angle(BC_angle-BA_angle)
+            let turn = normalize_angle(BC_angle - BA_angle)
 
-            let pts1 = project(A,B,w)
-            let pts2 = project(C,B,w)
+            let pts1 = project(A, B, w)
+            let pts2 = project(C, B, w)
             // console.log(i,'B',pts1)
             // console.log(i,'B',pts2)
-            if(turn < 0) {
+            if (turn < 0) {
                 //if turning right
                 //outside is normal
                 outside.push([PATH_COMMAND.LINE, pts1[0]])
                 outside.push([PATH_COMMAND.LINE, pts2[1]])
                 //adjust inside
-                let h = w/Math.cos((Math.PI+turn)/2)
-                let C_unit = A.subtract(B).unit().rotate(turn/2).scale(h).add(B)
-                inside.push([PATH_COMMAND.LINE,C_unit])
+                let h = w / Math.cos((Math.PI + turn) / 2)
+                let C_unit = A.subtract(B).unit().rotate(turn / 2).scale(h).add(B)
+                inside.push([PATH_COMMAND.LINE, C_unit])
 
             } else {
                 //if turning left
                 //adjust outside
-                let h = w/Math.cos(-(Math.PI-turn)/2)
-                let C_unit = C.subtract(B).unit().rotate(-turn/2).scale(h).add(B)
-                outside.push([PATH_COMMAND.LINE,C_unit])
+                let h = w / Math.cos(-(Math.PI - turn) / 2)
+                let C_unit = C.subtract(B).unit().rotate(-turn / 2).scale(h).add(B)
+                outside.push([PATH_COMMAND.LINE, C_unit])
                 //inside is normal
                 inside.push([PATH_COMMAND.LINE, pts1[1]])
                 inside.push([PATH_COMMAND.LINE, pts2[0]])
@@ -1441,51 +1389,39 @@ function sub_path_to_stroked_sub_path(path, w) {
  *
  * @returns {Point}
  */
-function calcQuadraticAtT(p, t) {
+function calcQuadraticAtT(p: Point[], t: number) {
     const x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x
     const y = (1 - t) * (1 - t) * p[0].y + 2 * (1 - t) * t * p[1].y + t * t * p[2].y
     return new Point(x, y);
 }
 
-/**
- * Calculate Bezier at T
- *
- * @param {number} p
- * @param {number} t
- *
- * @returns {Point}
- */
-function calcBezierAtT(p, t) {
-    const x = (1 - t) * (1 - t) * (1 - t) * p[0].x + 3 * (1 - t) * (1 - t) * t * p[1].x + 3 * (1 - t) * t * t * p[2].x + t * t * t * p[3].x
-    const y = (1 - t) * (1 - t) * (1 - t) * p[0].y + 3 * (1 - t) * (1 - t) * t * p[1].y + 3 * (1 - t) * t * t * p[2].y + t * t * t * p[3].y
-    return new Point(x, y);
-}
 
-function bezierToLines(curve, THRESHOLD) {
+function bezierToLines(curve, THRESHOLD: number) {
     function recurse(curve) {
-        if(flatness(curve) < THRESHOLD) return [curve[0],curve[3]]
-        const split = splitCurveAtT(curve,0.5,false)
+        if (flatness(curve) < THRESHOLD) return [curve[0], curve[3]]
+        const split = splitCurveAtT(curve, 0.5)
         return recurse(split[0]).concat(recurse(split[1]))
     }
+
     return recurse(curve)
 }
 
-function splitCurveAtT(p,t, debug) {
+function splitCurveAtT(p, t: number) {
     let p1 = p[0]
     let p2 = p[1]
     let p3 = p[2]
     let p4 = p[3]
 
-    let p12 = midpoint(p1,p2,t)
-    let p23 = midpoint(p2,p3,t)
-    let p34 = midpoint(p4,p3,t)
+    let p12 = midpoint(p1, p2, t)
+    let p23 = midpoint(p2, p3, t)
+    let p34 = midpoint(p4, p3, t)
 
 
-    let p123 = midpoint(p12,p23,t)
-    let p234 = midpoint(p23, p34,t)
-    let p1234 = { x: (p234.x-p123.x)*t+p123.x, y: (p234.y-p123.y)*t+p123.y}
+    let p123 = midpoint(p12, p23, t)
+    let p234 = midpoint(p23, p34, t)
+    let p1234 = {x: (p234.x - p123.x) * t + p123.x, y: (p234.y - p123.y) * t + p123.y}
 
-    return [[p1, p12, p123, p1234],[p1234,p234,p34,p4]]
+    return [[p1, p12, p123, p1234], [p1234, p234, p34, p4]]
 }
 
 function flatness(curve) {
@@ -1493,19 +1429,19 @@ function flatness(curve) {
     const controlPointA = curve[1]
     const controlPointB = curve[2]
     const pointB = curve[3]
-    let ux = Math.pow( 3 * controlPointA.x - 2 * pointA.x - pointB.x, 2 );
-    let uy = Math.pow( 3 * controlPointA.y - 2 * pointA.y - pointB.y, 2 );
-    let vx = Math.pow( 3 * controlPointB.x - 2 * pointB.x - pointA.x, 2 );
-    let vy = Math.pow( 3 * controlPointB.y - 2 * pointB.y - pointA.y, 2 );
-    if( ux < vx )
+    let ux = Math.pow(3 * controlPointA.x - 2 * pointA.x - pointB.x, 2);
+    let uy = Math.pow(3 * controlPointA.y - 2 * pointA.y - pointB.y, 2);
+    let vx = Math.pow(3 * controlPointB.x - 2 * pointB.x - pointA.x, 2);
+    let vy = Math.pow(3 * controlPointB.y - 2 * pointB.y - pointA.y, 2);
+    if (ux < vx)
         ux = vx;
-    if( uy < vy )
+    if (uy < vy)
         uy = vy;
     return ux + uy;
 }
 
-function midpoint(p1,p2,t) {
-    return { x: (p2.x-p1.x)*t+p1.x, y: (p2.y-p1.y)*t+p1.y}
+function midpoint(p1, p2, t) {
+    return {x: (p2.x - p1.x) * t + p1.x, y: (p2.y - p1.y) * t + p1.y}
 }
 
 /**
@@ -1526,12 +1462,13 @@ function calcMinimumBounds(lines: Line[]): MinimumBounds {
     }
 
     function checkPoint(pt: PointIsh) {
-        bounds.x  = Math.min(bounds.x,pt.x);
-        bounds.y  = Math.min(bounds.y,pt.y);
-        bounds.x2 = Math.max(bounds.x2,pt.x);
-        bounds.y2 = Math.max(bounds.y2,pt.y);
+        bounds.x = Math.min(bounds.x, pt.x);
+        bounds.y = Math.min(bounds.y, pt.y);
+        bounds.x2 = Math.max(bounds.x2, pt.x);
+        bounds.y2 = Math.max(bounds.y2, pt.y);
     }
-    lines.forEach(function(line) {
+
+    lines.forEach(function (line) {
         checkPoint(line.start);
         checkPoint(line.end);
     })
@@ -1553,17 +1490,19 @@ function calcMinimumBounds(lines: Line[]): MinimumBounds {
  *
  * @returns {Array}
  */
-function calcSortedIntersections(lines,y) {
+function calcSortedIntersections(lines, y) {
     const xlist = []
-    for(let i=0; i<lines.length; i++) {
+    for (let i = 0; i < lines.length; i++) {
         const A = lines[i].start
         const B = lines[i].end
-        if(A.y<y && B.y>=y || B.y<y && A.y>=y) {
+        if (A.y < y && B.y >= y || B.y < y && A.y >= y) {
             const xval = A.x + (y - A.y) / (B.y - A.y) * (B.x - A.x)
             xlist.push(xval);
         }
     }
-    return xlist.sort(function(a,b) {  return a-b; });
+    return xlist.sort(function (a, b) {
+        return a - b;
+    });
 }
 
 

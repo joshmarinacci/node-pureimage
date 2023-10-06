@@ -6,8 +6,8 @@ import {getBytesBigEndian} from './uint32.js';
 import { hasOwnProperty, typedArrConcat } from './util.js';
 import type { Readable as ReadStream, Writable as WriteStream } from 'stream';
 
-export function make(w: number,h: number,options?: unknown) {
-    return new Bitmap(w,h,options);
+export function make(w: number,h: number) {
+    return new Bitmap(w,h);
 }
 
 export type PNGOptions = {
@@ -66,7 +66,7 @@ export function decodePNGFromStream(
     return new Promise((res,rej)=>{
         instream.pipe(new PNG())
             .on('parsed', function() {
-                const bitmap = new Bitmap(this.width, this.height,{});
+                const bitmap = new Bitmap(this.width, this.height);
                 for(let i=0; i<bitmap.data.length; i++) {
                     bitmap.data[i] = this.data[i];
                 }
@@ -115,7 +115,8 @@ export function encodeJPEGToStream(
  */
 export function decodeJPEGFromStream(
     /** A readable stream to decode JPEG data from */
-    data: ReadStream
+    data: ReadStream,
+    opts?:any,
 ): Promise<Bitmap> {
     return new Promise((res,rej)=>{
         try {
@@ -125,12 +126,12 @@ export function decodeJPEGFromStream(
                 const buf = typedArrConcat(chunks);
                 let rawImageData = null;
                 try {
-                    rawImageData = JPEG.decode(buf);
+                    rawImageData = JPEG.decode(buf,opts);
                 } catch(err) {
                     rej(err);
                     return;
                 }
-                const bitmap = new Bitmap(rawImageData.width, rawImageData.height,{});
+                const bitmap = new Bitmap(rawImageData.width, rawImageData.height);
                 for (let x_axis = 0; x_axis < rawImageData.width; x_axis++) {
                     for (let y_axis = 0; y_axis < rawImageData.height; y_axis++) {
                         const n = (y_axis * rawImageData.width + x_axis) * 4;
