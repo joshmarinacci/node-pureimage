@@ -115,7 +115,8 @@ export function encodeJPEGToStream(
  */
 export function decodeJPEGFromStream(
     /** A readable stream to decode JPEG data from */
-    data: ReadStream
+    data: ReadStream,
+    opts?:any,
 ): Promise<Bitmap> {
     return new Promise((res,rej)=>{
         try {
@@ -125,7 +126,7 @@ export function decodeJPEGFromStream(
                 const buf = typedArrConcat(chunks);
                 let rawImageData = null;
                 try {
-                    rawImageData = JPEG.decode(buf);
+                    rawImageData = JPEG.decode(buf,opts);
                 } catch(err) {
                     rej(err);
                     return;

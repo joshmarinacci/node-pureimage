@@ -1438,17 +1438,17 @@ function sub_path_to_stroked_sub_path(path, w) {
  *
  * @returns {Point}
  */
-function calcQuadraticAtT(p, t) {
+function calcQuadraticAtT(p:Point[], t:number) {
     const x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x
     const y = (1 - t) * (1 - t) * p[0].y + 2 * (1 - t) * t * p[1].y + t * t * p[2].y
     return new Point(x, y);
 }
 
 
-function bezierToLines(curve, THRESHOLD) {
+function bezierToLines(curve, THRESHOLD:number) {
     function recurse(curve) {
         if(flatness(curve) < THRESHOLD) return [curve[0],curve[3]]
-        const split = splitCurveAtT(curve,0.5,false)
+        const split = splitCurveAtT(curve,0.5)
         return recurse(split[0]).concat(recurse(split[1]))
     }
     return recurse(curve)
