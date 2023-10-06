@@ -1,9 +1,9 @@
 import {Line} from './line.js';
 import {NAMED_COLORS, TRANSPARENT_BLACK} from './named_colors';
-import {Bounds, calc_min_bounds, Point, toRad} from './point';
+import {Bounds, calc_min_bounds, Point, PointIsh, toRad} from './point';
 import * as TEXT from './text';
 import * as G from "./gradients"
-import {and, fromBytesBigEndian, getBytesBigEndian, or, shiftLeft, toUint32} from './uint32';
+import {and, fromBytesBigEndian, getBytesBigEndian, or} from './uint32';
 import type {Bitmap} from './bitmap';
 import {
     PATH_COMMAND,
@@ -12,8 +12,9 @@ import {
     TextBaseline,
     PathCmd,
     RGBA,
+    MinimumBounds,
 } from './types.js'
-import {colorStringToUint32} from "./util";
+import {clamp, colorStringToUint32} from "./util";
 import {Transform} from "./transform";
 
 
@@ -34,11 +35,11 @@ export class Context {
     private _fillStyle_text: string;
     private _strokeStyle_text: string;
     private _closed?: boolean;
-    private pathStart?: Point;
+    private pathstart?: Point;
     private debug?: boolean;
     public path?: PathCmd[];
     /** Plain js object wrapping the font name and size */
-    public _font: Font & { size: number };
+    public _font: Font;
     private _transform: Transform;
     /** Horizontal text alignment, one of start, end, left, center, right. start is the default */
     public textAlign: TextAlign;
@@ -157,11 +158,11 @@ export class Context {
     }
 
 
-    createLinearGradient(x0, y0, x1, y1) {
+    createLinearGradient(x0:number, y0:number, x1:number, y1:number) {
         return new G.LinearGradient(x0, y0, x1, y1)
     }
 
-    createRadialGradient(x0, y0) {
+    createRadialGradient(x0:number, y0:number) {
         return new G.RadialGradient(x0, y0)
     }
 
@@ -564,7 +565,7 @@ export class Context {
      *
      * @memberof Context
      */
-    drawImage(bitmap, sx, sy, sw, sh, dx, dy, dw, dh) {
+    drawImage(bitmap:Bitmap, sx:number, sy:number, sw?:number, sh?:number, dx?:number, dy?:number, dw?:number, dh?:number) {
         // two argument form
         if (typeof sw === 'undefined') return this.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, sx, sy, bitmap.width, bitmap.height)
         // four argument form
@@ -1338,10 +1339,6 @@ function sub_path_to_stroked_sub_path(path, w) {
         return turn
     }
 
-    function average(a, b) {
-        return a.add(b).divide(2)
-    }
-
     path.forEach(function(cmd,i) {
         // console.log("converting",cmd)
         if(cmd[0] === PATH_COMMAND.MOVE) {
@@ -1447,19 +1444,6 @@ function calcQuadraticAtT(p, t) {
     return new Point(x, y);
 }
 
-/**
- * Calculate Bezier at T
- *
- * @param {number} p
- * @param {number} t
- *
- * @returns {Point}
- */
-function calcBezierAtT(p, t) {
-    const x = (1 - t) * (1 - t) * (1 - t) * p[0].x + 3 * (1 - t) * (1 - t) * t * p[1].x + 3 * (1 - t) * t * t * p[2].x + t * t * t * p[3].x
-    const y = (1 - t) * (1 - t) * (1 - t) * p[0].y + 3 * (1 - t) * (1 - t) * t * p[1].y + 3 * (1 - t) * t * t * p[2].y + t * t * t * p[3].y
-    return new Point(x, y);
-}
 
 function bezierToLines(curve, THRESHOLD) {
     function recurse(curve) {

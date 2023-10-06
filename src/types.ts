@@ -19,3 +19,13 @@ export type PathCmd = {
     2?: Point,
     3?: Point,
 }
+export type Font = {
+    size:number
+    family:string
+}
+export type MinimumBounds = {
+    x:number,
+    y:number,
+    x2:number,
+    y2:number,
+}
