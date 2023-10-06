@@ -1,4 +1,3 @@
-
 import type {Point} from './point.js';
 /**
  * Enum for path commands (used for encoding and decoding lines, curves etc. to and from a path)
@@ -18,10 +17,6 @@ export type PathCmd = {
     1: Point,
     2?: Point,
     3?: Point,
-}
-export type Font = {
-    size:number
-    family:string
 }
 export type MinimumBounds = {
     x:number,
