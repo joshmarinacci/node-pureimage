@@ -36,7 +36,7 @@
     "build": "node build.js",
     "type-check": "tsc",
     "clean": "rm -rf dist/ output/ *.tgz",
-    "release": "npm run clean && npm run build && npm run test && npm version patch && npm publish"
+    "release": "npm run clean && npm run build && npm run test && npm run type-check && npm version patch && npm publish"
   },
   "engines": {
     "node": ">=14.19.0"
