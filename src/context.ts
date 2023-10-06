@@ -345,8 +345,6 @@ export class Context {
             this.fillPixelWithColor(i, y + h, this.calculateRGBA_stroke(i, y + h));
         }
         for (let j = y; j < y + h; j++) {
-            this._bitmap.setPixelRGBA(x, j, this._strokeColor);
-            this._bitmap.setPixelRGBA(x + w, j, this._strokeColor);
             this.fillPixelWithColor(x, j, this.calculateRGBA_stroke(x, j));
             this.fillPixelWithColor(x + w, j, this.calculateRGBA_stroke(x + w, j));
         }
@@ -370,7 +368,7 @@ export class Context {
 
         const new_pixel = this.calculateRGBA_stroke(x, y)
         const old_pixel = this._bitmap.getPixelRGBA(x, y)
-        const final_pixel = this.composite(x, y, old_pixel, new_pixel)
+        const final_pixel = this.composite(old_pixel, new_pixel)
 
         this._bitmap.setPixelRGBA(x, y, final_pixel);
     }
@@ -396,26 +394,11 @@ export class Context {
         if (!this._bitmap._isValidCoords(x, y)) return
         const new_pixel = col
         const old_pixel = this._bitmap.getPixelRGBA(x, y)
-        const final_pixel = this.composite(x, y, old_pixel, new_pixel)
+        const final_pixel = this.composite(old_pixel, new_pixel)
 
         this._bitmap.setPixelRGBA(x, y, final_pixel);
     }
-
-    /**
-     * Composite
-     *
-     * @param {number} i Unused
-     * @param {number} j Unused
-     * @param {number} old_pixel
-     * @param {number} new_pixel
-     *
-     * @ignore
-     *
-     * @returns {void}
-     *
-     * @memberof Context
-     */
-    composite(i, j, old_pixel, new_pixel) {
+    private composite(old_pixel:number, new_pixel:number):number {
         const old_rgba = getBytesBigEndian(old_pixel);
         const new_rgba = getBytesBigEndian(new_pixel);
 
@@ -427,11 +410,11 @@ export class Context {
         A[3] = A[3] * this._globalAlpha;
 
         // do a standard composite (SRC_OVER) on RGB values
-        function compit(ca, cb, aa, ab) {
+        function compit(ca:number, cb:number, aa:number, ab:number):number {
             return (ca * aa + cb * ab * (1 - aa)) / (aa + ab * (1 - aa));
         }
 
-        const C = A.slice(0, 3).map((comp, i) => compit(A[i], B[i], A[3], B[3]));
+        const C = A.slice(0, 3).map((_, i) => compit(A[i], B[i], A[3], B[3]));
 
         // convert back to 0->255 range
         const Cf = C.map((c) => c * 255);
@@ -455,7 +438,7 @@ export class Context {
      *
      * @memberof Context
      */
-    calculateRGBA(x, y) {
+    calculateRGBA(x:number, y:number):number {
         if (this._fillColor instanceof G.CanvasGradient) {
             return this._fillColor.colorAt(x, y)
         }
@@ -474,7 +457,10 @@ export class Context {
      *
      * @memberof Context
      */
-    calculateRGBA_stroke(x, y) {
+    calculateRGBA_stroke(x:number, y:number):number {
+        if(this._strokeColor instanceof G.CanvasGradient) {
+            return this._strokeColor.colorAt(x,y)
+        }
         return this._strokeColor;
     }
 
@@ -493,7 +479,7 @@ export class Context {
      *
      * @memberof Context
      */
-    getImageData(x, y, w, h) {
+    getImageData(x:number, y:number, w:number, h:number):Bitmap {
         return this._bitmap._copySubBitmap(x, y, w, h)
     }
 
@@ -573,7 +559,7 @@ export class Context {
                     if (this.pixelInsideClip(dst_pt.x, dst_pt.y) && this._bitmap._isValidCoords(dst_pt.x, dst_pt.y)) {
                         const new_pixel = bitmap.getPixelRGBA(src_pt.x, src_pt.y)
                         const old_pixel = this._bitmap.getPixelRGBA(dst_pt.x, dst_pt.y)
-                        const final_pixel = this.composite(0, 0, old_pixel, new_pixel)
+                        const final_pixel = this.composite(old_pixel, new_pixel)
                         this._bitmap.setPixelRGBA(dst_pt.x, dst_pt.y, final_pixel)
                     }
                 }
@@ -794,7 +780,7 @@ export class Context {
      *
      * @memberof Context
      */
-    rect(x, y, width, height) {
+    rect(x:number, y:number, width:number, height:number):void {
         this.moveTo(x, y);
         this.lineTo(x + width, y);
         this.lineTo(x + width, y + height);
@@ -824,7 +810,7 @@ export class Context {
      *
      * @memberof Context
      */
-    clip() {
+    clip():void {
         this._clip = pathToLines(this.path);
     }
 
@@ -837,8 +823,8 @@ export class Context {
      *
      * @memberof Context
      */
-    measureText(string) {
-        return TEXT.measureText(this, string)
+    measureText(text:string) {
+        return TEXT.measureText(this, text)
     }
 
     /**
@@ -982,8 +968,8 @@ export class Context {
 
         let err = dx - dy, e2, x2, y2;
         let ed = dx + dy === 0 ? 1 : Math.sqrt(dx * dx + dy * dy);
-        let rgb = and(this._strokeColor, 0xFFFFFF00);
-        let a1 = and(this._strokeColor, 0x000000FF);
+        let rgb = and(this.calculateRGBA_stroke(x0,y0), 0xFFFFFF00);
+        let a1 = and(this.calculateRGBA_stroke(x0,y0), 0x000000FF);
         for (width = (width + 1) / 2; ;) {
             const alpha = ~~Math.max(0, 255 * (Math.abs(err - dx + dy) / ed - width + 1));
             const a2 = 255 - alpha
@@ -1039,10 +1025,8 @@ export class Context {
      *
      * @memberof Context
      */
-    fill_aa(lines) {
+    fill_aa(lines):void {
         //get just the color part
-        const rgb = and(this._fillColor, 0xFFFFFF00)
-        const alpha = and(this._fillColor, 0xFF)
         const bounds = calcMinimumBounds(lines)
 
         const startY = Math.min(bounds.y2 + 1, this._bitmap.height)
@@ -1058,6 +1042,8 @@ export class Context {
                 const start = Math.floor(ints[i])
                 const end = Math.floor(ints[i + 1])
                 for (let ii = start; ii <= end; ii++) {
+                    const rgb = and(this.calculateRGBA(ii,j), 0xFFFFFF00)
+                    const alpha = and(this.calculateRGBA(ii,j), 0xFF)
                     let col = this.calculateRGBA(ii, j)
                     if (ii === start) {
                         //first
@@ -1085,9 +1071,8 @@ export class Context {
      *
      * @memberof Context
      */
-    fill_noaa(lines) {
+    fill_noaa(lines):void {
         //get just the color part
-        const rgb = and(this._fillColor, 0xFFFFFF00)
         const bounds = calcMinimumBounds(lines)
         const startY = Math.min(bounds.y2 + 1, this._bitmap.height)
         const endY = Math.max(bounds.y - 1, 0)
@@ -1131,7 +1116,7 @@ export class Context {
      *
      * @memberof Context
      */
-    pixelInsideClip(x, y) {
+    pixelInsideClip(x:number, y:number):boolean {
         if (!this._clip) return true;
         //turn into a list of lines
         // calculate intersections with a horizontal line at j
@@ -1158,7 +1143,7 @@ export class Context {
      *
      * @memberof Context
      */
-    fillText(text, x, y) {
+    fillText(text:string, x:number, y:number):void {
         TEXT.processTextPath(this, text, x, y, true, this.textAlign, this.textBaseline);
     }
 
@@ -1173,7 +1158,7 @@ export class Context {
      *
      * @memberof Context
      */
-    strokeText(text, x, y) {
+    strokeText(text:string, x:number, y:number):void {
         TEXT.processTextPath(this, text, x, y, false, this.textAlign, this.textBaseline);
     }
 }
@@ -1231,19 +1216,21 @@ function pathToLines(path) {
     return lines;
 }
 
-function flatten_path(A) {
-    let B = []
+type PathInstruction = [PATH_COMMAND, Point]
+
+function flatten_path(A:PathCmd[]) {
+    let B:PathInstruction[] = []
     let curr = null
-    A.forEach(cmd => {
+    A.forEach((cmd:PathCmd):void => {
         if (cmd[0] === PATH_COMMAND.MOVE) {
             curr = cmd[1];
-            // console.log("move",curr)
-            return B.push([PATH_COMMAND.MOVE, new Point(curr.x, curr.y)])
+            B.push([PATH_COMMAND.MOVE, new Point(curr.x, curr.y)])
+            return
         }
         if (cmd[0] === PATH_COMMAND.LINE) {
             curr = cmd[1];
-            // console.log("line",curr)
-            return B.push([PATH_COMMAND.LINE, new Point(curr.x, curr.y)])
+            B.push([PATH_COMMAND.LINE, new Point(curr.x, curr.y)])
+            return
         }
         if (cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
             const pts = [curr, cmd[1], cmd[2], cmd[3]];
@@ -1257,10 +1244,10 @@ function flatten_path(A) {
     return B
 }
 
-function path_to_stroked_path(path, w) {
+function path_to_stroked_path(path:PathInstruction[], w:number) {
     //split the path into sub-paths based on the MOVE command
-    let subs = []
-    let curr_sub = []
+    let subs:PathInstruction[][] = []
+    let curr_sub:PathInstruction[] = []
     path.forEach(pth => {
         if (pth[0] === PATH_COMMAND.MOVE) {
             if (curr_sub.length > 0) subs.push(curr_sub)
@@ -1283,13 +1270,13 @@ function path_to_stroked_path(path, w) {
     return final_path
 }
 
-function sub_path_to_stroked_sub_path(path, w) {
-    let curr = null
-    let outside = []
+function sub_path_to_stroked_sub_path(path:PathInstruction[], w:number):PathInstruction[] {
+    let curr:Point = null
+    let outside:PathInstruction[] = []
     let inside = []
-    let path_start = 0
+    let path_start:Point = null
 
-    function project(A, B, scale) {
+    function project(A:Point, B:Point, scale:number) {
         if (A.equals(B)) console.log("same points!", A, B)
         let delta_unit = A.subtract(B).unit()
         let C_unit = delta_unit.rotate(toRad(90))
@@ -1302,9 +1289,9 @@ function sub_path_to_stroked_sub_path(path, w) {
     }
 
 
-    let prev_cmd = null
+    let prev_cmd:PathInstruction = null
 
-    function normalize_angle(turn) {
+    function normalize_angle(turn:number) {
         if (turn < -Math.PI) return turn + Math.PI * 2
         if (turn > +Math.PI) return turn - Math.PI * 2
         return turn
@@ -1317,14 +1304,6 @@ function sub_path_to_stroked_sub_path(path, w) {
             prev_cmd = cmd
             path_start = curr.clone()
             outside.push([PATH_COMMAND.MOVE, path_start.clone()])
-        }
-
-        function first(arr) {
-            return arr[0]
-        }
-
-        function last(arr) {
-            return arr[arr.length - 1]
         }
 
         if (cmd[0] === PATH_COMMAND.LINE) {
