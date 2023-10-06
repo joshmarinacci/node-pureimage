@@ -34,6 +34,7 @@
     "test": "vitest",
     "build": "node build.js",
     "clean": "rm -rf dist/ output/ *.tgz",
+    "type-check": "tsc",
     "release": "npm run clean && npm run build && npm run test && npm version patch && npm publish"
   },
   "engines": {

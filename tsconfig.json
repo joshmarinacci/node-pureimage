@@ -36,8 +36,6 @@
 			"es2020"
 		],
 		"types": [
-			"@types/node",
-			"@types/mocha",
 		],
 		"typeRoots": [
 			"node_modules/@types",
