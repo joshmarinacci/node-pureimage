@@ -1470,7 +1470,7 @@ function bezierToLines(curve, THRESHOLD) {
     return recurse(curve)
 }
 
-function splitCurveAtT(p,t, debug) {
+function splitCurveAtT(p,t:number) {
     let p1 = p[0]
     let p2 = p[1]
     let p3 = p[2]

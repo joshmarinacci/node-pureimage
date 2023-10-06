@@ -1,5 +1,4 @@
 import {NAMED_COLORS} from './named_colors.js';
-import * as uint32 from './uint32.js';
 import {fromBytesBigEndian, or, shiftLeft, toUint32} from "./uint32.js";
 
 /**
