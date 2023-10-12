@@ -32,7 +32,8 @@
     "vitest": "^0.34.1"
   },
   "scripts": {
-    "test": "vitest",
+    "test": "npm run vitest && npm run type-check",
+    "vitest": "vitest",
     "build": "node build.js",
     "type-check": "tsc",
     "clean": "rm -rf dist/ output/ *.tgz",
