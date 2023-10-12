@@ -1,54 +1,47 @@
 {
-    "source":"./src",
-    "destination":"./docs",
-    "includes":[
-        "\\.js$"
-    ],
-    "excludes":[
-        "\\uint32.js$"
-    ],
-    "plugins":[
-        {
-            "name":"esdoc-standard-plugin",
-            "option":{
-                "lint":{
-                    "enable":false
-                },
-                "coverage":{
-                    "enable":true
-                },
-                "accessor":{
-                    "access":[
-                        "public",
-                        "protected"
-                    ],
-                    "autoPrivate":true
-                },
-                "undocumentIdentifier":{
-                    "enable":true
-                },
-                "unexportedIdentifier":{
-                    "enable":false
-                },
-                "typeInference":{
-                    "enable":true
-                }
-            }
+  "source": "./src",
+  "destination": "./docs",
+  "includes": ["\\.js$"],
+  "excludes": ["\\uint32.js$"],
+  "plugins": [
+    {
+      "name": "esdoc-standard-plugin",
+      "option": {
+        "lint": {
+          "enable": false
         },
-        {
-            "name": "esdoc-node"
+        "coverage": {
+          "enable": true
         },
-        {
-            "name": "esdoc-member-plugin"
+        "accessor": {
+          "access": ["public", "protected"],
+          "autoPrivate": true
         },
-        {
-            "name": "esdoc-integrate-test-plugin",
-            "option": {
-                "source": "./tests/unit/specs/",
-                "interfaces": ["describe", "it"],
-                "includes": ["(spec|test)\\.js$"],
-                "excludes": ["\\.config\\.js$"]
-            }
+        "undocumentIdentifier": {
+          "enable": true
+        },
+        "unexportedIdentifier": {
+          "enable": false
+        },
+        "typeInference": {
+          "enable": true
         }
-    ]
+      }
+    },
+    {
+      "name": "esdoc-node"
+    },
+    {
+      "name": "esdoc-member-plugin"
+    },
+    {
+      "name": "esdoc-integrate-test-plugin",
+      "option": {
+        "source": "./tests/unit/specs/",
+        "interfaces": ["describe", "it"],
+        "includes": ["(spec|test)\\.js$"],
+        "excludes": ["\\.config\\.js$"]
+      }
+    }
+  ]
 }

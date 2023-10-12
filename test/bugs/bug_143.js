@@ -1,13 +1,12 @@
-import * as PImage from '../../src/index.js'
+import * as PImage from "../../src/index.js";
 // import {calcSortedIntersections} from "../../src/context.js"
 
-import fs from 'fs'
-import path from 'path'
-
+import fs from "fs";
+import path from "path";
 
 const image = PImage.make(24, 24);
-const ctx = image.getContext('2d');
-ctx.fillStyle = 'white';
+const ctx = image.getContext("2d");
+ctx.fillStyle = "white";
 ctx.beginPath();
 ctx.moveTo(20, 20);
 ctx.lineTo(2, 20);
@@ -20,9 +19,9 @@ ctx.lineTo(20, 19);
 ctx.closePath();
 ctx.fill();
 
-const DIR = "output"
+const DIR = "output";
 
-let fname = path.join(DIR,'bug_143.png');
+let fname = path.join(DIR, "bug_143.png");
 PImage.encodePNGToStream(image, fs.createWriteStream(fname)).then(() => {
-    console.log(`wrote out ${fname}`)
-})
+  console.log(`wrote out ${fname}`);
+});

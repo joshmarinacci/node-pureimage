@@ -27,9 +27,6 @@ If you're unsure about any of these, don't hesitate to ask. We're here to help!
 Describe your changes here as well and any potential areas of interest you may wish to draw attention to
 -->
 
-
-
-
 <!--
 PR Template copied(and modified) from: https://github.com/h5bp/html5-boilerplate/blob/master/.github/PULL_REQUEST_TEMPLATE.md
 -->

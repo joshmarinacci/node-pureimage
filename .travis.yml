@@ -2,8 +2,8 @@ sudo: false
 dist: trusty
 language: node_js
 node_js:
-    - "node"
-    - "8"
+  - "node"
+  - "8"
 install: npm install
 script:
   - npm run unit
@@ -22,4 +22,4 @@ deploy:
     branches:
       only:
         - master
-    node_js: '8'
+    node_js: "8"
