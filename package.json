@@ -33,7 +33,7 @@
   },
   "scripts": {
     "test": "npm run vitest && npm run type-check",
-    "vitest": "vitest",
+    "vitest": "vitest run",
     "build": "node build.js",
     "type-check": "tsc",
     "clean": "rm -rf dist/ output/ *.tgz",
