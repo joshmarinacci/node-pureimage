@@ -170,7 +170,7 @@ describe('otf fonts',() => {
         // TODO: OTF fonts give a stream with multiple closes, 'Z',
         // instead of one big path with multiple pieces and 'M'oves
 
-        const fontRecord = pureimage.registerFont('test/bugs/144/Inter-regular.otf', 'Inter')
+        const fontRecord = pureimage.registerFont('test/bugs/144/Inter-Regular.otf', 'Inter')
         fontRecord.loadSync();
         const image = pureimage.make(100, 100);
         const ctx = image.getContext('2d');
