@@ -55,9 +55,9 @@ describe("PNG image", () => {
     expect(png.getPixelRGBA(3, 3)).to.eq(0xeae9eeff);
   });
   it("must save with compression", async () => {
-    let filestream = fs.createWriteStream("foo.png");
+    let filestream = fs.createWriteStream("output/compressed.png");
     await pureimage.encodePNGToStream(canvas, filestream, { deflateLevel: 5 });
-    let buf = await fs.promises.readFile("foo.png");
+    let buf = await fs.promises.readFile("output/compressed.png");
     expect(buf[0]).to.eq(0x89);
     expect(buf[1]).to.eq(0x50);
     expect(buf[2]).to.eq(0x4e);
