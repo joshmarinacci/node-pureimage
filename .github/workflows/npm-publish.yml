@@ -5,7 +5,9 @@ name: Node.js Package
 
 #on: [push]
 
-on: push
+on:
+  push:
+    branches: [master]
 
 jobs:
   build:
@@ -32,9 +34,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
       - run: npm run build
-      - run: npm version patch
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.npm_token}}
