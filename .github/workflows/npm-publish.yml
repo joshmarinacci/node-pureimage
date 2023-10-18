@@ -31,8 +31,8 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: npm whoami
-      - run: git config --global user.email octobot@github.com
-          git config --global user.name Github Actions
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
       - run: npm run release
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
