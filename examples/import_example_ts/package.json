@@ -1,0 +1,18 @@
+{
+  "name": "import_example_ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "pureimage": "^0.4.13"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node build/basic.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
