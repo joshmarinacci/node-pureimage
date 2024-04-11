@@ -1,11 +1,11 @@
 import { Line } from "./line.js";
-import { NAMED_COLORS, TRANSPARENT_BLACK } from "./named_colors";
-import { Bounds, calc_min_bounds, Point, PointIsh, toRad } from "./point";
-import * as TEXT from "./text";
-import { Font } from "./text";
-import * as G from "./gradients";
-import { and, fromBytesBigEndian, getBytesBigEndian, or } from "./uint32";
-import type { Bitmap } from "./bitmap";
+import { NAMED_COLORS, TRANSPARENT_BLACK } from "./named_colors.js";
+import { Bounds, calc_min_bounds, Point, PointIsh, toRad } from "./point.js";
+import * as TEXT from "./text.js";
+import { Font } from "./text.js";
+import * as G from "./gradients.js";
+import { and, fromBytesBigEndian, getBytesBigEndian, or } from "./uint32.js";
+import type { Bitmap } from "./bitmap.js";
 import {
   MinimumBounds,
   PATH_COMMAND,
@@ -14,8 +14,8 @@ import {
   TextAlign,
   TextBaseline,
 } from "./types.js";
-import { clamp, colorStringToUint32 } from "./util";
-import { Matrix, Transform } from "./transform";
+import { clamp, colorStringToUint32 } from "./util.js";
+import { Matrix, Transform } from "./transform.js";
 
 /**
  * Used for drawing rectangles, text, images and other objects onto the canvas element. It provides the 2D rendering context for a drawing surface.
