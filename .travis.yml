@@ -1,5 +1,10 @@
 language: node_js
 node_js:
   - 20
-before_install:
-  - npm ci
+script:
+  - echo "starting to build"
+  - npm install
+  - npm run clean
+  - npm run vitest
+  - npm run build
+  - npm run type-check
