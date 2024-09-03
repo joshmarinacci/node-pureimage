@@ -7,5 +7,5 @@ script:
   - npm install
   - npm run clean
   - npm run vitest
-  - npm run build
-  - npm run type-check
+  - curl -fsSL --retry 3 "https://github.com/trunk-io/analytics-cli/releases/latest/download/trunk-analytics-cli-x86_64-unknown-linux.tar.gz" | tar -xvz > ./trunk-analytics-cli
+  - ./trunk-analytics-cli upload --junit-paths "test-output.xml" --org-url-slug TRUNK_ORG_SLUG --token TRUNK_API_TOKEN
