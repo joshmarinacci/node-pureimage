@@ -308,6 +308,20 @@ pureimage.encodePNGToStream(canvas, passThroughStream).then(() => {
 });
 ```
 
+Convert a canvas to base64:
+
+```javascript
+import * as PImage from "pureimage";
+import { PassThrough } from "stream";
+const passThroughStream = new PassThrough();
+const pngData = [];
+passThroughStream.on("data", (chunk) => pngData.push(chunk));
+passThroughStream.on("end", () => {});
+await pureimage.encodePNGToStream(canvas, passThroughStream);
+let buf = Buffer.concat(pngData);
+let b64 = buf.toString("base64");
+```
+
 # Troubleshooting
 
 ### missing or broken text
