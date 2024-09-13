@@ -185,6 +185,52 @@ describe("draw arcs", () => {
     await save(image, "path/arc/stroke_arc");
   });
 });
+describe("draw quad arcs", () => {
+  let image;
+  let c: pureimage.Context;
+  // @ts-ignore
+  const WHITE = 0xffffffff;
+  // @ts-ignore
+  const BLACK = 0x000000ff;
+  beforeEach(() => {
+    image = pureimage.make(200, 200);
+    c = image.getContext("2d");
+    c.fillStyle = "white";
+    c.fillRect(0, 0, 200, 200);
+  });
+  it("fill a quad curve", async () => {
+    c.fillStyle = "black";
+    c.beginPath();
+    c.moveTo(0, 0);
+    c.lineTo(100, 0);
+    c.quadraticCurveTo(100, 100, 0, 100);
+    c.lineTo(0, 0);
+    c.closePath();
+    // c.arc(50, 50, 50, 0, Math.PI * 2, false);
+    c.fill();
+    // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
+    // expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(101, 101)).to.eq(WHITE);
+    await save(image, "path/quad/fill_quad");
+  });
+  it("stroke a quad curve", async () => {
+    c.strokeStyle = "black";
+    c.beginPath();
+    c.moveTo(0, 0);
+    c.lineTo(100, 0);
+    c.quadraticCurveTo(100, 100, 0, 100);
+    c.lineTo(0, 0);
+    c.closePath();
+    // c.arc(50, 50, 50, 0, Math.PI * 2, false);
+    c.stroke();
+    // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
+    // expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(101, 101)).to.eq(WHITE);
+    await save(image, "path/quad/stroke_quad");
+  });
+});
 describe("draw paths", () => {
   let image;
   let c;

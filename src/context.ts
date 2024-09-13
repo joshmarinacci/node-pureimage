@@ -712,7 +712,7 @@ export class Context {
    *
    * @memberof Context
    */
-  quadraticCurveTo(cp1x, cp1y, x, y) {
+  quadraticCurveTo(cp1x: number, cp1y: number, x: number, y: number) {
     let cp1 = this._transform.transformPoint(new Point(cp1x, cp1y));
     let pt = this._transform.transformPoint(new Point(x, y));
     this.path.push([PATH_COMMAND.QUADRATIC_CURVE, cp1, pt]);
@@ -941,6 +941,16 @@ export class Context {
    */
   closePath() {
     if (!this._closed) {
+      if (!this.pathstart) {
+        console.warn("missing path start");
+        // console.log(this.path)
+        let cmd = this.path[0];
+        // console.log("command",cmd)
+        if (cmd[0] === "l") {
+          this.pathstart = cmd[1];
+        }
+      }
+      console.log("goinb back to path start", this.pathstart);
       this.path.push([PATH_COMMAND.LINE, this.pathstart]);
       this._closed = true;
     }
