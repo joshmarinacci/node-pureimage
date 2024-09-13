@@ -6,7 +6,7 @@ export const FIXTURES_DIR = "test/unit/fixtures/";
 
 export const mkdir = async (pth) => {
   try {
-    await fs.promises.mkdir(pth);
+    await fs.promises.mkdir(pth, { recursive: true });
   } catch (e) {}
 };
 
@@ -21,7 +21,8 @@ const DIR = "output";
 
 export async function save(image, filename) {
   await mkdir(DIR);
-  let pth = path.join(DIR, filename + ".png");
-  await pureimage.encodePNGToStream(image, fs.createWriteStream(pth));
-  console.log(`wrote out ${pth}`);
+  let filePath = path.join(DIR, filename + ".png");
+  await mkdir(path.dirname(filePath));
+  await pureimage.encodePNGToStream(image, fs.createWriteStream(filePath));
+  console.log(`wrote out ${filePath}`);
 }

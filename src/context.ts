@@ -11,6 +11,7 @@ import {
   PATH_COMMAND,
   PathCmd,
   RGBA,
+  RoundRectCorners,
   TextAlign,
   TextBaseline,
 } from "./types.js";
@@ -775,7 +776,14 @@ export class Context {
    *
    * @memberof Context
    */
-  arc(x, y, rad, start, end, anticlockwise) {
+  arc(
+    x: number,
+    y: number,
+    rad: number,
+    start: number,
+    end: number,
+    anticlockwise?: boolean,
+  ) {
     function calcPoint(angle) {
       let px = x + Math.cos(angle) * rad;
       let py = y + Math.sin(angle) * rad;
@@ -833,6 +841,54 @@ export class Context {
     this.lineTo(x + width, y + height);
     this.lineTo(x, y + height);
     this.lineTo(x, y);
+  }
+
+  roundRect(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radii: number | number[],
+  ) {
+    let corners: RoundRectCorners = { bl: 0, br: 0, tr: 0, tl: 0 };
+    if (typeof radii === "undefined") {
+      corners = { bl: 0, br: 0, tr: 0, tl: 0 };
+    }
+    if (typeof radii === "number") {
+      corners = { tl: radii, tr: radii, br: radii, bl: radii };
+    }
+    if (Array.isArray(radii)) {
+      if (radii.length === 0) {
+        corners = { bl: 0, br: 0, tr: 0, tl: 0 };
+      }
+      if (radii.length === 1) {
+        corners = { tl: radii[0], tr: radii[0], br: radii[0], bl: radii[0] };
+      }
+      if (radii.length === 2) {
+        corners = { tl: radii[0], tr: radii[1], br: radii[0], bl: radii[1] };
+      }
+      if (radii.length === 3) {
+        corners = { tl: radii[0], tr: radii[1], br: radii[2], bl: radii[1] };
+      }
+      if (radii.length === 4) {
+        corners = { tl: radii[0], tr: radii[1], br: radii[2], bl: radii[3] };
+      }
+    }
+    this.moveTo(x + corners.tl, y);
+    this.lineTo(x + width - corners.tr, y);
+    this.quadraticCurveTo(x + width, y, x + width, y + corners.tr);
+    this.lineTo(x + width, y + height - corners.br);
+    this.quadraticCurveTo(
+      x + width,
+      y + height,
+      x + width - corners.br,
+      y + height,
+    );
+    this.lineTo(x + corners.bl, y + height);
+    this.quadraticCurveTo(x, y + height, x, y + height - corners.bl);
+    this.lineTo(x, y + corners.tl);
+    this.quadraticCurveTo(x, y, x + corners.tl, y);
+    this.lineTo(x + corners.tl, y);
   }
 
   /**
