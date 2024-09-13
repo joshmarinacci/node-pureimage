@@ -35,6 +35,7 @@ describe("PNG image", () => {
     try {
       // @ts-ignore
       await pureimage.encodePNGToStream(
+        // @ts-ignore
         "this is a string, not a bitmap buffer",
         new PassThrough(),
       );
@@ -101,6 +102,7 @@ describe("JPEG image", () => {
     try {
       // @ts-ignore
       await pureimage.encodeJPEGToStream(
+        // @ts-ignore
         "this is a string, not a bitmap buffer",
         new PassThrough(),
       );

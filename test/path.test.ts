@@ -127,7 +127,9 @@ describe("draw round rect", () => {
 describe("draw arcs", () => {
   let image;
   let c: pureimage.Context;
+  // @ts-ignore
   const WHITE = 0xffffffff;
+  // @ts-ignore
   const BLACK = 0x000000ff;
 
   beforeEach(() => {
