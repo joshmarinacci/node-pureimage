@@ -42,7 +42,6 @@ export class Context {
   private pathstart?: Point;
   private debug?: boolean;
   private _transform: Transform;
-  private _bitmap: Bitmap;
   private states: any[];
 
   /** Creates a new pure image Context */
@@ -67,6 +66,15 @@ export class Context {
     this._fillStyle_text = "";
     this._strokeStyle_text = "";
     this.states = [];
+  }
+
+  private _bitmap: Bitmap;
+
+  /**
+   *  `canvas` is a read only reference to the Bitmap that this context draws into.
+   */
+  get canvas() {
+    return this._bitmap;
   }
 
   private _lineWidth: number;

@@ -152,3 +152,21 @@ describe("JPEG image", () => {
     canvas = undefined;
   });
 });
+
+describe("base64 output", () => {
+  it("generates base64 output", async () => {
+    let canvas = pureimage.make(2, 2);
+    const passThroughStream = new PassThrough();
+    const pngData = [];
+    passThroughStream.on("data", (chunk) => pngData.push(chunk));
+    passThroughStream.on("end", () => {});
+    await pureimage.encodePNGToStream(canvas, passThroughStream);
+    let buf = Buffer.concat(pngData);
+    const b64 = buf.toString("base64");
+    // console.log('base 64 output',b64)
+    // expect(buf[0]).to.eq(0x89);
+    // expect(buf[1]).to.eq(0x50);
+    // expect(buf[2]).to.eq(0x4e);
+    // expect(buf[3]).to.eq(0x47);
+  });
+});
