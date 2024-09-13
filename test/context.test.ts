@@ -17,4 +17,8 @@ describe("context", () => {
   it("getContext returns null for invalid contextType", () => {
     expect(image.getContext("this is totally made up")).to.eq(null);
   });
+
+  it("context.canvas is valid", () => {
+    expect(context.canvas).toEqual(image);
+  });
 });
