@@ -1458,7 +1458,7 @@ function sub_path_to_stroked_sub_path(
       const A = curr;
       const B = cmd[1];
       if (A.equals(B))
-        return console.log("can't project the same paths", i, cmd, A, B);
+        return console.warn("can't project the same paths", i, cmd, A, B);
       // console.log(i,"====",B)
       let next = path[i + 1];
       //if first
@@ -1479,7 +1479,7 @@ function sub_path_to_stroked_sub_path(
       }
       const C = next[1];
       if (C.equals(B))
-        return console.log("can't project the same paths", i, cmd, A, B);
+        return console.warn("can't project the same paths", i, cmd, A, B);
       // console.log(i,A,B,C)
       // console.log("next",next)
       let BA = A.subtract(B);
@@ -1511,6 +1511,7 @@ function sub_path_to_stroked_sub_path(
         //if turning left
         //adjust outside
         let h = w / Math.cos(-(Math.PI - turn) / 2);
+        if (h > 10) h = 10;
         let C_unit = C.subtract(B)
           .unit()
           .rotate(-turn / 2)
