@@ -24,3 +24,10 @@ export type MinimumBounds = {
   x2: number;
   y2: number;
 };
+
+export type RoundRectCorners = {
+  tl: number;
+  tr: number;
+  br: number;
+  bl: number;
+};

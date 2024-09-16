@@ -1,7 +1,8 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import * as pureimage from "../src/index.js";
 import { save } from "./common";
-describe("draw curve", () => {
+
+describe("draw rect", () => {
   let image;
   let c;
   const WHITE = 0xffffffff;
@@ -13,11 +14,6 @@ describe("draw curve", () => {
     c.fillStyle = "white";
     c.fillRect(0, 0, 200, 200);
   });
-
-  it("canvas is empty and clear", () => {
-    expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
-  });
-
   it("fill square with fillRect()", async () => {
     c.fillStyle = "black";
     c.fillRect(10, 10, 90, 90);
@@ -25,9 +21,8 @@ describe("draw curve", () => {
     expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
     expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
     expect(image.getPixelRGBA(100, 100)).to.eq(WHITE);
-    await save(image, "path_fill_square_fillrect");
+    await save(image, "path/rect/fill_square-fillRect");
   });
-
   it("fill square with lines", async () => {
     c.beginPath();
     c.moveTo(10, 10);
@@ -37,13 +32,12 @@ describe("draw curve", () => {
     c.lineTo(10, 10);
     c.fillStyle = "black";
     c.fill();
-    await save(image, "path_fill_square_lines");
+    await save(image, "path/rect/fill_square-lineTo");
     expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
     expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
     expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
     expect(image.getPixelRGBA(101, 101)).to.eq(WHITE);
   });
-
   it("fill a square with rect", async () => {
     c.beginPath();
     c.rect(10, 10, 90, 90);
@@ -53,9 +47,8 @@ describe("draw curve", () => {
     expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
     expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
     expect(image.getPixelRGBA(101, 101)).to.eq(WHITE);
-    await save(image, "path_fill_square_rect");
+    await save(image, "path/rect/fill_square-rect");
   });
-
   it("stroke square with strokeRect()", async () => {
     c.lineWidth = 1;
     c.strokeStyle = "black";
@@ -64,9 +57,8 @@ describe("draw curve", () => {
     expect(image.getPixelRGBA(10, 10)).to.eq(BLACK);
     expect(image.getPixelRGBA(100, 50)).to.eq(BLACK);
     // expect(image.getPixelRGBA(100,100)).to.eq(WHITE)
-    await save(image, "path_stroke_square_strokerect");
+    await save(image, "path/rect/stroke_square-strokeRect");
   });
-
   it("stroke square with lines", async () => {
     c.beginPath();
     c.moveTo(10, 10);
@@ -80,23 +72,180 @@ describe("draw curve", () => {
     expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
     // expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
     // expect(image.getPixelRGBA(100,50)).to.eq(BLACK)
-    await save(image, "path_stroke_square_lines");
+    await save(image, "path/rect/stroke_square-lineTo");
     expect(image.getPixelRGBA(101, 100)).to.eq(WHITE);
   });
-
   it("stroke a square with rect", async () => {
     c.beginPath();
     c.rect(10, 10, 90, 90);
     c.lineWidth = 1;
     c.strokeStyle = "black";
     c.stroke();
-    await save(image, "path_stroke_square_rect");
+    await save(image, "path/rect/stroke_square-rect");
     expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
     // expect(image.getPixelRGBA(10,10)).to.eq(BLACK)
     // expect(image.getPixelRGBA(50,50)).to.eq(BLACK)
     expect(image.getPixelRGBA(101, 100)).to.eq(WHITE);
   });
+});
+describe("draw round rect", () => {
+  let image;
+  let c;
+  const WHITE = 0xffffffff;
+  const BLACK = 0x000000ff;
 
+  beforeEach(() => {
+    image = pureimage.make(200, 200);
+    c = image.getContext("2d");
+    c.fillStyle = "white";
+    c.fillRect(0, 0, 200, 200);
+  });
+  it("fills a round rect", async () => {
+    c.fillStyle = "white";
+    c.fillRect(0, 0, 200, 200);
+    c.fillStyle = "black";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.roundRect(10, 10, 100, 100, [30]);
+    c.fill();
+    await save(image, "path/roundRect/fill-roundRect");
+    expect(image.getPixelRGBA(30, 30)).to.eq(BLACK);
+    expect(image.getPixelRGBA(5, 5)).to.eq(WHITE);
+  });
+  it("strokes a round rect", async () => {
+    c.fillStyle = "white";
+    c.fillRect(0, 0, 200, 200);
+    c.strokeStyle = "black";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.roundRect(10, 10, 100, 100, [30]);
+    c.closePath();
+    c.stroke();
+    await save(image, "path/roundRect/stroke-roundRect");
+  });
+});
+describe("draw arcs", () => {
+  let image;
+  let c: pureimage.Context;
+  // @ts-ignore
+  const WHITE = 0xffffffff;
+  // @ts-ignore
+  const BLACK = 0x000000ff;
+
+  beforeEach(() => {
+    image = pureimage.make(200, 200);
+    c = image.getContext("2d");
+    c.fillStyle = "white";
+    c.fillRect(0, 0, 200, 200);
+  });
+  it("fill a circle", async () => {
+    c.fillStyle = "black";
+    c.beginPath();
+    c.arc(50, 50, 50, 0, Math.PI * 2, false);
+    c.fill();
+    // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
+    // expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(101, 101)).to.eq(WHITE);
+    await save(image, "path/arc/fill_circle");
+  });
+  it("fill an arc", async () => {
+    c.fillStyle = "black";
+    c.beginPath();
+    c.arc(50, 50, 50, 0, Math.PI, false);
+    c.fill();
+    // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
+    // expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(101, 101)).to.eq(WHITE);
+    await save(image, "path/arc/fill_arc");
+  });
+
+  it("stroke a circle", async () => {
+    c.strokeStyle = "black";
+    c.beginPath();
+    c.arc(50, 50, 50, 0, Math.PI * 2, false);
+    c.stroke();
+    // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
+    // expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(101, 101)).to.eq(WHITE);
+    await save(image, "path/arc/stroke_circle");
+  });
+  it("stroke an arc", async () => {
+    c.strokeStyle = "black";
+    c.beginPath();
+    c.arc(50, 50, 50, 0, Math.PI, false);
+    c.closePath();
+    c.stroke();
+    // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
+    // expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(101, 101)).to.eq(WHITE);
+    await save(image, "path/arc/stroke_arc");
+  });
+});
+describe("draw quad arcs", () => {
+  let image;
+  let c: pureimage.Context;
+  // @ts-ignore
+  const WHITE = 0xffffffff;
+  // @ts-ignore
+  const BLACK = 0x000000ff;
+  beforeEach(() => {
+    image = pureimage.make(200, 200);
+    c = image.getContext("2d");
+    c.fillStyle = "white";
+    c.fillRect(0, 0, 200, 200);
+  });
+  it("fill a quad curve", async () => {
+    c.fillStyle = "black";
+    c.beginPath();
+    c.moveTo(0, 0);
+    c.lineTo(100, 0);
+    c.quadraticCurveTo(100, 100, 0, 100);
+    c.lineTo(0, 0);
+    c.closePath();
+    // c.arc(50, 50, 50, 0, Math.PI * 2, false);
+    c.fill();
+    // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
+    // expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(101, 101)).to.eq(WHITE);
+    await save(image, "path/quad/fill_quad");
+  });
+  it("stroke a quad curve", async () => {
+    c.strokeStyle = "black";
+    c.beginPath();
+    c.moveTo(0, 0);
+    c.lineTo(100, 0);
+    c.quadraticCurveTo(100, 100, 0, 100);
+    c.lineTo(0, 0);
+    c.closePath();
+    // c.arc(50, 50, 50, 0, Math.PI * 2, false);
+    c.stroke();
+    // expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
+    // expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(50, 50)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(101, 101)).to.eq(WHITE);
+    await save(image, "path/quad/stroke_quad");
+  });
+});
+describe("draw paths", () => {
+  let image;
+  let c;
+  const WHITE = 0xffffffff;
+  const BLACK = 0x000000ff;
+
+  beforeEach(() => {
+    image = pureimage.make(200, 200);
+    c = image.getContext("2d");
+    c.fillStyle = "white";
+    c.fillRect(0, 0, 200, 200);
+  });
+  it("canvas is empty and clear", () => {
+    expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
+  });
   it("bezier curve", async () => {
     c.fillStyle = "white";
     c.fillRect(0, 0, 200, 200);
@@ -111,7 +260,6 @@ describe("draw curve", () => {
     expect(image.getPixelRGBA(19, 39)).to.eq(BLACK);
     await save(image, "bezier1");
   });
-
   it("arc", async () => {
     // should look the same as
     // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/arc
@@ -144,6 +292,18 @@ describe("draw curve", () => {
       }
     }
     await save(img, "arc");
+  });
+});
+describe("complex paths", () => {
+  let image;
+  let c;
+  const WHITE = 0xffffffff;
+  const BLACK = 0x000000ff;
+  beforeEach(() => {
+    image = pureimage.make(200, 200);
+    c = image.getContext("2d");
+    c.fillStyle = "white";
+    c.fillRect(0, 0, 200, 200);
   });
   it("north going polygon", async () => {
     let img = pureimage.make(200, 200);
@@ -227,74 +387,6 @@ describe("draw curve", () => {
     c.fillStyle = "black";
     c.stroke();
     await save(image, "thick_stroke_curve");
-  });
-  it("draws round rect", async () => {
-    create();
-    let img = create();
-    await save(img, "roundrect");
-    function create() {
-      let img = pureimage.make(1200, 628);
-      let ctx = img.getContext("2d");
-      let WIDTH = 1200;
-      let HEIGHT = 628;
-
-      ctx.imageSmoothingEnabled = true;
-
-      // clear background
-      ctx.clearRect(-1, 0, WIDTH + 1, HEIGHT);
-
-      // background
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-      // top color box
-      ctx.fillStyle = "#142C6E";
-      ctx.fillRect(0, 0, 338, HEIGHT / 2);
-
-      // bottom color box
-      ctx.fillStyle = "#FF0000";
-      ctx.fillRect(0, HEIGHT / 2, 338, HEIGHT / 2);
-
-      // Green rectangle box
-      ctx.fillStyle = "#00FF00";
-      roundRect(ctx, 44, 239, 250, 150, 8);
-
-      function roundRect(ctx, x, y, width, height, radius) {
-        console.log("drawing a round rect");
-        if (typeof radius === "undefined") {
-          radius = 5;
-        }
-        if (typeof radius === "number") {
-          radius = { tl: radius, tr: radius, br: radius, bl: radius };
-        } else {
-          var defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
-          for (var side in defaultRadius) {
-            radius[side] = radius[side] || defaultRadius[side];
-          }
-        }
-        ctx.beginPath();
-        ctx.moveTo(x + radius.tl, y);
-        ctx.lineTo(x + width - radius.tr, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
-        ctx.lineTo(x + width, y + height - radius.br);
-        ctx.quadraticCurveTo(
-          x + width,
-          y + height,
-          x + width - radius.br,
-          y + height,
-        );
-        ctx.lineTo(x + radius.bl, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
-        ctx.lineTo(x, y + radius.tl);
-        ctx.quadraticCurveTo(x, y, x + radius.tl, y);
-        ctx.lineTo(x + radius.tl, y);
-        ctx.closePath();
-        // ctx.fill_aa();
-        ctx.fill();
-      }
-
-      return img;
-    }
   });
 });
 describe("restroke test", () => {

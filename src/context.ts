@@ -11,6 +11,7 @@ import {
   PATH_COMMAND,
   PathCmd,
   RGBA,
+  RoundRectCorners,
   TextAlign,
   TextBaseline,
 } from "./types.js";
@@ -719,7 +720,7 @@ export class Context {
    *
    * @memberof Context
    */
-  quadraticCurveTo(cp1x, cp1y, x, y) {
+  quadraticCurveTo(cp1x: number, cp1y: number, x: number, y: number) {
     let cp1 = this._transform.transformPoint(new Point(cp1x, cp1y));
     let pt = this._transform.transformPoint(new Point(x, y));
     this.path.push([PATH_COMMAND.QUADRATIC_CURVE, cp1, pt]);
@@ -783,7 +784,14 @@ export class Context {
    *
    * @memberof Context
    */
-  arc(x, y, rad, start, end, anticlockwise) {
+  arc(
+    x: number,
+    y: number,
+    rad: number,
+    start: number,
+    end: number,
+    anticlockwise?: boolean,
+  ) {
     function calcPoint(angle) {
       let px = x + Math.cos(angle) * rad;
       let py = y + Math.sin(angle) * rad;
@@ -843,6 +851,54 @@ export class Context {
     this.lineTo(x, y);
   }
 
+  roundRect(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radii: number | number[],
+  ) {
+    let corners: RoundRectCorners = { bl: 0, br: 0, tr: 0, tl: 0 };
+    if (typeof radii === "undefined") {
+      corners = { bl: 0, br: 0, tr: 0, tl: 0 };
+    }
+    if (typeof radii === "number") {
+      corners = { tl: radii, tr: radii, br: radii, bl: radii };
+    }
+    if (Array.isArray(radii)) {
+      if (radii.length === 0) {
+        corners = { bl: 0, br: 0, tr: 0, tl: 0 };
+      }
+      if (radii.length === 1) {
+        corners = { tl: radii[0], tr: radii[0], br: radii[0], bl: radii[0] };
+      }
+      if (radii.length === 2) {
+        corners = { tl: radii[0], tr: radii[1], br: radii[0], bl: radii[1] };
+      }
+      if (radii.length === 3) {
+        corners = { tl: radii[0], tr: radii[1], br: radii[2], bl: radii[1] };
+      }
+      if (radii.length === 4) {
+        corners = { tl: radii[0], tr: radii[1], br: radii[2], bl: radii[3] };
+      }
+    }
+    this.moveTo(x + corners.tl, y);
+    this.lineTo(x + width - corners.tr, y);
+    this.quadraticCurveTo(x + width, y, x + width, y + corners.tr);
+    this.lineTo(x + width, y + height - corners.br);
+    this.quadraticCurveTo(
+      x + width,
+      y + height,
+      x + width - corners.br,
+      y + height,
+    );
+    this.lineTo(x + corners.bl, y + height);
+    this.quadraticCurveTo(x, y + height, x, y + height - corners.bl);
+    this.lineTo(x, y + corners.tl);
+    this.quadraticCurveTo(x, y, x + corners.tl, y);
+    this.lineTo(x + corners.tl, y);
+  }
+
   /**
    * Ellipse
    *
@@ -893,6 +949,16 @@ export class Context {
    */
   closePath() {
     if (!this._closed) {
+      if (!this.pathstart) {
+        console.warn("missing path start");
+        // console.log(this.path)
+        let cmd = this.path[0];
+        // console.log("command",cmd)
+        if (cmd[0] === "l") {
+          this.pathstart = cmd[1];
+        }
+      }
+      console.log("goinb back to path start", this.pathstart);
       this.path.push([PATH_COMMAND.LINE, this.pathstart]);
       this._closed = true;
     }
@@ -1400,7 +1466,7 @@ function sub_path_to_stroked_sub_path(
       const A = curr;
       const B = cmd[1];
       if (A.equals(B))
-        return console.log("can't project the same paths", i, cmd, A, B);
+        return console.warn("can't project the same paths", i, cmd, A, B);
       // console.log(i,"====",B)
       let next = path[i + 1];
       //if first
@@ -1421,7 +1487,7 @@ function sub_path_to_stroked_sub_path(
       }
       const C = next[1];
       if (C.equals(B))
-        return console.log("can't project the same paths", i, cmd, A, B);
+        return console.warn("can't project the same paths", i, cmd, A, B);
       // console.log(i,A,B,C)
       // console.log("next",next)
       let BA = A.subtract(B);
@@ -1453,6 +1519,7 @@ function sub_path_to_stroked_sub_path(
         //if turning left
         //adjust outside
         let h = w / Math.cos(-(Math.PI - turn) / 2);
+        if (h > 10) h = 10;
         let C_unit = C.subtract(B)
           .unit()
           .rotate(-turn / 2)
