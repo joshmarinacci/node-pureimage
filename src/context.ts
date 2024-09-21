@@ -305,7 +305,7 @@ export class Context {
           for (let i = x; i < x + w; i++) {
             for (let j = y; j < y + h; j++) {
               if (this.pixelInsideClip(i, j)) {
-                this._bitmap.setPixelRGBA(x, y, this._fillColor as number);
+                this._bitmap.setPixelRGBA(i, j, this._fillColor as number);
               }
             }
           }
