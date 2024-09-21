@@ -972,7 +972,6 @@ export class Context {
           this.pathstart = cmd[1];
         }
       }
-      console.log("goinb back to path start", this.pathstart);
       this.path.push([PATH_COMMAND.LINE, this.pathstart]);
       this._closed = true;
     }
