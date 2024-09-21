@@ -298,6 +298,20 @@ export class Context {
    */
   fillRect(x: number, y: number, w: number, h: number): void {
     if (this._transform.isIdentity()) {
+      //fast path for fillRect with non-transparent color
+      if (typeof this._fillColor == "number") {
+        const new_rgba = getBytesBigEndian(this._fillColor as number);
+        if (new_rgba[3] === 255) {
+          for (let i = x; i < x + w; i++) {
+            for (let j = y; j < y + h; j++) {
+              if (this.pixelInsideClip(i, j)) {
+                this._bitmap.setPixelRGBA(x, y, this._fillColor as number);
+              }
+            }
+          }
+          return;
+        }
+      }
       for (let i = x; i < x + w; i++) {
         for (let j = y; j < y + h; j++) {
           this.fillPixelWithColor(i, j, this.calculateRGBA(i, j));
