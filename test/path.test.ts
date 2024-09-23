@@ -23,6 +23,15 @@ describe("draw rect", () => {
     expect(image.getPixelRGBA(100, 100)).to.eq(WHITE);
     await save(image, "path/rect/fill_square-fillRect");
   });
+  it("fill rect partially outside of buffer", async () => {
+    c.fillStyle = "black";
+    c.fillRect(100, 100, 200, 200);
+    expect(image.getPixelRGBA(0, 0)).to.eq(WHITE);
+    // expect(image.getPixelRGBA(11, 11)).to.eq(BLACK);
+    expect(image.getPixelRGBA(150, 150)).to.eq(BLACK);
+    // expect(image.getPixelRGBA(100, 100)).to.eq(WHITE);
+    await save(image, "path/rect/fill_outside-fillRect");
+  });
   it("fill square with lines", async () => {
     c.beginPath();
     c.moveTo(10, 10);

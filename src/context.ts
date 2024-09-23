@@ -304,7 +304,10 @@ export class Context {
         if (new_rgba[3] === 255) {
           for (let i = x; i < x + w; i++) {
             for (let j = y; j < y + h; j++) {
-              if (this.pixelInsideClip(i, j)) {
+              if (
+                this.pixelInsideClip(i, j) &&
+                this._bitmap._isValidCoords(i, j)
+              ) {
                 this._bitmap.setPixelRGBA(i, j, this._fillColor as number);
               }
             }
