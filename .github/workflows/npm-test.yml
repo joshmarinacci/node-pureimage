@@ -21,7 +21,7 @@ jobs:
         run: npm ci
 
       - name: run tests
-        run: npm run mocha-test
+        run: npm run test
 
       - name: upload tests
         run: |
