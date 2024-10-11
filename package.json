@@ -33,7 +33,7 @@
   },
   "scripts": {
     "test": "npm run vitest && npm run type-check",
-    "vitest": "vitest run --dir test",
+    "vitest": "vitest run --dir test --reporter=junit --outputFile=test-output.xml",
     "build": "node build.js",
     "type-check": "tsc",
     "clean": "rm -rf dist/ output/ *.tgz",
