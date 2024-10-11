@@ -22,3 +22,6 @@ jobs:
 
       - name: run tests
         run: npm run test
+
+      - name: hello
+        run: echo 'hello'
