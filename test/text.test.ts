@@ -20,14 +20,14 @@ describe("text drawing", () => {
       "test/unit/fixtures/fonts/SourceSansPro-Regular.ttf",
       "Source Sans Pro",
     );
-    fnt.loadSync();
+    await fnt.load();
     context.fillStyle = "white";
     context.fillRect(0, 0, 200, 200);
     context.fillStyle = "blue";
     context.font = "48pt 'Source Sans Pro'";
     context.fillText("some text", 50, 50);
     // expect(image.getPixelRGBA(50 + 4, 50 - 2)).to.eq(BLUE)
-    await save(image, "text-simple");
+    await save(image, "text/text-simple");
   });
 
   it("can draw empty text without crashing", async () => {
@@ -41,7 +41,7 @@ describe("text drawing", () => {
     context.font = "48pt 'Source Sans Pro'";
     context.fillText("some text", 50, 50);
     expect(image.getPixelRGBA(50 + 4, 50 - 2)).to.eq(BLUE);
-    await save(image, "text-empty");
+    await save(image, "text/text-empty");
     // })
   });
   //
@@ -87,7 +87,7 @@ describe("text drawing", () => {
     write("U", 50, 50, "center");
     expect(image.getPixelRGBA(41, 20)).to.eq(BLACK);
     expect(image.getPixelRGBA(50, 20)).to.eq(WHITE);
-    save(image, "text-halign");
+    save(image, "text/text-halign");
   });
 
   function writeV(str, x, y, align) {
@@ -97,7 +97,7 @@ describe("text drawing", () => {
     context.fillText(str, x, y);
   }
 
-  it("can draw verticl aligned text", async () => {
+  it("can draw vertical aligned text", async () => {
     let fnt = pureimage.registerFont(
       "test/unit/fixtures/fonts/SourceSansPro-Regular.ttf",
       "Source Sans Pro",
