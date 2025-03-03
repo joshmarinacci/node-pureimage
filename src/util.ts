@@ -1,5 +1,6 @@
 import { NAMED_COLORS } from "./named_colors.js";
 import { fromBytesBigEndian, or, shiftLeft, toUint32 } from "./uint32.js";
+import {Point} from "josh_js_util";
 
 /**
  * Clamping is the process of limiting a position to an area
@@ -129,4 +130,31 @@ export function typedArrConcat(
   }
 
   return result;
+}
+
+
+export function wrappingArrayGet<T>(path: T[], i: number): T {
+  return path[(i + path.length) % path.length]
+}
+
+export function wrappingArrayAdd<T>(arr: T[], currentExample: number, number: number) {
+  return (currentExample + number + arr.length) % arr.length
+}
+
+export function lerpNum(a: number, b: number, t: number) {
+  return a + t * (b - a)
+}
+
+export function lerpPoint(a: Point, b: Point, t: number) {
+  return new Point(
+      lerpNum(a.x, b.x, t),
+      lerpNum(a.y, b.y, t),
+  )
+}
+
+export function rotateVector(point: Point, angle: number) {
+  return new Point(
+      point.x * Math.cos(angle) - point.y * Math.sin(angle),
+      point.x * Math.sin(angle) + point.y * Math.cos(angle)
+  )
 }

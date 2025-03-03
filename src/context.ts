@@ -69,7 +69,7 @@ export class Context {
     this.states = [];
   }
 
-  private _bitmap: Bitmap;
+  protected _bitmap: Bitmap;
 
   /**
    *  `canvas` is a read only reference to the Bitmap that this context draws into.

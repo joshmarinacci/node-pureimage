@@ -5,9 +5,15 @@ import * as JPEG from "jpeg-js";
 import { getBytesBigEndian } from "./uint32.js";
 import { hasOwnProperty, typedArrConcat } from "./util.js";
 import type { Readable as ReadStream, Writable as WriteStream } from "stream";
+import {Context} from "./context";
+import {ContextNext} from "./contextnext";
 
 export function make(w: number, h: number) {
-  return new Bitmap(w, h);
+  return new Bitmap(w, h, Context);
+}
+
+export function makeV2(w: number, h: number) {
+  return new Bitmap(w, h, ContextNext);
 }
 
 export type PNGOptions = {

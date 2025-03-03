@@ -19,7 +19,7 @@ export class Bitmap {
    * @param {number} h      Height
    * @memberof Bitmap
    */
-  constructor(w: number, h: number) {
+  constructor(w: number, h: number, contextImpl) {
     this.width = Math.floor(w);
     this.height = Math.floor(h);
     this.data = new Uint8Array(w * h * 4);
@@ -30,7 +30,7 @@ export class Bitmap {
         this.setPixelRGBA(i, j, fillval);
       }
     }
-    this._context = new Context(this);
+    this._context = new contextImpl(this);
   }
 
   /** Calculate Index */
