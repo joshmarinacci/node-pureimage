@@ -69,4 +69,23 @@ describe("draw rect 2", () => {
         drawit(image2)
         await save(image2, "newraster/fill_quad-new");
     })
+    it("fills a round rect path", async () => {
+        const image1 = pureimage.make(30,30)
+        function drawit(image:pureimage.Bitmap) {
+            const c = image.getContext("2d")
+            c.fillStyle = "#0000FF";
+            c.fillRect(0, 0, 10, 10);
+            c.fillStyle = "#ff0000";
+            c.beginPath()
+            c.roundRect(1, 1, 20, 20, [5, 5, 5, 5])
+            c.fill()
+        }
+        drawit(image1)
+
+        await save(image1, "newraster/fill_roundrect-old");
+
+        const image2 = pureimage.makeV2(30,30)
+        drawit(image2)
+        await save(image2, "newraster/fill_roundrect-new");
+    })
 })
