@@ -14,23 +14,24 @@ export class ContextNext extends Context {
         super(bitmap);
     }
     fillRect(x: number, y: number, w: number, h: number) {
-        const scale = 1
         this.pathnext = new JPath2D()
-        console.log("fillstyle is",this.fillStyle)
         this.pathnext.rect(x, y, w, h);
-        let subPaths: JPath2D[] = pathToSubpaths(this.pathnext)
-        for (let path of subPaths) {
-            let [pathPoints, pathLines] = pathToPoints(path)
-            let [clipPoints, clipLines] = pathToPoints(undefined)
-            let pathTris = pathToTriangles(pathPoints)
-            let clipTris = pathToTriangles(clipPoints)
-            pathTris.forEach(tri => {
-                console.log("tri",tri.toString())
-            })
-            let cov = calculatePixelCoverage(this._bitmap, pathTris, scale, clipTris)
-            console.log("converage",cov)
-            this.drawPixels(cov,this.fillStyle,scale)
-        }
+        this.rasterize()
+    }
+    beginPath() {
+        this.pathnext = new JPath2D()
+    }
+    moveTo(x:number, y:number): void {
+        this.pathnext.moveTo(x, y)
+    }
+    lineTo(x:number, y:number): void {
+        this.pathnext.lineTo(x, y)
+    }
+
+    fill() {
+        // console.log("doing the new style fill()")
+        // console.log("the path is",this.pathnext)
+        this.rasterize()
     }
 
     private drawPixels(cov: ArrayGrid<number>, fill: string | BufferPixelSource, scale: number) {
@@ -57,6 +58,23 @@ export class ContextNext extends Context {
             this._bitmap.setPixelRGBA(n.x,n.y, _fillColor);
         })
         this.restore()
+    }
+
+    private rasterize() {
+        const scale = 1
+        let subPaths: JPath2D[] = pathToSubpaths(this.pathnext)
+        for (let path of subPaths) {
+            let [pathPoints, pathLines] = pathToPoints(path)
+            let [clipPoints, clipLines] = pathToPoints(undefined)
+            let pathTris = pathToTriangles(pathPoints)
+            let clipTris = pathToTriangles(clipPoints)
+            pathTris.forEach(tri => {
+                // console.log("tri",tri.toString())
+            })
+            let cov = calculatePixelCoverage(this._bitmap, pathTris, scale, clipTris)
+            // console.log("converage",cov)
+            this.drawPixels(cov,this.fillStyle,scale)
+        }
     }
 }
 
