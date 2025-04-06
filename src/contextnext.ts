@@ -7,6 +7,7 @@ import {pathToTriangles} from "./triangulate";
 import {calculatePixelCoverage, colorToRGBA, drawPixels, hexstringToColor} from "./pixels";
 import {BufferPixelSource, Color} from "./image2";
 import {fromBytesBigEndian} from "./uint32";
+import {RoundRectCorners} from "./types";
 
 export class ContextNext extends Context {
     private pathnext: JPath2D;
@@ -50,11 +51,40 @@ export class ContextNext extends Context {
                 const r = radii[0]
                 radii = [r,r,r,r]
             }
-            this.pathnext.roundRect(x, y, width, height, radii)
         } else {
             const r = radii as number;
-            this.pathnext.roundRect(x, y, width, height, [r,r,r,r]);
+            radii = [r,r,r,r]
         }
+        let corners: RoundRectCorners = { bl: radii[0], br:radii[1], tr: radii[2], tl: radii[3] }
+        // top left corner
+        this.moveTo(x + corners.tl, y)
+
+        // top right corner
+        this.lineTo(x + width - corners.tr, y)
+        this.quadraticCurveTo(x + width, y, x + width, y + corners.tr)
+
+        // bottom right corner
+        this.lineTo(x + width, y + height - corners.br);
+        this.quadraticCurveTo(
+            x + width,
+            y + height,
+            x + width - corners.br,
+            y + height,
+        )
+
+        // bottom edge
+        this.lineTo(x + corners.bl, y + height);
+
+        // bottom left corner
+        this.quadraticCurveTo(x, y + height, x, y + height - corners.bl);
+
+        // left edge
+        this.lineTo(x, y + corners.tl);
+
+        // top left corner
+        this.quadraticCurveTo(x, y, x + corners.tl, y);
+
+        this.lineTo(x + corners.tl, y);
     }
     arc(x: number, y: number, rad: number, start: number, end: number, anticlockwise?: boolean) {
         this.log("arc:")

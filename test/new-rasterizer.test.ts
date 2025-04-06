@@ -6,14 +6,16 @@ import fs from 'fs';
 import {PNG} from 'pngjs';
 import pixelmatch from 'pixelmatch';
 import {Bitmap} from "../src/index.js";
+import {Size} from "josh_js_util";
 
 type RenderTest = (image:Bitmap) => void;
 
-async function compareRenderers(test: RenderTest, pth: string) {
-    const image1 = pureimage.make(10,10)
+async function compareRenderers(test: RenderTest, pth: string, size?:Size) {
+    if(!size) size = new Size(10,10)
+    const image1 = pureimage.make(size.w,size.h);
     test(image1)
     await save(image1, `${pth}-old`);
-    const image2 = pureimage.makeV2(10,10)
+    const image2 = pureimage.makeV2(size.w,size.h);
     test(image2)
     await save(image2, `${pth}-new`);
 
@@ -39,7 +41,7 @@ describe("compare shapes", () => {
             c.fillRect(5, 5, 5, 5);
             expect(image.getPixelRGBA(0, 0)).to.eq(BLUE);
             expect(image.getPixelRGBA(6, 6)).to.eq(RED);
-        },'newraster/rect/fill_square')
+        },'newraster/path/rect/square')
     });
     it("fills a triangle", async () => {
         await compareRenderers((image:pureimage.Bitmap) => {
@@ -48,12 +50,12 @@ describe("compare shapes", () => {
             c.fillRect(0, 0, 10, 10);
             c.fillStyle = "#ff0000";
             c.beginPath()
-            c.moveTo(0, 0)
+            c.moveTo(1, 1)
             c.lineTo(8, 1)
             c.lineTo(8, 8)
             c.lineTo(1, 1)
             c.fill()
-        },'newraster/polygon/triangle')
+        },'newraster/path/triangle/simple')
     })
     it("fills a quadratic path", async () => {
         await compareRenderers((image:pureimage.Bitmap) => {
@@ -65,18 +67,18 @@ describe("compare shapes", () => {
             c.moveTo(1,1)
             c.quadraticCurveTo(15,5,1,10)
             c.fill()
-        },'newraster/path/quadraticCurve')
+        },'newraster/path/quad/simple')
     })
     it("fills a round rect path", async () => {
         await compareRenderers((image:pureimage.Bitmap)=> {
             const c = image.getContext("2d")
-            c.imageSmoothingEnabled = false
+            c.imageSmoothingEnabled = true
             c.fillStyle = "#0000FF";
             c.fillRect(0, 0, 10, 10);
             c.fillStyle = "#ff0000";
             c.beginPath()
             c.roundRect(1, 1, 20, 20, [5, 5, 5, 5])
             c.fill()
-        },'newraster/path/roundrect')
+        },'newraster/path/roundrect/simple', new Size(50,50))
     })
 })
