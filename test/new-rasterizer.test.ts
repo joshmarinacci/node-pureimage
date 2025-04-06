@@ -1,8 +1,10 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import * as pureimage from "../src/index.js";
 import { save } from "./common";
-const WHITE = 0xffffffff;
-const BLACK = 0x000000ff;
+
+import fs from 'fs';
+import {PNG} from 'pngjs';
+import pixelmatch from 'pixelmatch';
 
 describe("draw rect 2", () => {
     it("fill square with fillRect()", async () => {
@@ -87,5 +89,43 @@ describe("draw rect 2", () => {
         const image2 = pureimage.makeV2(30,30)
         drawit(image2)
         await save(image2, "newraster/fill_roundrect-new");
+    })
+
+    it("compares images", async () => {
+        const pth = 'newraster/fill_triangle'
+        const image1 = pureimage.make(10,10)
+        function drawit(image:pureimage.Bitmap) {
+            const c = image.getContext("2d")
+            c.fillStyle = "#0000FF";
+            c.fillRect(0, 0, 10, 10);
+            c.fillStyle = "#ff0000";
+            c.beginPath()
+            c.moveTo(1, 1)
+            c.lineTo(8, 1)
+            c.lineTo(8, 8)
+            c.lineTo(1, 1)
+            c.fill()
+        }
+        drawit(image1)
+
+        await save(image1, `${pth}-old`);
+
+        const image2 = pureimage.makeV2(10,10)
+        drawit(image2)
+        await save(image2, `${pth}-new`);
+
+        function compare(pth: string) {
+            const img1 = PNG.sync.read(fs.readFileSync(`output/${pth}-old.png`));
+            const img2 = PNG.sync.read(fs.readFileSync(`output/${pth}-new.png`));
+            const {width, height} = img1;
+            const diff = new PNG({width, height});
+            const match = pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.0});
+            console.log("doing the match",match)
+            fs.writeFileSync(`output/${pth}-diff.png`, PNG.sync.write(diff));
+            return match
+        }
+        const match = compare(pth)
+        console.log("doing the match",match)
+        expect(match).toBe(0)
     })
 })
