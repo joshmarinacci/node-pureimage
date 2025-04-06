@@ -13,37 +13,65 @@ export class ContextNext extends Context {
     constructor(bitmap:Bitmap) {
         super(bitmap);
     }
-    fillRect(x: number, y: number, w: number, h: number) {
-        this.pathnext = new JPath2D()
-        this.pathnext.rect(x, y, w, h);
-        this.rasterize()
-    }
     beginPath() {
         this.pathnext = new JPath2D()
+    }
+    closePath() {
+
     }
     moveTo(x:number, y:number): void {
         this.pathnext.moveTo(x, y)
     }
     lineTo(x:number, y:number): void {
+        this.log("lineTo(x, y, w, h):")
         this.pathnext.lineTo(x, y)
     }
+
+    fillRect(x: number, y: number, w: number, h: number) {
+        this.log("fillRect(x, y, w, h):")
+        this.pathnext = new JPath2D()
+        this.pathnext.rect(x, y, w, h);
+        this.rasterize()
+    }
     quadraticCurveTo(cp1x: number, cp1y: number, x: number, y: number) {
+        this.log("quadraticCurveTo:")
         this.pathnext.quadraticCurveTo(cp1x, cp1y, x, y);
     }
+    bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
+        this.log("bezierCurveTo:")
+        throw new Error('Not implemented');
+        // super.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+    }
+
     roundRect(x: number, y: number, width: number, height: number, radii: number | number[]) {
+        this.log("roundRect:")
         if(Array.isArray(radii)) {
+            if(radii.length === 1) {
+                const r = radii[0]
+                radii = [r,r,r,r]
+            }
             this.pathnext.roundRect(x, y, width, height, radii)
         } else {
             const r = radii as number;
             this.pathnext.roundRect(x, y, width, height, [r,r,r,r]);
         }
     }
-
+    arc(x: number, y: number, rad: number, start: number, end: number, anticlockwise?: boolean) {
+        this.log("arc:")
+        // super.arc(x, y, rad, start, end, anticlockwise);
+        this.pathnext.arc(x,y,rad, start,end)
+    }
 
     fill() {
-        // console.log("doing the new style fill()")
-        // console.log("the path is",this.pathnext)
+        this.log("fill:")
         this.rasterize()
+    }
+
+    stroke() {
+        throw new Error('Not implemented');
+    }
+    strokeRect(x: number, y: number, w: number, h: number) {
+        throw new Error('Not implemented');
     }
 
     private drawPixels(cov: ArrayGrid<number>, fill: string | BufferPixelSource, scale: number) {
@@ -87,6 +115,10 @@ export class ContextNext extends Context {
             // console.log("converage",cov)
             this.drawPixels(cov,this.fillStyle,scale)
         }
+    }
+
+    private log(...args: string[]) {
+        console.info("ContextNext",...args)
     }
 }
 

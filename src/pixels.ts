@@ -2,6 +2,9 @@ import {ArrayGrid, Point} from "josh_js_util";
 import {Triangle} from "./geom.js";
 import {BufferPixelSource, Color} from "./image2.js";
 import {drawDot} from "./debug.js";
+import {NAMED_COLORS} from "./named_colors";
+import {hasOwnProperty} from "./util";
+import {getBytesBigEndian} from "./uint32";
 
 export function colorToRGBA(color: Color) {
     return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
@@ -41,14 +44,36 @@ export function calcSinglePixelCoverage(ptx:Point, path: Triangle[], clip: Trian
     return geom_coverage * clip_coverage
 }
 
-export function hexstringToColor(fill: string):Color {
-    fill = fill.substring(1)
-    let r = parseInt(fill.substring(0,2),16)
-    let g = parseInt(fill.substring(2,4),16)
-    let b = parseInt(fill.substring(4,6),16)
+function intToColor(rgba: number):Color {
+    // console.log("rgb is", rgba)
+    const bytes = getBytesBigEndian(rgba);
+    // console.log("bytes are",bytes.length)
     return {
-        r:r,g:g,b:b, a:255
+        r:bytes[0],
+        g:bytes[1],
+        b:bytes[2],
+        a:bytes[3],
     }
+}
+
+export function hexstringToColor(fill: string):Color {
+    if (!fill) return {r:0,g:0,b:0, a:255};
+    if (fill.indexOf("#") === 0) {
+        fill = fill.substring(1)
+        let r = parseInt(fill.substring(0,2),16)
+        let g = parseInt(fill.substring(2,4),16)
+        let b = parseInt(fill.substring(4,6),16)
+        return {
+            r:r,g:g,b:b, a:255
+        }
+    }
+
+    if (hasOwnProperty.call(NAMED_COLORS, fill)) {
+        // console.log('converting hexstring', fill, NAMED_COLORS[fill]);
+        return intToColor(NAMED_COLORS[fill]);
+    }
+    throw new Error("unknown style format: " + fill);
+
 }
 
 export function calculatePixelCoverage(canvas: HTMLCanvasElement, path: Triangle[], scale:number, clip:Triangle[]):ArrayGrid<number> {
