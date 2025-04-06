@@ -27,6 +27,18 @@ export class ContextNext extends Context {
     lineTo(x:number, y:number): void {
         this.pathnext.lineTo(x, y)
     }
+    quadraticCurveTo(cp1x: number, cp1y: number, x: number, y: number) {
+        this.pathnext.quadraticCurveTo(cp1x, cp1y, x, y);
+    }
+    roundRect(x: number, y: number, width: number, height: number, radii: number | number[]) {
+        if(Array.isArray(radii)) {
+            this.pathnext.roundRect(x, y, width, height, radii)
+        } else {
+            const r = radii as number;
+            this.pathnext.roundRect(x, y, width, height, [r,r,r,r]);
+        }
+    }
+
 
     fill() {
         // console.log("doing the new style fill()")
