@@ -1,7 +1,7 @@
 import {Context} from "./context";
 import {Bitmap} from "./bitmap";
 import {ArrayGrid, Point} from "josh_js_util";
-import {calcQuadraticAtT, Line} from "./geom.js";
+import {calcQuadraticAtT, Line, Triangle} from "./geom.js";
 import {lerpPoint, rotateVector} from "./util.js";
 import {pathToTriangles} from "./triangulate";
 import {calculatePixelCoverage, colorToRGBA, drawPixels, hexstringToColor} from "./pixels";
@@ -144,11 +144,33 @@ export class ContextNext extends Context {
             let cov = calculatePixelCoverage(this._bitmap, pathTris, scale, clipTris)
             // console.log("converage",cov)
             this.drawPixels(cov,this.fillStyle,scale)
+            // draw points
+            // this.debugDrawPoints(pathPoints)
+            // this.debugDrawTris(pathTris)
         }
     }
 
     private log(...args: string[]) {
         console.info("ContextNext",...args)
+    }
+
+    private debugDrawPoints(pathPoints: Point[]) {
+        const MAGENTA = 0xFF00FFFF
+        pathPoints.forEach(point => {
+            console.log(point)
+            try {
+                this._bitmap.setPixelRGBA(Math.floor(point.x), Math.floor(point.y), MAGENTA);
+            } catch (e) {
+
+            }
+        })
+    }
+
+    private debugDrawTris(pathTris: Triangle[]) {
+        const CYAN = 0x00FFFFFF
+        pathTris.forEach(tri => {
+            console.log(tri)
+        })
     }
 }
 
@@ -312,7 +334,7 @@ function pathToPoints(path?: JPath2D): [Point[], Line[]] {
                 }
             }
             if (cmd.type === 'quadratic-to') {
-                let steps = 10
+                let steps = 3
                 let prev = pts[pts.length - 1]
                 let cp = new Point(cmd.cpx, cmd.cpy)
                 let tgt = new Point(cmd.x, cmd.y)

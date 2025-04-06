@@ -69,6 +69,23 @@ describe("compare shapes", () => {
             c.fill()
         },'newraster/path/quad/simple')
     })
+    it("fills a double quadratic path", async () => {
+        await compareRenderers((image:pureimage.Bitmap) => {
+            const c = image.getContext("2d")
+            c.fillStyle = "#0000FF";
+            c.fillRect(0, 0, 30, 30);
+            c.fillStyle = "#ff0000";
+            c.beginPath()
+            c.moveTo(0,0)
+            c.lineTo(15,0)
+            c.quadraticCurveTo(20,0, 20,5)
+            c.lineTo(20,15)
+            c.quadraticCurveTo(20,20,15,20)
+            c.lineTo(0,20)
+            // c.lineTo(0,0)
+            c.fill()
+        },'newraster/path/quad/double', new Size(30,30))
+    })
     it("fills a round rect path", async () => {
         await compareRenderers((image:pureimage.Bitmap)=> {
             const c = image.getContext("2d")
