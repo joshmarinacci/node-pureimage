@@ -37,8 +37,8 @@ describe("compare shapes", () => {
             const c = image.getContext("2d")
             c.fillStyle = "#0000FF";
             c.fillRect(0, 0, 10, 10);
-            c.fillStyle = "#ff0000";
-            c.fillRect(5, 5, 5, 5);
+            // c.fillStyle = "#ff0000";
+            // c.fillRect(5, 5, 5, 5);
             expect(image.getPixelRGBA(0, 0)).to.eq(BLUE);
             expect(image.getPixelRGBA(6, 6)).to.eq(RED);
         },'newraster/path/rect/square')

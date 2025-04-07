@@ -2,12 +2,31 @@ import {Context} from "./context";
 import {Bitmap} from "./bitmap";
 import {ArrayGrid, Point} from "josh_js_util";
 import {calcQuadraticAtT, Line, Triangle} from "./geom.js";
-import {lerpPoint, rotateVector} from "./util.js";
+import {lerp, lerpPoint, rotateVector} from "./util.js";
 import {pathToTriangles} from "./triangulate";
 import {calculatePixelCoverage, colorToRGBA, drawPixels, hexstringToColor} from "./pixels";
 import {BufferPixelSource, Color} from "./image2";
-import {fromBytesBigEndian} from "./uint32";
+import {fromBytesBigEndian, getBytesBigEndian, toHex} from "./uint32";
 import {RoundRectCorners} from "./types";
+
+const AA_ON = true
+function blend(src: number, dst: number, fract: number) {
+    const src_rgba = getBytesBigEndian(src)
+    const dst_rgba = getBytesBigEndian(dst)
+    // console.log("blend",toHex(src), toHex(dst),fract);
+    const out_rgba = [
+        lerp(src_rgba[0],dst_rgba[0],fract),
+        lerp(src_rgba[1],dst_rgba[1],fract),
+        lerp(src_rgba[2],dst_rgba[2],fract),
+        255,
+    ]
+    if(AA_ON) {
+        const out = fromBytesBigEndian(out_rgba[0], out_rgba[1], out_rgba[2], out_rgba[3]);
+        return out
+    } else {
+        return dst
+    }
+}
 
 export class ContextNext extends Context {
     private pathnext: JPath2D;
@@ -125,7 +144,9 @@ export class ContextNext extends Context {
             this.globalAlpha = fract
             // console.log("filling at",n.x,n.y,pixelFill,fract)
             const _fillColor = fromBytesBigEndian(pixelFill.r, pixelFill.g, pixelFill.b, pixelFill.a)
-            this._bitmap.setPixelRGBA(n.x,n.y, _fillColor);
+            const src = this._bitmap.getPixelRGBA(n.x,n.y)
+            const _final_color = blend(src,_fillColor,fract)
+            this._bitmap.setPixelRGBA(n.x,n.y, _final_color);
         })
         this.restore()
     }
