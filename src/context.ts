@@ -1181,7 +1181,7 @@ export class Context {
    *
    * @memberof Context
    */
-  fill_aa(lines): void {
+  fill_aa(lines:Line[]): void {
     //get just the color part
     const bounds = calcMinimumBounds(lines);
 
@@ -1356,7 +1356,7 @@ function fract(v) {
  *
  * @returns {Array<Line>}
  */
-function pathToLines(path) {
+function pathToLines(path):Line[] {
   const lines = [];
   let curr = null;
 

@@ -51,8 +51,8 @@ describe("compare shapes", () => {
             c.fillStyle = "#ff0000";
             c.beginPath()
             c.moveTo(1, 1)
-            c.lineTo(8, 1)
-            c.lineTo(8, 8)
+            c.lineTo(9, 1)
+            c.lineTo(5, 8)
             c.lineTo(1, 1)
             c.fill()
         },'newraster/path/triangle/simple')
