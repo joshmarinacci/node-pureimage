@@ -8,16 +8,49 @@ import pixelmatch from 'pixelmatch';
 import {Bitmap} from "../src/index.js";
 import {Size} from "josh_js_util";
 
+import {Canvas, createCanvas} from "canvas";
+import {fromBytesBigEndian} from "../src/uint32";
+
 type RenderTest = (image:Bitmap) => void;
+
+function saveCairo(image3: Canvas, pth: string):Promise<void> {
+    const prom = new Promise((res, rej)=>{
+        const ws = fs.createWriteStream(`output/${pth}.png`)
+        const ps = image3.createPNGStream()
+        ps.pipe(ws)
+        ps.on('end', ()=> res())
+    })
+    return prom
+}
 
 async function compareRenderers(test: RenderTest, pth: string, size?:Size) {
     if(!size) size = new Size(10,10)
+
+
     const image1 = pureimage.make(size.w,size.h);
     test(image1)
     await save(image1, `${pth}-old`);
     const image2 = pureimage.makeV2(size.w,size.h);
     test(image2)
     await save(image2, `${pth}-new`);
+
+    const image3:Canvas = createCanvas(size.w,size.h)
+    // @ts-ignore
+    image3.getPixelRGBA = (x, y) => {
+        const data = image3.getContext('2d').getImageData(0,0,10,10)
+        // console.log(data)
+        // console.log(`fetching ${x},${y}`)
+        const i = (x+y*10)*4
+        return fromBytesBigEndian(
+            data.data[i + 0],
+            data.data[i + 1],
+            data.data[i + 2],
+            data.data[i + 3],
+        );
+    }
+
+    test(image3 as unknown as Bitmap)
+    await saveCairo(image3, `${pth}-cairo`);
 
     const img1 = PNG.sync.read(fs.readFileSync(`output/${pth}-old.png`));
     const img2 = PNG.sync.read(fs.readFileSync(`output/${pth}-new.png`));
@@ -37,10 +70,10 @@ describe("compare shapes", () => {
             const c = image.getContext("2d")
             c.fillStyle = "#0000FF";
             c.fillRect(0, 0, 10, 10);
-            // c.fillStyle = "#ff0000";
-            // c.fillRect(5, 5, 5, 5);
-            expect(image.getPixelRGBA(0, 0)).to.eq(BLUE);
-            expect(image.getPixelRGBA(6, 6)).to.eq(RED);
+            c.fillStyle = "#ff0000";
+            c.fillRect(5, 5, 5, 5);
+            expect(image.getPixelRGBA(4, 2)).to.eq(BLUE);
+            expect(image.getPixelRGBA(8, 6)).to.eq(RED);
         },'newraster/path/rect/square')
     });
     it("fills a triangle", async () => {
