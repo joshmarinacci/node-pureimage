@@ -1,6 +1,6 @@
 import {describe, it, expect} from "vitest";
 import * as pureimage from "../src/index.js";
-import {compareRenderers, save} from "./common";
+import {compareRenderers} from "./common";
 
 import {Size} from "josh_js_util";
 
@@ -207,5 +207,49 @@ describe("overdraw", () => {
             ctx.lineTo(280, 140);
             ctx.stroke();
         }, 'newraster/overdraw/restroke', new Size(200, 200))
+    })
+})
+describe('transform', () => {
+    it('draws untranslated rects', async () => {
+        await compareRenderers((image) => {
+            const context = image.getContext("2d");
+            context.fillStyle = "red";
+            context.fillRect(0, 0, 10, 10);
+            context.fillRect(10, 10, 10, 10);
+        }, 'newraster/transform/rects_none', new Size(50, 50))
+    })
+    it('draws translated rects', async () => {
+        await compareRenderers((image) => {
+            const context = image.getContext("2d");
+            context.save();
+            context.translate(5, 0);
+            context.fillStyle = "red";
+            context.fillRect(0, 0, 10, 10);
+            context.fillRect(10, 10, 10, 10);
+            context.restore();
+        }, 'newraster/transform/rects_translated', new Size(50, 50))
+    })
+    it('draws rotated rects', async () => {
+        await compareRenderers((image) => {
+            const context = image.getContext("2d");
+            context.save();
+            context.rotate(Math.PI/8);
+            context.fillStyle = "red";
+            context.fillRect(0, 0, 10, 10);
+            context.fillRect(10, 10, 10, 10);
+            context.restore();
+        }, 'newraster/transform/rects_rotated', new Size(50, 50))
+    })
+    it('draws rotated and translated rects', async () => {
+        await compareRenderers((image) => {
+            const context = image.getContext("2d");
+            context.save();
+            context.translate(5, 0);
+            context.rotate(Math.PI/8);
+            context.fillStyle = "red";
+            context.fillRect(0, 0, 10, 10);
+            context.fillRect(10, 10, 10, 10);
+            context.restore();
+        }, 'newraster/transform/rects_rotated_translated', new Size(50, 50))
     })
 })
