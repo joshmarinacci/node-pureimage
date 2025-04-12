@@ -53,9 +53,6 @@ export async function compareRenderers(test: RenderTest, pth: string, size?:Size
   const image1 = pureimage.make(size.w,size.h);
   test(image1)
   await save(image1, `${pth}-old`);
-  const image2 = pureimage.makeV2(size.w,size.h);
-  test(image2)
-  await save(image2, `${pth}-new`);
 
   const image3:Canvas = createCanvas(size.w,size.h)
   // @ts-ignore
@@ -71,9 +68,12 @@ export async function compareRenderers(test: RenderTest, pth: string, size?:Size
         data.data[i + 3],
     );
   }
-
   test(image3 as unknown as Bitmap)
   await saveCairo(image3, `${pth}-cairo`);
+
+  const image2 = pureimage.makeV2(size.w,size.h);
+  test(image2)
+  await save(image2, `${pth}-new`);
 
   const img1 = PNG.sync.read(fs.readFileSync(`output/${pth}-old.png`));
   const img2 = PNG.sync.read(fs.readFileSync(`output/${pth}-new.png`));
