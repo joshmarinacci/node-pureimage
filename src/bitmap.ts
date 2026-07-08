@@ -22,11 +22,11 @@ export class Bitmap {
   constructor(w: number, h: number) {
     this.width = Math.floor(w);
     this.height = Math.floor(h);
-    this.data = new Uint8Array(w * h * 4);
+    this.data = new Uint8Array(this.width * this.height * 4);
 
     const fillval = OPAQUE_BLACK;
-    for (let j = 0; j < h; j++) {
-      for (let i = 0; i < w; i++) {
+    for (let j = 0; j < this.height; j++) {
+      for (let i = 0; i < this.width; i++) {
         this.setPixelRGBA(i, j, fillval);
       }
     }
