@@ -18,6 +18,70 @@ import {
 import { clamp, colorStringToUint32 } from "./util.js";
 import { Matrix, Transform } from "./transform.js";
 
+// Matches a CSS size token: digits+optional-decimal followed by a unit, plus an optional /line-height suffix.
+const FONT_SIZE_RE = /^(\d*\.?\d+)(px|pt|em|rem|ex|ch|vw|vh|%)(\/.*)?$/i;
+const FONT_WEIGHT_KEYWORDS: Record<string, number> = { bold: 700, bolder: 800, lighter: 300 };
+
+type ParsedFont = {
+  size: number;
+  family: string;
+  style?: string;
+  variant?: string;
+  weight?: number;
+};
+
+function parseFontString(val: string): ParsedFont | null {
+  const tokens = val.trim().split(/\s+/);
+  let style: string | undefined;
+  let variant: string | undefined;
+  let weight: number | undefined;
+  let size: number | undefined;
+  let familyStart = 0;
+
+  for (let i = 0; i < tokens.length; i++) {
+    const lower = tokens[i].toLowerCase();
+
+    const sizeMatch = lower.match(FONT_SIZE_RE);
+    if (sizeMatch) {
+      size = parseFloat(sizeMatch[1]);
+      familyStart = i + 1;
+      break;
+    }
+
+    if ((lower === "italic" || lower === "oblique") && style === undefined) {
+      style = lower;
+      continue;
+    }
+    if (lower === "small-caps" && variant === undefined) {
+      variant = lower;
+      continue;
+    }
+    if (lower in FONT_WEIGHT_KEYWORDS && weight === undefined) {
+      weight = FONT_WEIGHT_KEYWORDS[lower];
+      continue;
+    }
+    if (/^\d+$/.test(lower) && weight === undefined) {
+      const n = parseInt(lower, 10);
+      if (n >= 100 && n <= 900) {
+        weight = n;
+        continue;
+      }
+    }
+    // unknown pre-size tokens (e.g. "normal") are skipped
+  }
+
+  if (size === undefined || familyStart > tokens.length) return null;
+
+  const family = tokens
+    .slice(familyStart)
+    .join(" ")
+    .replace(/['"]/g, "")
+    .trim();
+  if (!family) return null;
+
+  return { size, family, style, variant, weight };
+}
+
 /**
  * Used for drawing rectangles, text, images and other objects onto the canvas element. It provides the 2D rendering context for a drawing surface.
  *
@@ -119,14 +183,25 @@ export class Context {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font
    */
   get font(): string {
-    return `${this._font.size} ${this._font.family}`;
+    const parts: string[] = [];
+    if (this._font.style) parts.push(this._font.style);
+    if (this._font.variant) parts.push(this._font.variant);
+    if (this._font.weight !== undefined) parts.push(String(this._font.weight));
+    parts.push(`${this._font.size}px`);
+    parts.push(this._font.family);
+    return parts.join(" ");
   }
 
-  /** @example ctx.font = '12 someFont'; */
+  /** @example ctx.font = 'bold italic 12px Arial'; */
   set font(val: string) {
-    const n = val.trim().indexOf(" ");
-    this._font.size = parseInt(val.slice(0, n));
-    this._font.family = val.slice(n).trim();
+    const parsed = parseFontString(val);
+    if (parsed) {
+      this._font.size = parsed.size;
+      this._font.family = parsed.family;
+      this._font.style = parsed.style;
+      this._font.variant = parsed.variant;
+      this._font.weight = parsed.weight;
+    }
   }
 
   /**

@@ -1,3 +1,15 @@
+## 2026-07-13 13:40
+
+**Fix font string parsing**: replaced the naive two-token font parser with a proper CSS font shorthand parser.
+
+The old `set font` split on the first space, so any string containing style/weight keywords (e.g. `"bold 12px Arial"`) would set `size = NaN` and store the full remainder as the family name.
+
+The new `parseFontString` function in `src/context.ts` iterates tokens left-to-right, recognising `style` (`italic`, `oblique`), `variant` (`small-caps`), `weight` (`bold`, `lighter`, `bolder`, and numeric 100–900) before the required size token (`<number><unit>`, where unit is `px`, `pt`, `em`, `rem`, etc.). Everything after the size token becomes the family name, with surrounding quotes stripped. Invalid or unrecognised input leaves `_font` unchanged rather than corrupting it.
+
+The `get font` getter is updated to reconstruct the full CSS font string from the stored properties (style → variant → weight → `${size}px` → family).
+
+Added `test/font-parsing.test.ts` with 39 unit tests covering: basic size/family (px, pt, em, rem, decimal sizes, quoted and space-separated family names), weight keywords and numeric weights, style keywords, variant, all combinations, getter round-trips, and edge cases (empty string, size-only, `normal` keyword, whitespace).
+
 ## 2026-07-08 11:09
 
 **Fix bug #224**: `Bitmap` constructor crash when float dimensions are passed to `make()`.
