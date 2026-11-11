@@ -8,8 +8,8 @@ import { fromBytesBigEndian, getBytesBigEndian } from "./uint32.js";
  * {@link Context}
  */
 export class Bitmap {
-  public width: number;
-  public height: number;
+  private _width: number;
+  private _height: number;
   public data: Uint8Array;
   private _context: Context;
 
@@ -20,17 +20,49 @@ export class Bitmap {
    * @memberof Bitmap
    */
   constructor(w: number, h: number) {
-    this.width = Math.floor(w);
-    this.height = Math.floor(h);
-    this.data = new Uint8Array(this.width * this.height * 4);
+    this._width = Math.floor(w);
+    this._height = Math.floor(h);
+    this.data = new Uint8Array(this._width * this._height * 4);
 
+    // new bitmaps start opaque black (kept for backwards compatibility); reset() and
+    // resizing clear to transparent black like a canvas does
     const fillval = OPAQUE_BLACK;
-    for (let j = 0; j < this.height; j++) {
-      for (let i = 0; i < this.width; i++) {
+    for (let j = 0; j < this._height; j++) {
+      for (let i = 0; i < this._width; i++) {
         this.setPixelRGBA(i, j, fillval);
       }
     }
     this._context = new Context(this);
+  }
+
+  get width(): number {
+    return this._width;
+  }
+
+  /** Setting the width (even to the same value) clears the bitmap and resets the context, like a canvas */
+  set width(w: number) {
+    this._resize(w, this._height);
+  }
+
+  get height(): number {
+    return this._height;
+  }
+
+  /** Setting the height (even to the same value) clears the bitmap and resets the context, like a canvas */
+  set height(h: number) {
+    this._resize(this._width, h);
+  }
+
+  private _resize(w: number, h: number) {
+    w = Number(w);
+    h = Number(h);
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w < 0 || h < 0) {
+      throw new TypeError(`invalid canvas size ${w} x ${h}`);
+    }
+    this._width = Math.floor(w);
+    this._height = Math.floor(h);
+    this.data = new Uint8Array(this._width * this._height * 4);
+    this._context.reset();
   }
 
   /** Calculate Index */
@@ -141,6 +173,7 @@ export class Bitmap {
    * {@link Context} factory. Creates a new {@link Context} instance object for the current bitmap object
    */
   getContext(type: string) {
+    if (type === undefined) throw new TypeError("getContext requires a context type");
     if (type === "2d") {
       return this._context;
     }
