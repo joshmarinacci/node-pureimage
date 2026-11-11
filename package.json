@@ -36,6 +36,7 @@
     "vitest": "vitest run --dir test --reporter=junit --outputFile=test-output.xml",
     "build": "node build.js",
     "type-check": "tsc",
+    "wpt": "node test/wpt/run.mjs",
     "clean": "rm -rf dist/ output/ *.tgz",
     "release": "npm run clean && npm run build && npm run test && npm version patch && npm publish"
   },

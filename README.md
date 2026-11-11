@@ -76,6 +76,25 @@ maximum performance you should use a different library backed by native code, su
 - bold/italic fonts
 - smooth image interpolation
 
+# Web Platform Tests (canvas conformance)
+
+`test/wpt/run.mjs` runs the OffscreenCanvas tests from the
+[web-platform-tests](https://github.com/web-platform-tests/wpt) `html/canvas/offscreen` suite
+against PureImage (the `.worker.js` variants, run in a `vm` with a small testharness shim).
+It bundles `src/` itself, so no build is needed.
+
+```bash
+git clone --depth 1 --filter=blob:none --sparse https://github.com/web-platform-tests/wpt.git /path/to/wpt
+git -C /path/to/wpt sparse-checkout set html/canvas
+npm run wpt -- --wpt /path/to/wpt            # summary by category
+npm run wpt -- --wpt /path/to/wpt arc --verbose   # filter by name, show failure messages
+npm run wpt -- --wpt /path/to/wpt --check    # exit 1 if a test in test/wpt/baseline.json regresses
+npm run wpt -- --wpt /path/to/wpt --update-baseline
+```
+
+`WPT_DIR` can be set instead of `--wpt`. Many tests fail today because PureImage lacks the
+feature (`fetch`/`FontFace`/`createPattern`/`reset`...). `baseline.json` lists the tests that pass.
+
 # Why?
 
 There are more than enough drawing APIs out there. Why do we need another? My

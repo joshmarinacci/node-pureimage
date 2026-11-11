@@ -17,3 +17,9 @@ Added `test/font-parsing.test.ts` with 39 unit tests covering: basic size/family
 In `src/bitmap.ts`, the constructor stored `Math.floor(w/h)` into `this.width/height` but then used the original float values for both the `Uint8Array` allocation and the fill loop. This caused `setPixelRGBA` to be called with `x = Math.floor(w)`, which equals `this.width`, triggering the `validate_coords` bounds check and throwing `Invalid Index: x N >= width N`.
 
 Fixed by using `this.width` and `this.height` consistently in place of the raw `w` and `h` floats after the floor assignment. Added `test/bugs/bug_224.test.ts` to cover this case.
+
+## 2026-11-11 12:00
+
+**WPT canvas test runner**: added `test/wpt/run.mjs` (`npm run wpt`), which runs the web-platform-tests `html/canvas/offscreen/**/*.worker.js` conformance tests against PureImage.
+
+Each file runs in a `vm` context with a minimal testharness shim (`async_test`, `promise_test`, `test`, `assert_*`) and an `OffscreenCanvas` that subclasses `Bitmap`. Prints pass/fail/error/timeout per category, `--verbose` for failure messages, `--json` for raw results. `test/wpt/baseline.json` records the 226 of 1041 test files that pass today; `--check` exits non-zero on regressions and `--update-baseline` rewrites it. README documents setup.
