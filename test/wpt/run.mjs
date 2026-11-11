@@ -5,7 +5,7 @@
 // backed by PureImage's Bitmap.
 //
 // usage: node test/wpt/run.mjs --wpt <path-to-wpt-checkout> [filter] [options]
-//   --wpt <dir>         WPT checkout (or WPT_DIR env). Needs html/canvas/offscreen
+//   --wpt <dir>         WPT checkout (or WPT_DIR env; default output/wpt from `npm run wpt-init`). Needs html/canvas/offscreen
 //                       and html/canvas/resources/canvas-tests.js
 //   [filter]            only run test files whose path contains this substring
 //   --verbose           print failure messages for every failing test
@@ -26,7 +26,7 @@ const BASELINE = path.join(here, "baseline.json");
 // ---------- args ----------
 const args = process.argv.slice(2);
 const opts = { verbose: false, check: false, updateBaseline: false, timeout: 3000 };
-let wptDir = process.env.WPT_DIR;
+let wptDir = process.env.WPT_DIR ?? path.join(root, "output/wpt"); // default: `npm run wpt-init`
 let filter = null;
 let jsonOut = null;
 for (let i = 0; i < args.length; i++) {
@@ -40,11 +40,10 @@ for (let i = 0; i < args.length; i++) {
   else if (a.startsWith("--")) throw new Error(`unknown option ${a}`);
   else filter = a;
 }
-if (!wptDir) throw new Error("pass --wpt <dir> or set WPT_DIR");
 const offscreenDir = path.join(wptDir, "html/canvas/offscreen");
 const canvasTestsJs = path.join(wptDir, "html/canvas/resources/canvas-tests.js");
 for (const p of [offscreenDir, canvasTestsJs]) {
-  if (!fs.existsSync(p)) throw new Error(`missing ${p}; is --wpt a WPT checkout with html/canvas?`);
+  if (!fs.existsSync(p)) throw new Error(`missing ${p}; run "npm run wpt-init" or pass --wpt <dir>`);
 }
 
 // ---------- load PureImage from source ----------

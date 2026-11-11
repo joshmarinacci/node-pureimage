@@ -36,6 +36,7 @@
     "vitest": "vitest run --dir test --reporter=junit --outputFile=test-output.xml",
     "build": "node build.js",
     "type-check": "tsc",
+    "wpt-init": "[ -d output/wpt ] || git clone --depth 1 --filter=blob:none --sparse https://github.com/web-platform-tests/wpt.git output/wpt && git -C output/wpt sparse-checkout set html/canvas resources",
     "wpt": "node test/wpt/run.mjs",
     "clean": "rm -rf dist/ output/ *.tgz",
     "release": "npm run clean && npm run build && npm run test && npm version patch && npm publish"

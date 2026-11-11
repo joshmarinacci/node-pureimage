@@ -23,3 +23,7 @@ Fixed by using `this.width` and `this.height` consistently in place of the raw `
 **WPT canvas test runner**: added `test/wpt/run.mjs` (`npm run wpt`), which runs the web-platform-tests `html/canvas/offscreen/**/*.worker.js` conformance tests against PureImage.
 
 Each file runs in a `vm` context with a minimal testharness shim (`async_test`, `promise_test`, `test`, `assert_*`) and an `OffscreenCanvas` that subclasses `Bitmap`. Prints pass/fail/error/timeout per category, `--verbose` for failure messages, `--json` for raw results. `test/wpt/baseline.json` records the 226 of 1041 test files that pass today; `--check` exits non-zero on regressions and `--update-baseline` rewrites it. README documents setup.
+
+## 2026-11-11 12:30
+
+**`npm run wpt-init`**: sparse-clones web-platform-tests (`html/canvas`, `resources`) into `output/wpt` (skipped if present). The WPT runner now defaults to that directory, so `npm run wpt` works with no arguments.
