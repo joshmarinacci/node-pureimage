@@ -27,3 +27,17 @@ Each file runs in a `vm` context with a minimal testharness shim (`async_test`, 
 ## 2026-11-11 12:30
 
 **`npm run wpt-init`**: sparse-clones web-platform-tests (`html/canvas`, `resources`) into `output/wpt` (skipped if present). The WPT runner now defaults to that directory, so `npm run wpt` works with no arguments.
+
+## 2026-11-11 14:00
+
+**Canvas state/host/context fixes found by the WPT suite** (WPT passes 226 -> 345 of 1041; `the-canvas-state` 20/20, `canvas-host` 31/35, `reset` 17/29).
+
+- `save()`/`restore()` now cover fill/stroke style, line width, `globalAlpha`, font, text align/baseline, `imageSmoothingEnabled`, plus new stored `lineCap`, `lineJoin`, `miterLimit`, `shadow*` and `globalCompositeOperation` (spec defaults set; not yet used when drawing). Previously only the clip and transform were saved.
+- Initial `fillStyle`/`strokeStyle` getters return `#000000` instead of `""`.
+- `path` starts as an empty array, so `moveTo`/`lineTo`/`clip`/`fill`/`stroke` before `beginPath()` no longer throw; `closePath()`/`fill()` on an empty path are no-ops.
+- New `ctx.reset()`: clears the bitmap to transparent black and restores all state.
+- `Bitmap.width`/`height` are now accessors: setting either (even to the same value) reallocates the bitmap, clears it to transparent and resets the context; invalid values throw `TypeError`. `getContext()` with no argument throws `TypeError`. New bitmaps are still opaque black, for backwards compatibility.
+- `encodePNG/JPEG` argument checks use `in` instead of own-property checks, since width/height are now accessors.
+- `Transform.asDomMatrix()` was missing `f`.
+- Known side effect: WPT `canvas-host/2d.canvas.host.size.large` (width = 2^31-1) no longer passes, because resizing now really allocates; removed from the baseline.
+- Tests: new `test/state.test.ts` and `test/bitmap.test.ts`; `test/context.test.ts` extended.

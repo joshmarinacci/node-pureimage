@@ -66,6 +66,7 @@ maximum performance you should use a different library backed by native code, su
 - transforms
 - standard globalAlpha and rgba() alpha compositing
 - clip shapes
+- `save()`/`restore()` of drawing state, `ctx.reset()`, and resizing a bitmap via `width`/`height` (clears it and resets the context)
 
 # On the roadmap, but still missing
 
@@ -92,7 +93,7 @@ npm run wpt -- --update-baseline
 ```
 
 Use `--wpt <dir>` or `WPT_DIR` to point at another checkout (`npm run clean` deletes `output/wpt`). Many tests fail today because PureImage lacks the
-feature (`fetch`/`FontFace`/`createPattern`/`reset`...). `baseline.json` lists the tests that pass.
+feature (`fetch`/`FontFace`/`createPattern`/`createImageData`...). `baseline.json` lists the tests that pass.
 
 # Why?
 
