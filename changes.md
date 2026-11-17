@@ -1,3 +1,11 @@
+## 2026-11-16
+
+**Prevent WPT runner memory exhaustion**: exclude `canvas-host/2d.canvas.host.size.large`, which resizes a canvas to `2^31-1` pixels and can exhaust memory because `Bitmap` eagerly allocates and clears pixel data. The test was already absent from the passing baseline.
+
+The runner now starts each file's timeout before execution and clears it when the file settles, so completed VM contexts are not retained by stale timeout callbacks. Added `.DS_Store` to `.gitignore`.
+
+Verified with `npm run wpt`: all 1,040 remaining files completed (345 pass, 691 fail, 4 errors).
+
 ## 2026-07-13 13:40
 
 **Fix font string parsing**: replaced the naive two-token font parser with a proper CSS font shorthand parser.

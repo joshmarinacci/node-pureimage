@@ -121,11 +121,17 @@ function runFile(file) {
     let pending = 0;
     let doneCalled = false;
     let settled = false;
+    let timeoutTimer;
+    const settle = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutTimer);
+      resolve(result);
+    };
     let chain = Promise.resolve(); // promise_tests run sequentially
     const finish = () => {
       if (!settled && doneCalled && pending === 0) {
-        settled = true;
-        resolve({ subtests });
+        settle({ subtests });
       }
     };
     const record = (sub, status, message) => {
@@ -213,6 +219,15 @@ function runFile(file) {
     });
     ctx.self = ctx;
 
+    // Start the timeout before executing the file. Clearing it as soon as the
+    // file settles lets its VM context and test data be reclaimed immediately
+    // instead of retaining one closure per file for another 3 seconds.
+    timeoutTimer = setTimeout(() => {
+      if (settled) return;
+      for (const s of subtests) if (!s.status) { s.status = "TIMEOUT"; s.message = "did not complete"; }
+      settle({ subtests });
+    }, opts.timeout);
+
     try {
       vm.runInContext(fs.readFileSync(file, "utf8"), ctx, { filename: file, timeout: opts.timeout });
     } catch (e) {
@@ -220,19 +235,11 @@ function runFile(file) {
       const msg = `${e?.name}: ${e?.message}`;
       if (subtests.length === 0) subtests.push({ name: "(script)", status: "ERROR", message: msg });
       for (const s of subtests) if (!s.status) { s.status = "ERROR"; s.message = msg; }
-      settled = true;
-      return resolve({ subtests });
+      return settle({ subtests });
     }
     if (subtests.length === 0 && doneCalled) {
-      settled = true;
-      return resolve({ subtests: [{ name: "(none)", status: "ERROR", message: "no tests registered" }] });
+      return settle({ subtests: [{ name: "(none)", status: "ERROR", message: "no tests registered" }] });
     }
-    setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      for (const s of subtests) if (!s.status) { s.status = "TIMEOUT"; s.message = "did not complete"; }
-      resolve({ subtests });
-    }, opts.timeout);
   });
 }
 
@@ -246,7 +253,15 @@ function walk(dir) {
   }
   return out.sort();
 }
-const files = walk(offscreenDir).filter((f) => !filter || f.includes(filter));
+// This WPT sets width and height to 2^31-1. Bitmap eagerly allocates and
+// clears pixel storage on resize, so running it can exhaust the host's memory.
+// It is intentionally excluded from the baseline for the same reason.
+const resourceExhaustionTests = new Set(["canvas-host/2d.canvas.host.size.large"]);
+const files = walk(offscreenDir).filter((f) => {
+  const rel = path.relative(offscreenDir, f).replace(/\.worker\.js$/, "");
+  return !resourceExhaustionTests.has(rel) && (!filter || f.includes(filter));
+});
+console.log(`skipping ${resourceExhaustionTests.size} resource-exhaustion WPT file(s)`);
 console.log(`running ${files.length} WPT canvas test files from ${offscreenDir}`);
 
 const results = {}; // relative name -> {status, message}
