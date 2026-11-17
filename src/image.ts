@@ -3,7 +3,7 @@ import * as _PNG from "pngjs";
 const { PNG } = _PNG;
 import * as JPEG from "jpeg-js";
 import { getBytesBigEndian } from "./uint32.js";
-import { hasOwnProperty, typedArrConcat } from "./util.js";
+import { typedArrConcat } from "./util.js";
 import type { Readable as ReadStream, Writable as WriteStream } from "stream";
 
 export function make(w: number, h: number) {
@@ -24,9 +24,9 @@ export function encodePNGToStream(
 ): Promise<void> {
   return new Promise((res, rej) => {
     if (
-      !hasOwnProperty.call(bitmap, "data") ||
-      !hasOwnProperty.call(bitmap, "width") ||
-      !hasOwnProperty.call(bitmap, "height")
+      !("data" in bitmap) ||
+      !("width" in bitmap) ||
+      !("height" in bitmap)
     ) {
       return rej(new TypeError("Invalid bitmap image provided"));
     }
@@ -103,9 +103,9 @@ export function encodeJPEGToStream(
 ): Promise<void> {
   return new Promise((res, rej) => {
     if (
-      !hasOwnProperty.call(img, "data") ||
-      !hasOwnProperty.call(img, "width") ||
-      !hasOwnProperty.call(img, "height")
+      !("data" in img) ||
+      !("width" in img) ||
+      !("height" in img)
     ) {
       return rej(new TypeError("Invalid bitmap image provided"));
     }

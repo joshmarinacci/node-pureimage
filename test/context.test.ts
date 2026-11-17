@@ -18,6 +18,18 @@ describe("context", () => {
     expect(image.getContext("this is totally made up")).to.eq(null);
   });
 
+  it("getContext is case sensitive", () => {
+    expect(image.getContext("2D")).to.eq(null);
+  });
+
+  it("getContext returns null for the empty string", () => {
+    expect(image.getContext("")).to.eq(null);
+  });
+
+  it("getContext without arguments throws TypeError", () => {
+    expect(() => image.getContext()).toThrow(TypeError);
+  });
+
   it("context.canvas is valid", () => {
     expect(context.canvas).toEqual(image);
   });

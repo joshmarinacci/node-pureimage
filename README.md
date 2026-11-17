@@ -66,6 +66,7 @@ maximum performance you should use a different library backed by native code, su
 - transforms
 - standard globalAlpha and rgba() alpha compositing
 - clip shapes
+- `save()`/`restore()` of drawing state, `ctx.reset()`, and resizing a bitmap via `width`/`height` (clears it and resets the context)
 
 # On the roadmap, but still missing
 
@@ -75,6 +76,24 @@ maximum performance you should use a different library backed by native code, su
 - smooth clip shapes
 - bold/italic fonts
 - smooth image interpolation
+
+# Web Platform Tests (canvas conformance)
+
+`test/wpt/run.mjs` runs the OffscreenCanvas tests from the
+[web-platform-tests](https://github.com/web-platform-tests/wpt) `html/canvas/offscreen` suite
+against PureImage (the `.worker.js` variants, run in a `vm` with a small testharness shim).
+It bundles `src/` itself, so no build is needed.
+
+```bash
+npm run wpt-init                       # one-time: sparse-clone WPT into output/wpt
+npm run wpt                            # summary by category
+npm run wpt -- arc --verbose           # filter by name, show failure messages
+npm run wpt -- --check                 # exit 1 if a test in test/wpt/baseline.json regresses
+npm run wpt -- --update-baseline
+```
+
+Use `--wpt <dir>` or `WPT_DIR` to point at another checkout (`npm run clean` deletes `output/wpt`). Many tests fail today because PureImage lacks the
+feature (`fetch`/`FontFace`/`createPattern`/`createImageData`...). `baseline.json` lists the tests that pass.
 
 # Why?
 

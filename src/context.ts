@@ -97,6 +97,15 @@ export class Context {
   public textBaseline: TextBaseline;
   /** Enable or disable image smoothing(anti-aliasing)*/
   public imageSmoothingEnabled: boolean;
+  /** stored and saved/restored with the state, but not yet used when drawing */
+  public lineCap: string;
+  public lineJoin: string;
+  public miterLimit: number;
+  public shadowBlur: number;
+  public shadowColor: string;
+  public shadowOffsetX: number;
+  public shadowOffsetY: number;
+  public globalCompositeOperation: string;
   /**  A 32-bit unsigned integer (uint32) number representing the fill color of the 2D drawing context */
   private _fillColor: number | G.ColorGradient;
   private _strokeColor: number | G.ColorGradient;
@@ -115,6 +124,11 @@ export class Context {
     bitmap: Bitmap,
   ) {
     this._bitmap = bitmap;
+    this._resetState();
+  }
+
+  /** Put every piece of drawing state back to its initial value (spec defaults) */
+  private _resetState() {
     this._fillColor = NAMED_COLORS.black;
     this._strokeColor = NAMED_COLORS.black;
     this._lineWidth = 1;
@@ -127,10 +141,31 @@ export class Context {
     this.textAlign = "start";
     this.textBaseline = "alphabetic";
     this.imageSmoothingEnabled = true;
+    this.lineCap = "butt";
+    this.lineJoin = "miter";
+    this.miterLimit = 10;
+    this.shadowBlur = 0;
+    this.shadowColor = "rgba(0, 0, 0, 0)";
+    this.shadowOffsetX = 0;
+    this.shadowOffsetY = 0;
+    this.globalCompositeOperation = "source-over";
     this._clip = null;
-    this._fillStyle_text = "";
-    this._strokeStyle_text = "";
+    this._fillStyle_text = "#000000";
+    this._strokeStyle_text = "#000000";
     this.states = [];
+    this.path = [];
+    this._closed = false;
+    this.pathstart = undefined;
+  }
+
+  /**
+   * Resets the context to its default state and clears the bitmap to transparent black.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/reset
+   */
+  reset(): void {
+    this._bitmap.data.fill(0);
+    this._resetState();
   }
 
   private _bitmap: Bitmap;
@@ -262,6 +297,24 @@ export class Context {
   save() {
     this.states.push({
       _clip: this._clip,
+      _fillColor: this._fillColor,
+      _strokeColor: this._strokeColor,
+      _fillStyle_text: this._fillStyle_text,
+      _strokeStyle_text: this._strokeStyle_text,
+      _lineWidth: this._lineWidth,
+      _globalAlpha: this._globalAlpha,
+      _font: { ...this._font },
+      textAlign: this.textAlign,
+      textBaseline: this.textBaseline,
+      imageSmoothingEnabled: this.imageSmoothingEnabled,
+      lineCap: this.lineCap,
+      lineJoin: this.lineJoin,
+      miterLimit: this.miterLimit,
+      shadowBlur: this.shadowBlur,
+      shadowColor: this.shadowColor,
+      shadowOffsetX: this.shadowOffsetX,
+      shadowOffsetY: this.shadowOffsetY,
+      globalCompositeOperation: this.globalCompositeOperation,
     });
     this._transform.save();
   }
@@ -353,7 +406,7 @@ export class Context {
     this._transform.restore();
     let state = this.states.pop();
     if (state) {
-      this._clip = state._clip;
+      Object.assign(this, state);
     }
   }
 
@@ -1040,6 +1093,7 @@ export class Context {
    * @memberof Context
    */
   closePath() {
+    if (this.path.length === 0) return; // nothing to close
     if (!this._closed) {
       if (!this.pathstart) {
         console.warn("missing path start");

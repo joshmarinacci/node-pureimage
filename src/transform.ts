@@ -61,6 +61,7 @@ export class Transform {
       c: this.matrix[2],
       d: this.matrix[3],
       e: this.matrix[4],
+      f: this.matrix[5],
     };
   }
   multiply(matrix: Matrix) {
