@@ -113,7 +113,17 @@ const asserts = {
 };
 
 // One OffscreenCanvas implementation: a Bitmap already has width/height/getContext("2d").
-class OffscreenCanvas extends PImage.Bitmap {}
+class OffscreenCanvas extends PImage.Bitmap {
+  constructor(width, height) {
+    super(width, height);
+    // Canvas surfaces begin transparent even though a bare Bitmap stays opaque black.
+    this.data.fill(0);
+  }
+
+  get [Symbol.toStringTag]() {
+    return "OffscreenCanvas";
+  }
+}
 
 function runFile(file) {
   return new Promise((resolve) => {
