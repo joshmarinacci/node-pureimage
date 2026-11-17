@@ -55,7 +55,7 @@ export class Transform {
   asDomMatrix() {
     return {
       is2D: true,
-      isIdentity: false,
+      isIdentity: this.isIdentity(),
       a: this.matrix[0],
       b: this.matrix[1],
       c: this.matrix[2],
@@ -132,11 +132,13 @@ export class Transform {
   }
 
   translate(x: number, y: number) {
+    if (![x, y].every(Number.isFinite)) return;
     this.matrix[4] += this.matrix[0] * x + this.matrix[2] * y;
     this.matrix[5] += this.matrix[1] * x + this.matrix[3] * y;
     this.setTransform();
   }
   rotate(rad: number) {
+    if (!Number.isFinite(rad)) return;
     const c = Math.cos(rad);
     const s = Math.sin(rad);
     const m11 = this.matrix[0] * c + this.matrix[2] * s;
@@ -151,6 +153,7 @@ export class Transform {
     this.setTransform();
   }
   scale(sx: number, sy: number) {
+    if (![sx, sy].every(Number.isFinite)) return;
     this.matrix[0] *= sx;
     this.matrix[1] *= sx;
     this.matrix[2] *= sy;

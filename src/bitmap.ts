@@ -173,11 +173,10 @@ export class Bitmap {
    * {@link Context} factory. Creates a new {@link Context} instance object for the current bitmap object
    */
   getContext(type: string) {
-    if (type === undefined) throw new TypeError("getContext requires a context type");
     if (type === "2d") {
       return this._context;
     }
-    return null;
+    throw new TypeError("unsupported context type");
   }
 
   _copySubBitmap(x: number, y: number, w: number, h: number) {

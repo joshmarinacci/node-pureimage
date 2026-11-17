@@ -30,6 +30,10 @@ type ParsedFont = {
   weight?: number;
 };
 
+function requireArgs(actual: number, minimum: number, method: string): void {
+  if (actual < minimum) throw new TypeError(`${method} requires at least ${minimum} argument(s)`);
+}
+
 function parseFontString(val: string): ParsedFont | null {
   const tokens = val.trim().split(/\s+/);
   let style: string | undefined;
@@ -101,6 +105,16 @@ export class Context {
   public lineCap: string;
   public lineJoin: string;
   public miterLimit: number;
+  public imageSmoothingQuality: string;
+  public direction: string;
+  public filter: string;
+  public fontKerning: string;
+  public fontStretch: string;
+  public fontVariantCaps: string;
+  public letterSpacing: string;
+  public lineDashOffset: number;
+  public textRendering: string;
+  public wordSpacing: string;
   public shadowBlur: number;
   public shadowColor: string;
   public shadowOffsetX: number;
@@ -141,6 +155,16 @@ export class Context {
     this.textAlign = "start";
     this.textBaseline = "alphabetic";
     this.imageSmoothingEnabled = true;
+    this.imageSmoothingQuality = "low";
+    this.direction = "inherit";
+    this.filter = "none";
+    this.fontKerning = "auto";
+    this.fontStretch = "normal";
+    this.fontVariantCaps = "normal";
+    this.letterSpacing = "0px";
+    this.lineDashOffset = 0;
+    this.textRendering = "auto";
+    this.wordSpacing = "0px";
     this.lineCap = "butt";
     this.lineJoin = "miter";
     this.miterLimit = 10;
@@ -278,10 +302,12 @@ export class Context {
   }
 
   createLinearGradient(x0: number, y0: number, x1: number, y1: number) {
+    requireArgs(arguments.length, 4, "createLinearGradient");
     return new G.LinearGradient(x0, y0, x1, y1);
   }
 
-  createRadialGradient(x0: number, y0: number) {
+  createRadialGradient(x0: number, y0: number, _r0: number, _x1: number, _y1: number, _r1: number) {
+    requireArgs(arguments.length, 6, "createRadialGradient");
     return new G.RadialGradient(x0, y0);
   }
 
@@ -337,6 +363,7 @@ export class Context {
     /** Y position */
     y: number,
   ) {
+    requireArgs(arguments.length, 2, "translate");
     this._transform.translate(x, y);
   }
 
@@ -355,6 +382,7 @@ export class Context {
     /** Degrees of rotation (in radians) */
     angle: number,
   ) {
+    requireArgs(arguments.length, 1, "rotate");
     this._transform.rotate(angle);
   }
 
@@ -371,20 +399,33 @@ export class Context {
    * @memberof Context
    */
   scale(sx: number, sy: number) {
+    requireArgs(arguments.length, 2, "scale");
     this._transform.scale(sx, sy);
   }
 
   transform(...args) {
+    requireArgs(args.length, 6, "transform");
+    if (args.length !== 6 || !args.every(Number.isFinite)) return;
     let new_mat = [...args];
     this._transform.multiply(new_mat as Matrix);
   }
 
   setTransform(...args) {
-    this._transform.identity();
-    if (args[0].is2D) {
+    if (args.length === 0) {
+      this._transform.identity();
+      return;
+    }
+    if (args.length === 1 && args[0] && typeof args[0] === "object") {
+      const matrix = args[0];
+      const values = [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f];
+      if (!values.every(Number.isFinite)) return;
+      this._transform.identity();
       let new_mat = this._transform.fromDomMatrix(args[0]);
       this._transform.multiply(new_mat);
     } else {
+      requireArgs(args.length, 6, "setTransform");
+      if (args.length !== 6 || !args.every(Number.isFinite)) return;
+      this._transform.identity();
       this._transform.multiply([...args] as Matrix);
     }
   }
@@ -425,6 +466,12 @@ export class Context {
    * @memberof Context
    */
   fillRect(x: number, y: number, w: number, h: number): void {
+    requireArgs(arguments.length, 4, "fillRect");
+    if (![x, y, w, h].every(Number.isFinite)) return;
+    if (w < 0) { x += w; w = -w; }
+    if (h < 0) { y += h; h = -h; }
+    const matrix = this._transform.getMatrix();
+    if (matrix[0] * matrix[3] - matrix[1] * matrix[2] === 0) return;
     if (this._transform.isIdentity()) {
       //fast path for fillRect with non-transparent color
       if (typeof this._fillColor == "number") {
@@ -475,10 +522,17 @@ export class Context {
    * @memberof Context
    */
   clearRect(x: number, y: number, w: number, h: number): void {
-    for (let i = x; i < x + w; i++) {
-      for (let j = y; j < y + h; j++) {
-        if (this._bitmap._isValidCoords(x, y))
-          this._bitmap.setPixelRGBA(i, j, TRANSPARENT_BLACK);
+    requireArgs(arguments.length, 4, "clearRect");
+    if (![x, y, w, h].every(Number.isFinite)) return;
+    if (w < 0) { x += w; w = -w; }
+    if (h < 0) { y += h; h = -h; }
+    const x1 = Math.max(0, Math.floor(x));
+    const y1 = Math.max(0, Math.floor(y));
+    const x2 = Math.min(this._bitmap.width, Math.ceil(x + w));
+    const y2 = Math.min(this._bitmap.height, Math.ceil(y + h));
+    for (let i = x1; i < x2; i++) {
+      for (let j = y1; j < y2; j++) {
+        if (this.pixelInsideClip(i, j)) this._bitmap.setPixelRGBA(i, j, TRANSPARENT_BLACK);
       }
     }
   }
@@ -498,6 +552,10 @@ export class Context {
    * @memberof Context
    */
   strokeRect(x: number, y: number, w: number, h: number): void {
+    requireArgs(arguments.length, 4, "strokeRect");
+    if (![x, y, w, h].every(Number.isFinite)) return;
+    if (w < 0) { x += w; w = -w; }
+    if (h < 0) { y += h; h = -h; }
     for (let i = x; i < x + w; i++) {
       this.fillPixelWithColor(i, y, this.calculateRGBA_stroke(i, y));
       this.fillPixelWithColor(i, y + h, this.calculateRGBA_stroke(i, y + h));
@@ -638,6 +696,9 @@ export class Context {
    * @memberof Context
    */
   getImageData(x: number, y: number, w: number, h: number): Bitmap {
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0 || w * h * 4 > 0x7fffffff) {
+      throw new TypeError("image data dimensions are invalid or too large");
+    }
     return this._bitmap._copySubBitmap(x, y, w, h);
   }
 
@@ -655,6 +716,7 @@ export class Context {
    * @memberof Context
    */
   putImageData(imageData, x, y) {
+    requireArgs(arguments.length, 3, "putImageData");
     this._bitmap._pasteSubBitmap(imageData, x, y);
   }
 
@@ -688,6 +750,7 @@ export class Context {
     dw?: number,
     dh?: number,
   ) {
+    requireArgs(arguments.length, 3, "drawImage");
     // two argument form
     if (typeof sw === "undefined")
       return this.drawImage(
@@ -795,6 +858,7 @@ export class Context {
    * @memberof Context
    * */
   moveTo(x, y) {
+    requireArgs(arguments.length, 2, "moveTo");
     return this._moveTo(new Point(x, y));
   }
 
@@ -835,6 +899,7 @@ export class Context {
    * @memberof Context
    */
   lineTo(x, y) {
+    requireArgs(arguments.length, 2, "lineTo");
     return this._lineTo(new Point(x, y));
   }
 
@@ -866,6 +931,7 @@ export class Context {
    * @memberof Context
    */
   quadraticCurveTo(cp1x: number, cp1y: number, x: number, y: number) {
+    requireArgs(arguments.length, 4, "quadraticCurveTo");
     let cp1 = this._transform.transformPoint(new Point(cp1x, cp1y));
     let pt = this._transform.transformPoint(new Point(x, y));
     this.path.push([PATH_COMMAND.QUADRATIC_CURVE, cp1, pt]);
@@ -888,6 +954,7 @@ export class Context {
    * @memberof Context
    */
   bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
+    requireArgs(arguments.length, 6, "bezierCurveTo");
     this._bezierCurveTo(
       new Point(cp1x, cp1y),
       new Point(cp2x, cp2y),
@@ -937,6 +1004,8 @@ export class Context {
     end: number,
     anticlockwise?: boolean,
   ) {
+    requireArgs(arguments.length, 5, "arc");
+    if (![x, y, rad, start, end].every(Number.isFinite) || rad < 0) return;
     function calcPoint(angle) {
       let px = x + Math.cos(angle) * rad;
       let py = y + Math.sin(angle) * rad;
@@ -958,17 +1027,9 @@ export class Context {
     this._lineTo(calcPoint(end));
   }
 
-  /**
-   * Arc To
-   *
-   * @ignore
-   *
-   * @throws {Error} Method is not yet implemented
-   *
-   * @memberof Context
-   */
-  arcTo() {
-    throw new Error("arcTo not yet supported");
+  /** Canvas arcTo is currently a no-op; arguments are still required by the API. */
+  arcTo(_x1: number, _y1: number, _x2: number, _y2: number, _radius: number) {
+    requireArgs(arguments.length, 5, "arcTo");
   }
 
   /**
@@ -989,6 +1050,7 @@ export class Context {
    * @memberof Context
    */
   rect(x: number, y: number, width: number, height: number): void {
+    requireArgs(arguments.length, 4, "rect");
     this.moveTo(x, y);
     this.lineTo(x + width, y);
     this.lineTo(x + width, y + height);
@@ -1080,6 +1142,7 @@ export class Context {
    * @memberof Context
    */
   measureText(text: string) {
+    requireArgs(arguments.length, 1, "measureText");
     return TEXT.measureText(this, text);
   }
 
@@ -1429,6 +1492,7 @@ export class Context {
    * @memberof Context
    */
   fillText(text: string, x: number, y: number): void {
+    requireArgs(arguments.length, 3, "fillText");
     TEXT.processTextPath(
       this,
       text,
@@ -1452,6 +1516,7 @@ export class Context {
    * @memberof Context
    */
   strokeText(text: string, x: number, y: number): void {
+    requireArgs(arguments.length, 3, "strokeText");
     TEXT.processTextPath(
       this,
       text,

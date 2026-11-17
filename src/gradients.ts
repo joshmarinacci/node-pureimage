@@ -8,6 +8,7 @@ export class CanvasGradient {
     this.stops = [];
   }
   addColorStop(t: number, colorstring: number) {
+    if (arguments.length < 2) throw new TypeError("addColorStop requires an offset and color");
     const color = colorStringToUint32("" + colorstring);
     this.stops.push({ t: t, color: color });
   }
