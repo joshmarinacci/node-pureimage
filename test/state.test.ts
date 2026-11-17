@@ -143,3 +143,50 @@ describe("canvas state", () => {
     expect(ctx.path.length).toBe(0);
   });
 });
+
+describe("globalAlpha", () => {
+  it("ignores out-of-range and non-finite values", () => {
+    const ctx = pureimage.make(10, 10).getContext("2d");
+    ctx.globalAlpha = 0.5;
+    for (const v of [Infinity, -Infinity, NaN, -0.1, 1.1, 2]) {
+      ctx.globalAlpha = v;
+      expect(ctx.globalAlpha).toBe(0.5);
+    }
+    ctx.globalAlpha = 0;
+    expect(ctx.globalAlpha).toBe(0);
+  });
+});
+
+describe("globalAlpha compositing", () => {
+  it("drawing with globalAlpha 0 leaves transparent pixels transparent", () => {
+    const image = pureimage.make(10, 10);
+    const ctx = image.getContext("2d");
+    ctx.clearRect(0, 0, 10, 10);
+    ctx.globalAlpha = 0;
+    ctx.fillStyle = "#f00";
+    ctx.beginPath();
+    ctx.rect(0, 0, 10, 10);
+    ctx.fill();
+    expect(image.getPixelRGBA(5, 5)).toBe(0x00000000);
+  });
+
+  it("fillRect respects globalAlpha", () => {
+    const image = pureimage.make(10, 10);
+    const ctx = image.getContext("2d");
+    ctx.clearRect(0, 0, 10, 10);
+    ctx.globalAlpha = 0;
+    ctx.fillStyle = "#f00";
+    ctx.fillRect(0, 0, 10, 10);
+    expect(image.getPixelRGBA(5, 5)).toBe(0x00000000);
+  });
+
+  it("source-over on a transparent pixel keeps the source alpha", () => {
+    const image = pureimage.make(10, 10);
+    const ctx = image.getContext("2d");
+    ctx.clearRect(0, 0, 10, 10);
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = "#f00";
+    ctx.fillRect(0, 0, 10, 10);
+    expect(image.getPixelRGBA(5, 5)).toBe(0xff000080);
+  });
+});
