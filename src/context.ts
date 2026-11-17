@@ -4,18 +4,18 @@ import { Bounds, calc_min_bounds, Point, PointIsh, toRad } from "./point.js";
 import * as TEXT from "./text.js";
 import { Font } from "./text.js";
 import * as G from "./gradients.js";
-import { and, fromBytesBigEndian, getBytesBigEndian, or } from "./uint32.js";
+import { and, getBytesBigEndian, or } from "./uint32.js";
 import type { Bitmap } from "./bitmap.js";
 import {
   MinimumBounds,
   PATH_COMMAND,
   PathCmd,
-  RGBA,
   RoundRectCorners,
   TextAlign,
   TextBaseline,
 } from "./types.js";
 import { parseColor, serializeColor } from "./color.js";
+import { CompositeOperation, compositePixel, isCompositeOperation, isUnbounded } from "./composite.js";
 import { Matrix, Transform } from "./transform.js";
 
 // Matches a CSS size token: digits+optional-decimal followed by a unit, plus an optional /line-height suffix.
@@ -121,7 +121,6 @@ export class Context {
   public shadowColor: string;
   public shadowOffsetX: number;
   public shadowOffsetY: number;
-  public globalCompositeOperation: string;
   /**  A 32-bit unsigned integer (uint32) number representing the fill color of the 2D drawing context */
   private _fillColor: number | G.ColorGradient;
   private _strokeColor: number | G.ColorGradient;
@@ -236,6 +235,67 @@ export class Context {
     // per spec, out-of-range and non-finite values are ignored, not clamped
     if (!Number.isFinite(val) || val < 0 || val > 1) return;
     this._globalAlpha = val;
+  }
+
+  private _compositeOp: CompositeOperation = "source-over";
+  /**
+   * While a shape is drawn with a non source-over operator, its pixels are collected here
+   * and composited onto the bitmap in one pass, so the operator sees the whole shape.
+   */
+  private _layer: Uint32Array | null = null;
+
+  /**
+   * How shapes and images are composited onto the canvas: a Porter-Duff operator or a blend mode.
+   * Unsupported values are ignored.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
+   */
+  get globalCompositeOperation(): string {
+    return this._compositeOp;
+  }
+
+  /** @example ctx.globalCompositeOperation = "multiply"; */
+  set globalCompositeOperation(val: string) {
+    const op = String(val);
+    if (isCompositeOperation(op)) this._compositeOp = op;
+  }
+
+  /**
+   * Run a drawing operation through the current composite operator. source-over draws
+   * straight onto the bitmap; other operators render the shape into a layer first and then
+   * composite it, including (for unbounded operators) the pixels the shape doesn't cover.
+   */
+  private paint(draw: () => void): void {
+    const op = this._compositeOp;
+    if (op === "source-over" || this._layer) {
+      draw();
+      return;
+    }
+    const { width, height } = this._bitmap;
+    const layer = new Uint32Array(width * height);
+    this._layer = layer;
+    try {
+      draw();
+    } finally {
+      this._layer = null;
+    }
+    const unbounded = isUnbounded(op);
+    for (let j = 0; j < height; j++) {
+      for (let i = 0; i < width; i++) {
+        const src = layer[j * width + i];
+        if (src === 0 && !unbounded) continue;
+        if (!this.pixelInsideClip(i, j)) continue;
+        const dst = this._bitmap.getPixelRGBA(i, j);
+        this._bitmap.setPixelRGBA(i, j, compositePixel(op, src, this._globalAlpha, dst));
+      }
+    }
+  }
+
+  /** Write a source pixel into the active layer, combining overlapping writes with source-over. */
+  private writeLayer(x: number, y: number, col: number): void {
+    const layer = this._layer as Uint32Array;
+    const idx = y * this._bitmap.width + x;
+    layer[idx] = compositePixel("source-over", col, 1, layer[idx]);
   }
 
   /** Plain js object wrapping the font name and size */
@@ -482,9 +542,13 @@ export class Context {
     if (h < 0) { y += h; h = -h; }
     const matrix = this._transform.getMatrix();
     if (matrix[0] * matrix[3] - matrix[1] * matrix[2] === 0) return;
+    this.paint(() => this.fillRectPixels(x, y, w, h));
+  }
+
+  private fillRectPixels(x: number, y: number, w: number, h: number): void {
     if (this._transform.isIdentity()) {
       //fast path for fillRect with non-transparent color
-      if (typeof this._fillColor == "number" && this._globalAlpha === 1) {
+      if (typeof this._fillColor == "number" && this._globalAlpha === 1 && !this._layer) {
         const new_rgba = getBytesBigEndian(this._fillColor as number);
         if (new_rgba[3] === 255) {
           for (let i = x; i < x + w; i++) {
@@ -624,6 +688,10 @@ export class Context {
    * @memberof Context
    */
   strokePixel(x: number, y: number): void {
+    if (this._layer) {
+      if (this._bitmap._isValidCoords(x, y)) this.writeLayer(x, y, this.calculateRGBA_stroke(x, y));
+      return;
+    }
     if (!this.pixelInsideClip(x, y)) {
       return;
     }
@@ -649,6 +717,10 @@ export class Context {
    * @memberof Context
    */
   fillPixelWithColor(x: number, y: number, col: number): void {
+    if (this._layer) {
+      if (this._bitmap._isValidCoords(x, y)) this.writeLayer(x, y, col);
+      return;
+    }
     if (!this.pixelInsideClip(x, y)) {
       return;
     }
@@ -660,38 +732,9 @@ export class Context {
 
     this._bitmap.setPixelRGBA(x, y, final_pixel);
   }
+  /** Composite a source pixel onto a destination pixel with source-over and globalAlpha. */
   private composite(old_pixel: number, new_pixel: number): number {
-    const old_rgba = getBytesBigEndian(old_pixel);
-    const new_rgba = getBytesBigEndian(new_pixel);
-
-    // convert to range of 0->1
-    const A = <RGBA>new_rgba.map((b) => b / 255);
-    const B = <RGBA>old_rgba.map((b) => b / 255);
-
-    // multiply by global alpha
-    A[3] = A[3] * this._globalAlpha;
-
-    // do a standard composite (SRC_OVER) on RGB values
-    function compit(ca: number, cb: number, aa: number, ab: number): number {
-      return (ca * aa + cb * ab * (1 - aa)) / (aa + ab * (1 - aa));
-    }
-
-    // SRC_OVER alpha; a fully transparent result has no meaningful color
-    const outAlpha = A[3] + B[3] * (1 - A[3]);
-    if (outAlpha === 0) return 0;
-
-    const C = A.slice(0, 3).map((_, i) => compit(A[i], B[i], A[3], B[3]));
-
-    // convert back to 0->255 range
-    const Cf = C.map((c) => c * 255);
-
-    // convert back to int
-    return fromBytesBigEndian(
-      Cf[0],
-      Cf[1],
-      Cf[2], // R, G, B,
-      Math.round(outAlpha * 255),
-    );
+    return compositePixel("source-over", new_pixel, this._globalAlpha, old_pixel);
   }
 
   /**
@@ -829,6 +872,20 @@ export class Context {
         sh,
       );
 
+    this.paint(() => this.drawImagePixels(bitmap, sx, sy, sw, sh, dx, dy, dw, dh));
+  }
+
+  private drawImagePixels(
+    bitmap: Bitmap,
+    sx: number,
+    sy: number,
+    sw: number,
+    sh: number,
+    dx: number,
+    dy: number,
+    dw: number,
+    dh: number,
+  ): void {
     let src_bounds = new Bounds(sx, sy, sx + sw, sy + sh);
     let pts = [
       new Point(dx, dy),
@@ -865,7 +922,11 @@ export class Context {
           remap(src_pt.y, dy, dy + dh, sy, sy + sh),
         );
         if (src_bounds.contains(src_pt)) {
-          if (
+          if (this._layer) {
+            if (this._bitmap._isValidCoords(dst_pt.x, dst_pt.y)) {
+              this.writeLayer(dst_pt.x, dst_pt.y, bitmap.getPixelRGBA(src_pt.x, src_pt.y));
+            }
+          } else if (
             this.pixelInsideClip(dst_pt.x, dst_pt.y) &&
             this._bitmap._isValidCoords(dst_pt.x, dst_pt.y)
           ) {
@@ -1243,6 +1304,10 @@ export class Context {
    * @memberof Context
    */
   stroke() {
+    this.paint(() => this.strokePath());
+  }
+
+  private strokePath(): void {
     let flat_path = flatten_path(this.path);
     let stroke_path = path_to_stroked_path(flat_path, this.lineWidth / 2);
     const lines = pathToLines(stroke_path);
@@ -1429,7 +1494,7 @@ export class Context {
   fill() {
     if (!this._closed) this.closePath();
     const lines = pathToLines(this.path);
-    this.imageSmoothingEnabled ? this.fill_aa(lines) : this.fill_noaa(lines);
+    this.paint(() => (this.imageSmoothingEnabled ? this.fill_aa(lines) : this.fill_noaa(lines)));
   }
 
   /**
@@ -1558,14 +1623,9 @@ export class Context {
    */
   fillText(text: string, x: number, y: number): void {
     requireArgs(arguments.length, 3, "fillText");
-    TEXT.processTextPath(
-      this,
-      text,
-      x,
-      y,
-      true,
-      this.textAlign,
-      this.textBaseline,
+    // glyphs are filled one at a time, so composite them together as one shape
+    this.paint(() =>
+      TEXT.processTextPath(this, text, x, y, true, this.textAlign, this.textBaseline),
     );
   }
 
@@ -1582,14 +1642,9 @@ export class Context {
    */
   strokeText(text: string, x: number, y: number): void {
     requireArgs(arguments.length, 3, "strokeText");
-    TEXT.processTextPath(
-      this,
-      text,
-      x,
-      y,
-      false,
-      this.textAlign,
-      this.textBaseline,
+    // glyphs are filled one at a time, so composite them together as one shape
+    this.paint(() =>
+      TEXT.processTextPath(this, text, x, y, false, this.textAlign, this.textBaseline),
     );
   }
 }
