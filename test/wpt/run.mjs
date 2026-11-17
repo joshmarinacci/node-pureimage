@@ -125,6 +125,18 @@ class OffscreenCanvas extends PImage.Bitmap {
   }
 }
 
+// Tests may patch the context prototype (e.g. 2d.canvas.context.type.replace overrides
+// fillRect). Every file shares the bundle's Context class, so snapshot its prototype
+// and restore it after each file to keep files isolated.
+const contextProto = PImage.Context.prototype;
+const contextProtoSnapshot = Object.getOwnPropertyDescriptors(contextProto);
+function restoreContextPrototype() {
+  for (const key of Reflect.ownKeys(contextProto)) {
+    if (!(key in contextProtoSnapshot)) delete contextProto[key];
+  }
+  Object.defineProperties(contextProto, contextProtoSnapshot);
+}
+
 function runFile(file) {
   return new Promise((resolve) => {
     const subtests = []; // {name, status, message}
@@ -183,6 +195,7 @@ function runFile(file) {
 
     const ctx = vm.createContext({
       OffscreenCanvas,
+      OffscreenCanvasRenderingContext2D: PImage.Context,
       ImageData: PImage.ImageData,
       Path2D: PImage.Path2D,
       DOMMatrix: PImage.DOMMatrix,
@@ -279,6 +292,7 @@ const t0 = Date.now();
 for (let i = 0; i < files.length; i++) {
   const rel = path.relative(offscreenDir, files[i]).replace(/\.worker\.js$/, "");
   const { subtests } = await runFile(files[i]);
+  restoreContextPrototype();
   const bad = subtests.find((s) => s.status !== "PASS");
   results[rel] = bad ? { status: bad.status, message: bad.message } : { status: "PASS", message: null };
   if ((i + 1) % 100 === 0) console.log(`  ${i + 1}/${files.length} (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
