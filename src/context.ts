@@ -15,7 +15,7 @@ import {
   TextAlign,
   TextBaseline,
 } from "./types.js";
-import { clamp, colorStringToUint32 } from "./util.js";
+import { parseColor, serializeColor } from "./color.js";
 import { Matrix, Transform } from "./transform.js";
 
 // Matches a CSS size token: digits+optional-decimal followed by a unit, plus an optional /line-height suffix.
@@ -230,7 +230,9 @@ export class Context {
 
   /** @example ctx.globalAlpha = 1; */
   set globalAlpha(val: number) {
-    this._globalAlpha = clamp(val, 0, 1);
+    // per spec, out-of-range and non-finite values are ignored, not clamped
+    if (!Number.isFinite(val) || val < 0 || val > 1) return;
+    this._globalAlpha = val;
   }
 
   /** Plain js object wrapping the font name and size */
@@ -276,10 +278,13 @@ export class Context {
   set fillStyle(val: string | G.ColorGradient) {
     if (val instanceof G.CanvasGradient) {
       this._fillColor = val;
-    } else {
-      this._fillColor = colorStringToUint32(val);
-      this._fillStyle_text = val;
+      return;
     }
+    // per spec, non-gradient values are stringified and invalid colors are ignored
+    const color = parseColor(String(val));
+    if (color === null) return;
+    this._fillColor = color;
+    this._fillStyle_text = serializeColor(color);
   }
 
   /**
@@ -295,10 +300,12 @@ export class Context {
   set strokeStyle(val: string | G.CanvasGradient) {
     if (val instanceof G.CanvasGradient) {
       this._strokeStyle_text = val.toString();
-    } else {
-      this._strokeColor = colorStringToUint32(val);
-      this._strokeStyle_text = val;
+      return;
     }
+    const color = parseColor(String(val));
+    if (color === null) return;
+    this._strokeColor = color;
+    this._strokeStyle_text = serializeColor(color);
   }
 
   createLinearGradient(x0: number, y0: number, x1: number, y1: number) {
@@ -474,7 +481,7 @@ export class Context {
     if (matrix[0] * matrix[3] - matrix[1] * matrix[2] === 0) return;
     if (this._transform.isIdentity()) {
       //fast path for fillRect with non-transparent color
-      if (typeof this._fillColor == "number") {
+      if (typeof this._fillColor == "number" && this._globalAlpha === 1) {
         const new_rgba = getBytesBigEndian(this._fillColor as number);
         if (new_rgba[3] === 255) {
           for (let i = x; i < x + w; i++) {
@@ -526,13 +533,36 @@ export class Context {
     if (![x, y, w, h].every(Number.isFinite)) return;
     if (w < 0) { x += w; w = -w; }
     if (h < 0) { y += h; h = -h; }
-    const x1 = Math.max(0, Math.floor(x));
-    const y1 = Math.max(0, Math.floor(y));
-    const x2 = Math.min(this._bitmap.width, Math.ceil(x + w));
-    const y2 = Math.min(this._bitmap.height, Math.ceil(y + h));
+    if (this._transform.isIdentity()) {
+      const x1 = Math.max(0, Math.floor(x));
+      const y1 = Math.max(0, Math.floor(y));
+      const x2 = Math.min(this._bitmap.width, Math.ceil(x + w));
+      const y2 = Math.min(this._bitmap.height, Math.ceil(y + h));
+      for (let i = x1; i < x2; i++) {
+        for (let j = y1; j < y2; j++) {
+          if (this.pixelInsideClip(i, j)) this._bitmap.setPixelRGBA(i, j, TRANSPARENT_BLACK);
+        }
+      }
+      return;
+    }
+    // transformed: clear every pixel whose center falls inside the transformed quad
+    const quad = [
+      new Point(x, y),
+      new Point(x + w, y),
+      new Point(x + w, y + h),
+      new Point(x, y + h),
+    ].map((pt) => this._transform.transformPoint(pt));
+    const xs = quad.map((pt) => pt.x);
+    const ys = quad.map((pt) => pt.y);
+    const x1 = Math.max(0, Math.floor(Math.min(...xs)));
+    const y1 = Math.max(0, Math.floor(Math.min(...ys)));
+    const x2 = Math.min(this._bitmap.width, Math.ceil(Math.max(...xs)));
+    const y2 = Math.min(this._bitmap.height, Math.ceil(Math.max(...ys)));
     for (let i = x1; i < x2; i++) {
       for (let j = y1; j < y2; j++) {
-        if (this.pixelInsideClip(i, j)) this._bitmap.setPixelRGBA(i, j, TRANSPARENT_BLACK);
+        if (insideConvexQuad(quad, i + 0.5, j + 0.5) && this.pixelInsideClip(i, j)) {
+          this._bitmap.setPixelRGBA(i, j, TRANSPARENT_BLACK);
+        }
       }
     }
   }
@@ -554,16 +584,30 @@ export class Context {
   strokeRect(x: number, y: number, w: number, h: number): void {
     requireArgs(arguments.length, 4, "strokeRect");
     if (![x, y, w, h].every(Number.isFinite)) return;
-    if (w < 0) { x += w; w = -w; }
-    if (h < 0) { y += h; h = -h; }
-    for (let i = x; i < x + w; i++) {
-      this.fillPixelWithColor(i, y, this.calculateRGBA_stroke(i, y));
-      this.fillPixelWithColor(i, y + h, this.calculateRGBA_stroke(i, y + h));
+    // per spec, a rect with no width and no height strokes nothing
+    if (w === 0 && h === 0) return;
+    // stroke a temporary closed rect path so lineWidth, joins and transforms apply
+    const old_path = this.path;
+    const old_closed = this._closed;
+    const old_pathstart = this.pathstart;
+    // built by hand rather than with rect(): rect() already returns to its start point,
+    // and closePath() would then add a zero-length segment the stroker can't handle
+    this.beginPath();
+    this.moveTo(x, y);
+    if (w === 0 || h === 0) {
+      // degenerate rect: the stroker can't handle a closed path that doubles back on
+      // itself, so stroke the single segment instead (correct while caps are unsupported)
+      this.lineTo(x + w, y + h);
+    } else {
+      this.lineTo(x + w, y);
+      this.lineTo(x + w, y + h);
+      this.lineTo(x, y + h);
+      this.closePath();
     }
-    for (let j = y; j < y + h; j++) {
-      this.fillPixelWithColor(x, j, this.calculateRGBA_stroke(x, j));
-      this.fillPixelWithColor(x + w, j, this.calculateRGBA_stroke(x + w, j));
-    }
+    this.stroke();
+    this.path = old_path;
+    this._closed = old_closed;
+    this.pathstart = old_pathstart;
   }
 
   /**
@@ -629,6 +673,10 @@ export class Context {
       return (ca * aa + cb * ab * (1 - aa)) / (aa + ab * (1 - aa));
     }
 
+    // SRC_OVER alpha; a fully transparent result has no meaningful color
+    const outAlpha = A[3] + B[3] * (1 - A[3]);
+    if (outAlpha === 0) return 0;
+
     const C = A.slice(0, 3).map((_, i) => compit(A[i], B[i], A[3], B[3]));
 
     // convert back to 0->255 range
@@ -639,7 +687,7 @@ export class Context {
       Cf[0],
       Cf[1],
       Cf[2], // R, G, B,
-      Math.max(old_rgba[3], new_rgba[3]), // alpha
+      Math.round(outAlpha * 255),
     );
   }
 
@@ -1539,6 +1587,21 @@ export class Context {
  *
  * @returns {number}
  */
+/** True if (px, py) lies inside (or on the edge of) a convex quad, regardless of winding. */
+function insideConvexQuad(quad: Point[], px: number, py: number): boolean {
+  let sign = 0;
+  for (let i = 0; i < quad.length; i++) {
+    const a = quad[i];
+    const b = quad[(i + 1) % quad.length];
+    const cross = (b.x - a.x) * (py - a.y) - (b.y - a.y) * (px - a.x);
+    if (cross === 0) continue;
+    const s = Math.sign(cross);
+    if (sign === 0) sign = s;
+    else if (s !== sign) return false;
+  }
+  return true;
+}
+
 function fract(v) {
   return v - Math.floor(v);
 }
