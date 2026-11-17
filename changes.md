@@ -1,5 +1,9 @@
 ## 2026-11-16
 
+**Pass canvas conformance requirements WPTs**: `arcTo()` is now a documented no-op that accepts its required arguments and returns `undefined`. Added required-argument validation for the Canvas methods covered by the WPT missing-arguments test, including gradient creation and `addColorStop()`.
+
+Verified all four `conformance.requirements` WPT files pass, and `npm run type-check` passes.
+
 **Prevent WPT runner memory exhaustion**: exclude `canvas-host/2d.canvas.host.size.large`, which resizes a canvas to `2^31-1` pixels and can exhaust memory because `Bitmap` eagerly allocates and clears pixel data. The test was already absent from the passing baseline.
 
 The runner now starts each file's timeout before execution and clears it when the file settles, so completed VM contexts are not retained by stale timeout callbacks. Added `.DS_Store` to `.gitignore`.
