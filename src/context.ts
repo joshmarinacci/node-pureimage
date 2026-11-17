@@ -30,6 +30,8 @@ type ParsedFont = {
   weight?: number;
 };
 
+type FillRule = "evenodd" | "nonzero";
+
 function requireArgs(actual: number, minimum: number, method: string): void {
   if (actual < minimum) throw new TypeError(`${method} requires at least ${minimum} argument(s)`);
 }
@@ -123,7 +125,8 @@ export class Context {
   /**  A 32-bit unsigned integer (uint32) number representing the fill color of the 2D drawing context */
   private _fillColor: number | G.ColorGradient;
   private _strokeColor: number | G.ColorGradient;
-  private _clip?: Line[];
+  /** clip regions; a pixel is drawable only if it is inside every one */
+  private _clip?: Line[][];
   private _fillStyle_text: string;
   private _strokeStyle_text: string;
   private _closed?: boolean;
@@ -506,7 +509,7 @@ export class Context {
       let old_path = this.path;
       let old_closed = this._closed;
       this.beginPath();
-      this.rect(x - 0.0001, y - 0.0001, w, h);
+      this.rect(x, y, w, h);
       this.closePath();
       this.fill();
       this.path = old_path;
@@ -1068,11 +1071,20 @@ export class Context {
       end = start + Math.PI * 2;
       start = temp;
     }
-    this._moveTo(calcPoint(start));
-    for (let a = start; a <= end; a += step) {
-      this._lineTo(calcPoint(a));
+    // evenly spaced chords (accumulating `a += step` could leave a near-zero final chord)
+    const sweep = end - start;
+    const n = Math.max(1, Math.ceil(sweep / step - 1e-9));
+    const angles: number[] = [];
+    for (let i = 0; i <= n; i++) angles.push(start + (sweep * i) / n);
+    if (sweep > 0) {
+      // very short first and last chords, so stroke caps (which follow the end chords)
+      // match the arc's true tangent even when lineWidth is large
+      const d = Math.min(0.01, sweep / (4 * n));
+      angles.splice(1, 0, start + d);
+      angles.splice(angles.length - 1, 0, end - d);
     }
-    this._lineTo(calcPoint(end));
+    this._moveTo(calcPoint(angles[0]));
+    for (let i = 1; i < angles.length; i++) this._lineTo(calcPoint(angles[i]));
   }
 
   /** Canvas arcTo is currently a no-op; arguments are still required by the API. */
@@ -1177,7 +1189,8 @@ export class Context {
    * @memberof Context
    */
   clip(): void {
-    this._clip = pathToLines(this.path);
+    // intersect with any existing clip; build a new array so states saved by save() are untouched
+    this._clip = [...(this._clip ?? []), pathToLines(this.path)];
   }
 
   /**
@@ -1235,7 +1248,12 @@ export class Context {
     const lines = pathToLines(stroke_path);
     const old_fillStyle = this.fillStyle;
     this.fillStyle = this.strokeStyle;
-    this.imageSmoothingEnabled ? this.fill_aa(lines) : this.fill_noaa(lines);
+    // strokes are always filled with the nonzero rule: the stroked outline overlaps
+    // itself at joins (and degenerately when lineWidth is large), and those overlaps
+    // must stay painted rather than cancelling out as they would under even-odd
+    this.imageSmoothingEnabled
+      ? this.fill_aa(lines, "nonzero")
+      : this.fill_noaa(lines, "nonzero");
     this.fillStyle = old_fillStyle;
 
     if (this.debug) {
@@ -1421,40 +1439,49 @@ export class Context {
    *
    * @memberof Context
    */
-  fill_aa(lines): void {
-    //get just the color part
+  fill_aa(lines, rule: FillRule = "evenodd"): void {
     const bounds = calcMinimumBounds(lines);
-
-    const startY = Math.min(bounds.y2 + 1, this._bitmap.height);
-    const endY = Math.max(bounds.y - 1, 0);
+    const width = this._bitmap.width;
+    // iterate whole pixel rows; the bounds are fractional, so rows must be snapped
+    const startY = Math.min(Math.floor(bounds.y2), this._bitmap.height - 1);
+    const endY = Math.max(Math.floor(bounds.y), 0);
+    // horizontal coverage for the current row, summed over every span before compositing,
+    // so spans that meet inside one pixel (e.g. a path that doubles back on itself)
+    // don't leave a seam from compositing two partial coverages separately
+    const coverage = new Float64Array(width);
 
     for (let j = startY; j >= endY; j--) {
-      const ints = calcSortedIntersections(lines, j);
-      //fill between each pair of intersections
-      // if(ints.length %2 !==0) console.log("warning. uneven number of intersections");
-      for (let i = 0; i < ints.length; i += 2) {
-        const fstartf = fract(ints[i]);
-        const fendf = fract(ints[i + 1]);
-        const start = Math.floor(ints[i]);
-        const end = Math.floor(ints[i + 1]);
-        for (let ii = start; ii <= end; ii++) {
-          const rgb = and(this.calculateRGBA(ii, j), 0xffffff00);
-          const alpha = and(this.calculateRGBA(ii, j), 0xff);
-          let col = this.calculateRGBA(ii, j);
-          if (ii === start) {
-            //first
-            const int = or(rgb, (1 - fstartf) * alpha);
-            this.fillPixelWithColor(ii, j, int);
-            continue;
-          }
-          if (ii === end) {
-            //last
-            const int = or(rgb, fendf * alpha);
-            this.fillPixelWithColor(ii, j, int);
-            continue;
-          }
-          //console.log("filling",ii,j);
+      // sample each scanline at the pixel centre (j + 0.5), as browsers do
+      const ints = calcSpans(lines, j + 0.5, rule);
+      let minX = width;
+      let maxX = -1;
+      for (let i = 0; i + 1 < ints.length; i += 2) {
+        const a = Math.max(0, Math.min(width, ints[i]));
+        const b = Math.max(0, Math.min(width, ints[i + 1]));
+        if (!(b > a)) continue;
+        const start = Math.floor(a);
+        const end = Math.floor(b);
+        if (start === end) {
+          coverage[start] += b - a;
+        } else {
+          coverage[start] += 1 - fract(a);
+          for (let ii = start + 1; ii < end; ii++) coverage[ii] += 1;
+          if (end < width) coverage[end] += fract(b);
+        }
+        minX = Math.min(minX, start);
+        maxX = Math.max(maxX, Math.min(end, width - 1));
+      }
+      for (let ii = minX; ii <= maxX; ii++) {
+        const cov = coverage[ii];
+        coverage[ii] = 0;
+        if (cov <= 0) continue;
+        const col = this.calculateRGBA(ii, j);
+        if (cov >= 1) {
           this.fillPixelWithColor(ii, j, col);
+        } else {
+          const rgb = and(col, 0xffffff00);
+          const alpha = and(col, 0xff);
+          this.fillPixelWithColor(ii, j, or(rgb, cov * alpha));
         }
       }
     }
@@ -1467,30 +1494,21 @@ export class Context {
    *
    * @memberof Context
    */
-  fill_noaa(lines): void {
-    //get just the color part
+  fill_noaa(lines, rule: FillRule = "evenodd"): void {
     const bounds = calcMinimumBounds(lines);
-    const startY = Math.min(bounds.y2 + 1, this._bitmap.height);
-    const endY = Math.max(bounds.y - 1, 0);
+    const width = this._bitmap.width;
+    // iterate whole pixel rows; the bounds are fractional, so rows must be snapped
+    const startY = Math.min(Math.floor(bounds.y2), this._bitmap.height - 1);
+    const endY = Math.max(Math.floor(bounds.y), 0);
     for (let j = startY; j >= endY; j--) {
-      const ints = calcSortedIntersections(lines, j);
-      //fill between each pair of intersections
-      for (let i = 0; i < ints.length; i += 2) {
-        const start = Math.floor(ints[i]);
-        const end = Math.floor(ints[i + 1]);
-        for (let ii = start; ii <= end; ii++) {
-          let col = this.calculateRGBA(ii, j);
-          if (ii === start) {
-            //first
-            this.fillPixelWithColor(ii, j, col);
-            continue;
-          }
-          if (ii === end) {
-            //last
-            this.fillPixelWithColor(ii, j, col);
-            continue;
-          }
-          this.fillPixelWithColor(ii, j, col);
+      // sample each scanline at the pixel centre (j + 0.5), as browsers do
+      const ints = calcSpans(lines, j + 0.5, rule);
+      for (let i = 0; i + 1 < ints.length; i += 2) {
+        // paint the pixels whose centres (ii + 0.5) fall inside [start, end)
+        const first = Math.max(0, Math.ceil(ints[i] - 0.5));
+        const last = Math.min(width - 1, Math.ceil(ints[i + 1] - 0.5) - 1);
+        for (let ii = first; ii <= last; ii++) {
+          this.fillPixelWithColor(ii, j, this.calculateRGBA(ii, j));
         }
       }
     }
@@ -1516,14 +1534,13 @@ export class Context {
     if (!this._clip) return true;
     //turn into a list of lines
     // calculate intersections with a horizontal line at j
-    const ints = calcSortedIntersections(this._clip, y);
-    // find the intersections to the left of i (where x < i)
-    const left = ints.filter((inter) => inter < x);
-    if (left.length % 2 === 0) {
-      return false;
-    } else {
-      return true;
-    }
+    return this._clip.every((region) => {
+      // test the pixel centre (x + 0.5, y + 0.5) so clipping agrees with fill_aa/fill_noaa
+      const ints = calcSortedIntersections(region, y + 0.5);
+      // odd number of crossings left of the centre means inside
+      const left = ints.filter((inter) => inter < x + 0.5);
+      return left.length % 2 === 1;
+    });
   }
 
   /**
@@ -1932,6 +1949,31 @@ function calcMinimumBounds(lines: Line[]): MinimumBounds {
  *
  * @returns {Array}
  */
+function calcSpans(lines, y: number, rule: FillRule): number[] {
+  if (rule === "evenodd") return calcSortedIntersections(lines, y);
+  const crossings: { x: number; dir: number }[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const A = lines[i].start;
+    const B = lines[i].end;
+    // same half-open crossing test as calcSortedIntersections
+    if ((A.y < y && B.y >= y) || (B.y < y && A.y >= y)) {
+      const x = A.x + ((y - A.y) / (B.y - A.y)) * (B.x - A.x);
+      crossings.push({ x, dir: B.y > A.y ? 1 : -1 });
+    }
+  }
+  crossings.sort((a, b) => a.x - b.x);
+  // emit [start, end] pairs where the winding number is non-zero
+  const spans: number[] = [];
+  let winding = 0;
+  for (const { x, dir } of crossings) {
+    const was = winding;
+    winding += dir;
+    if (was === 0 && winding !== 0) spans.push(x);
+    else if (was !== 0 && winding === 0) spans.push(x);
+  }
+  return spans;
+}
+
 function calcSortedIntersections(lines, y) {
   const xlist = [];
   for (let i = 0; i < lines.length; i++) {

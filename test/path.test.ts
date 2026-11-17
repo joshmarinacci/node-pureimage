@@ -67,8 +67,7 @@ describe("draw rect", () => {
     expect(image.getPixelRGBA(10, 50)).to.eq(BLACK);
     expect(image.getPixelRGBA(100, 50)).to.eq(BLACK);
     expect(image.getPixelRGBA(50, 50)).to.eq(WHITE);
-    // TODO: horizontal edges land one row low (rasterizer samples y half a pixel off),
-    // so (50, 10) is not asserted here yet
+    expect(image.getPixelRGBA(50, 10)).to.eq(BLACK);
     await save(image, "path/rect/stroke_square-strokeRect");
   });
   it("strokeRect honors lineWidth", () => {
