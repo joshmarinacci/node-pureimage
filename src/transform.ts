@@ -39,7 +39,7 @@ export class Transform {
   }
 
   identity() {
-    this.matrix = IDENTITY_MATRIX;
+    this.matrix = [1, 0, 0, 1, 0, 0];
     this.setTransform();
   }
   isIdentity() {

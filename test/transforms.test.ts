@@ -94,6 +94,25 @@ describe("simple transforms", () => {
     context.restore();
     await save(image, "line_transform");
   });
+
+  it("keeps setTransform state isolated between contexts", () => {
+    context.setTransform(1, 0, 0, 1, 10, 0);
+    context.fillStyle = "red";
+    context.fillRect(0, 0, 5, 5);
+    expect(image.getPixelRGBA(2, 2)).to.eq(0xffffffff);
+    expect(image.getPixelRGBA(12, 2)).to.eq(0xff0000ff);
+
+    const secondImage = pureimage.make(20, 20);
+    const secondContext = secondImage.getContext("2d");
+    secondContext.setTransform(1, 0, 0, 1, 0, 0);
+    expect(secondContext.getTransform().e).to.eq(0);
+    secondContext.fillStyle = "red";
+    secondContext.beginPath();
+    secondContext.rect(0, 0, 5, 5);
+    secondContext.fill();
+    expect(secondImage.getPixelRGBA(2, 2)).to.eq(0xff0000ff);
+    expect(secondImage.getPixelRGBA(12, 2)).to.eq(0x000000ff);
+  });
 });
 
 describe("transform image", () => {
