@@ -11,7 +11,7 @@ export enum PATH_COMMAND {
 export type RGBA = [number, number, number, number];
 export type RGB = [number, number, number];
 export type TextAlign = "start" | "end" | "left" | "center" | "right";
-export type TextBaseline = "top" | "middle" | "alphabetic" | "bottom";
+export type TextBaseline = "top" | "hanging" | "middle" | "alphabetic" | "ideographic" | "bottom";
 export type PathCmd = {
   0: PATH_COMMAND;
   1: Point;

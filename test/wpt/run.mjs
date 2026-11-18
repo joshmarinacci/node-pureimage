@@ -208,6 +208,65 @@ async function createImageBitmap(source) {
   throw new TypeError("createImageBitmap: unsupported source");
 }
 
+// ---------- font loading shim ----------
+// Text tests load fonts with new FontFace(family, "url('/fonts/x.ttf')") and self.fonts.
+// Both are CSS Font Loading APIs, not canvas, so they are shimmed on top of registerFont().
+
+function makeFontFaceApi(testFile) {
+  const pending = new Set();
+
+  class FontFace {
+    constructor(family, source) {
+      this.family = String(family);
+      this.status = "unloaded";
+      const m = /^\s*url\(\s*(['"]?)(.*?)\1\s*\)\s*$/.exec(String(source));
+      this._file = m ? resolveWptUrl(m[2], testFile) : null;
+      this.loaded = new Promise((res, rej) => {
+        this._resolve = res;
+        this._reject = rej;
+      });
+      this.loaded.catch(() => {}); // a failed load is reported through load()/fonts.ready
+    }
+
+    load() {
+      if (this.status !== "unloaded") return this.loaded;
+      this.status = "loading";
+      const done = (async () => {
+        if (!this._file || !fs.existsSync(this._file)) throw new DOMException(`font not found: ${this.family}`, "NetworkError");
+        await PImage.registerFont(this._file, this.family).load();
+      })().then(
+        () => { this.status = "loaded"; this._resolve(this); },
+        (e) => { this.status = "error"; this._reject(e); },
+      );
+      pending.add(done);
+      done.finally(() => pending.delete(done));
+      return this.loaded;
+    }
+  }
+
+  const faces = new Set();
+  const fonts = {
+    add(face) { faces.add(face); return fonts; },
+    delete(face) { return faces.delete(face); },
+    has(face) { return faces.has(face); },
+    clear() { faces.clear(); },
+    // resolves once every font load started so far has settled
+    get ready() { return Promise.allSettled([...pending]).then(() => fonts); },
+    [Symbol.iterator]() { return faces.values(); },
+  };
+  return { FontFace, fonts };
+}
+
+// Fonts registered by a test file stay in PureImage's global registry; remove them after each
+// file so later files see the same (empty) registry they would on their own.
+const fontRegistry = PImage.debug_list_of_fonts;
+const initialFonts = new Set(Object.keys(fontRegistry));
+function restoreFontRegistry() {
+  for (const family of Object.keys(fontRegistry)) {
+    if (!initialFonts.has(family)) delete fontRegistry[family];
+  }
+}
+
 function runFile(file) {
   return new Promise((resolve) => {
     const subtests = []; // {name, status, message}
@@ -318,6 +377,9 @@ function runFile(file) {
       },
     });
     ctx.self = ctx;
+    const fontApi = makeFontFaceApi(file);
+    ctx.FontFace = fontApi.FontFace;
+    ctx.fonts = fontApi.fonts;
 
     // Start the timeout before executing the file. Clearing it as soon as the
     // file settles lets its VM context and test data be reclaimed immediately
@@ -370,6 +432,7 @@ for (let i = 0; i < files.length; i++) {
   const rel = path.relative(offscreenDir, files[i]).replace(/\.worker\.js$/, "");
   const { subtests } = await runFile(files[i]);
   restoreContextPrototype();
+  restoreFontRegistry();
   const bad = subtests.find((s) => s.status !== "PASS");
   results[rel] = bad ? { status: bad.status, message: bad.message } : { status: "PASS", message: null };
   if ((i + 1) % 100 === 0) console.log(`  ${i + 1}/${files.length} (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
