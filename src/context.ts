@@ -4,6 +4,7 @@ import { Bounds, calc_min_bounds, Point, PointIsh, toRad } from "./point.js";
 import * as TEXT from "./text.js";
 import { Font } from "./text.js";
 import * as G from "./gradients.js";
+import { CanvasPattern } from "./pattern.js";
 import { and, getBytesBigEndian, or } from "./uint32.js";
 import type { Bitmap } from "./bitmap.js";
 import {
@@ -31,6 +32,12 @@ type ParsedFont = {
 };
 
 type FillRule = "evenodd" | "nonzero";
+
+/** A non-color fill or stroke style. */
+type FillStyleObject = G.CanvasGradient | CanvasPattern;
+
+const isStyleObject = (val: unknown): val is FillStyleObject =>
+  val instanceof G.CanvasGradient || val instanceof CanvasPattern;
 
 function requireArgs(actual: number, minimum: number, method: string): void {
   if (actual < minimum) throw new TypeError(`${method} requires at least ${minimum} argument(s)`);
@@ -122,8 +129,8 @@ export class Context {
   public shadowOffsetX: number;
   public shadowOffsetY: number;
   /**  A 32-bit unsigned integer (uint32) number representing the fill color of the 2D drawing context */
-  private _fillColor: number | G.ColorGradient;
-  private _strokeColor: number | G.ColorGradient;
+  private _fillColor: number | FillStyleObject;
+  private _strokeColor: number | FillStyleObject;
   /** clip regions; a pixel is drawable only if it is inside every one */
   private _clip?: Line[][];
   private _fillStyle_text: string;
@@ -333,17 +340,18 @@ export class Context {
    *
    * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillStyle
    */
-  get fillStyle(): string {
-    return this._fillStyle_text;
+  get fillStyle(): string | FillStyleObject {
+    // a gradient or pattern is returned as the same object; colors as their serialized string
+    return typeof this._fillColor === "number" ? this._fillStyle_text : this._fillColor;
   }
 
   /** @example ctx.fillStyle = 'rgba(0, 25, 234, 0.6)'; */
-  set fillStyle(val: string | G.ColorGradient) {
-    if (val instanceof G.CanvasGradient) {
+  set fillStyle(val: string | FillStyleObject) {
+    if (isStyleObject(val)) {
       this._fillColor = val;
       return;
     }
-    // per spec, non-gradient values are stringified and invalid colors are ignored
+    // per spec, other values are stringified and invalid colors are ignored
     const color = parseColor(String(val));
     if (color === null) return;
     this._fillColor = color;
@@ -355,14 +363,14 @@ export class Context {
    *
    * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/strokeStyle
    */
-  get strokeStyle(): string {
-    return this._strokeStyle_text;
+  get strokeStyle(): string | FillStyleObject {
+    return typeof this._strokeColor === "number" ? this._strokeStyle_text : this._strokeColor;
   }
 
   /** @example ctx.strokeStyle = 'rgba(0, 25, 234, 0.6)'; */
-  set strokeStyle(val: string | G.CanvasGradient) {
-    if (val instanceof G.CanvasGradient) {
-      this._strokeStyle_text = val.toString();
+  set strokeStyle(val: string | FillStyleObject) {
+    if (isStyleObject(val)) {
+      this._strokeColor = val;
       return;
     }
     const color = parseColor(String(val));
@@ -379,6 +387,20 @@ export class Context {
   createRadialGradient(x0: number, y0: number, _r0: number, _x1: number, _y1: number, _r1: number) {
     requireArgs(arguments.length, 6, "createRadialGradient");
     return new G.RadialGradient(x0, y0);
+  }
+
+  /**
+   * Creates a pattern that repeats an image. The pattern copies the image's pixels, so later
+   * changes to a source canvas don't affect it.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createPattern
+   *
+   * @param image      a Bitmap, ImageBitmap or ImageData-like object with straight RGBA pixels
+   * @param repetition "repeat" (default for null or ""), "repeat-x", "repeat-y" or "no-repeat"
+   */
+  createPattern(image: unknown, repetition: string | null): CanvasPattern {
+    requireArgs(arguments.length, 2, "createPattern");
+    return CanvasPattern.create(image, repetition);
   }
 
   createConicGradient(angle: number, x0: number, y0: number) {
@@ -750,10 +772,13 @@ export class Context {
    * @memberof Context
    */
   calculateRGBA(x: number, y: number): number {
-    if (this._fillColor instanceof G.CanvasGradient) {
-      return this._fillColor.colorAt(x, y);
-    }
-    return this._fillColor;
+    return this.styleColorAt(this._fillColor, x, y);
+  }
+
+  private styleColorAt(style: number | FillStyleObject, x: number, y: number): number {
+    if (typeof style === "number") return style;
+    if (style instanceof CanvasPattern) return style.colorAt(x, y, this._transform.getMatrix());
+    return (style as G.ColorGradient).colorAt(x, y);
   }
 
   /**
@@ -769,10 +794,7 @@ export class Context {
    * @memberof Context
    */
   calculateRGBA_stroke(x: number, y: number): number {
-    if (this._strokeColor instanceof G.CanvasGradient) {
-      return this._strokeColor.colorAt(x, y);
-    }
-    return this._strokeColor;
+    return this.styleColorAt(this._strokeColor, x, y);
   }
 
   /**

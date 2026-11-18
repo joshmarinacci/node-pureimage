@@ -61,6 +61,13 @@ await build({
 const PImage = await import(bundle);
 
 // ---------- testharness shim ----------
+const LEGACY_DOM_ERRORS = {
+  INDEX_SIZE_ERR: "IndexSizeError",
+  INVALID_STATE_ERR: "InvalidStateError",
+  SYNTAX_ERR: "SyntaxError",
+  NOT_SUPPORTED_ERR: "NotSupportedError",
+  SECURITY_ERR: "SecurityError",
+};
 function fail(msg) {
   const e = new Error(msg);
   e.name = "AssertionError";
@@ -106,7 +113,8 @@ const asserts = {
   },
   assert_throws_dom: (type, fn, d) => {
     try { fn(); } catch (e) {
-      if (e?.name !== type) throw fail(`${d ?? ""} expected DOMException ${type} got ${e?.name}: ${e?.message}`);
+      // tests name DOMExceptions by legacy code constant (e.g. "SYNTAX_ERR") or by name
+      if (e?.name !== type && e?.name !== LEGACY_DOM_ERRORS[type]) throw fail(`${d ?? ""} expected DOMException ${type} got ${e?.name}: ${e?.message}`);
       return;
     }
     throw fail(`${d ?? ""} expected DOMException ${type} but nothing was thrown`);
@@ -259,6 +267,7 @@ function runFile(file) {
     const ctx = vm.createContext({
       OffscreenCanvas,
       OffscreenCanvasRenderingContext2D: PImage.Context,
+      CanvasPattern: PImage.CanvasPattern,
       fetch: makeFetch(file),
       createImageBitmap,
       ImageBitmap,
