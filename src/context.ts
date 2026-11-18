@@ -32,12 +32,32 @@ type ParsedFont = {
 };
 
 type FillRule = "evenodd" | "nonzero";
+type ClipRegion = { lines: Line[]; rule: FillRule };
 
 /** A non-color fill or stroke style. */
 type FillStyleObject = G.CanvasGradient | CanvasPattern;
 
 const isStyleObject = (val: unknown): val is FillStyleObject =>
   val instanceof G.CanvasGradient || val instanceof CanvasPattern;
+
+// converts every argument first (as WebIDL does) so valueOf side effects happen for all of them
+const allFinite = (...values: unknown[]) => values.map(Number).every(Number.isFinite);
+
+function parseFillRule(value: unknown): FillRule {
+  if (value === "nonzero" || value === "evenodd") return value;
+  throw new TypeError(`'${String(value)}' is not a valid CanvasFillRule`);
+}
+
+/**
+ * The swept angle of an arc from `start` to `end`: a full turn if the angles are at least a
+ * full turn apart in the drawing direction, otherwise the shorter-than-a-turn sweep that way.
+ */
+function arcSweep(start: number, end: number, anticlockwise: boolean): number {
+  const TAU = Math.PI * 2;
+  const mod = (a: number) => ((a % TAU) + TAU) % TAU;
+  if (anticlockwise) return start - end >= TAU ? -TAU : -mod(start - end);
+  return end - start >= TAU ? TAU : mod(end - start);
+}
 
 function requireArgs(actual: number, minimum: number, method: string): void {
   if (actual < minimum) throw new TypeError(`${method} requires at least ${minimum} argument(s)`);
@@ -132,10 +152,9 @@ export class Context {
   private _fillColor: number | FillStyleObject;
   private _strokeColor: number | FillStyleObject;
   /** clip regions; a pixel is drawable only if it is inside every one */
-  private _clip?: Line[][];
+  private _clip?: ClipRegion[];
   private _fillStyle_text: string;
   private _strokeStyle_text: string;
-  private _closed?: boolean;
   private pathstart?: Point;
   private debug?: boolean;
   private _transform: Transform;
@@ -187,7 +206,6 @@ export class Context {
     this._strokeStyle_text = "#000000";
     this.states = [];
     this.path = [];
-    this._closed = false;
     this.pathstart = undefined;
   }
 
@@ -592,14 +610,13 @@ export class Context {
         }
       }
     } else {
-      let old_path = this.path;
-      let old_closed = this._closed;
+      const old_path = this.path;
+      const old_pathstart = this.pathstart;
       this.beginPath();
       this.rect(x, y, w, h);
-      this.closePath();
       this.fill();
       this.path = old_path;
-      this._closed = old_closed;
+      this.pathstart = old_pathstart;
     }
   }
 
@@ -677,7 +694,6 @@ export class Context {
     if (w === 0 && h === 0) return;
     // stroke a temporary closed rect path so lineWidth, joins and transforms apply
     const old_path = this.path;
-    const old_closed = this._closed;
     const old_pathstart = this.pathstart;
     // built by hand rather than with rect(): rect() already returns to its start point,
     // and closePath() would then add a zero-length segment the stroker can't handle
@@ -695,7 +711,6 @@ export class Context {
     }
     this.stroke();
     this.path = old_path;
-    this._closed = old_closed;
     this.pathstart = old_pathstart;
   }
 
@@ -976,7 +991,7 @@ export class Context {
      * @type {Array}
      */
     this.path = [];
-    this._closed = false;
+    this.pathstart = undefined;
   }
 
   /**
@@ -991,8 +1006,9 @@ export class Context {
    *
    * @memberof Context
    * */
-  moveTo(x, y) {
+  moveTo(x: number, y: number) {
     requireArgs(arguments.length, 2, "moveTo");
+    if (!allFinite(x, y)) return;
     return this._moveTo(new Point(x, y));
   }
 
@@ -1032,8 +1048,11 @@ export class Context {
    *
    * @memberof Context
    */
-  lineTo(x, y) {
+  lineTo(x: number, y: number) {
     requireArgs(arguments.length, 2, "lineTo");
+    if (!allFinite(x, y)) return;
+    // with no subpath yet, lineTo starts one at the given point
+    if (!this.currentPoint()) return this._moveTo(new Point(x, y));
     return this._lineTo(new Point(x, y));
   }
 
@@ -1048,6 +1067,18 @@ export class Context {
    */
   _lineTo(pt) {
     this.path.push([PATH_COMMAND.LINE, this._transform.transformPoint(pt)]);
+  }
+
+  /** The last point of the current path in device space, or null if the path is empty. */
+  private currentPoint(): Point | null {
+    const cmd = this.path[this.path.length - 1];
+    if (!cmd) return null;
+    return cmd[3] ?? (cmd[0] === PATH_COMMAND.QUADRATIC_CURVE ? cmd[2] : cmd[1]);
+  }
+
+  /** Start a subpath at (x, y), in user space, if the path is empty. */
+  private ensureSubpath(x: number, y: number): void {
+    if (!this.currentPoint()) this._moveTo(new Point(x, y));
   }
 
   /**
@@ -1066,9 +1097,15 @@ export class Context {
    */
   quadraticCurveTo(cp1x: number, cp1y: number, x: number, y: number) {
     requireArgs(arguments.length, 4, "quadraticCurveTo");
-    let cp1 = this._transform.transformPoint(new Point(cp1x, cp1y));
-    let pt = this._transform.transformPoint(new Point(x, y));
-    this.path.push([PATH_COMMAND.QUADRATIC_CURVE, cp1, pt]);
+    if (!allFinite(cp1x, cp1y, x, y)) return;
+    this.ensureSubpath(cp1x, cp1y);
+    // stored as the equivalent cubic so filling and stroking share one curve flattener
+    const p0 = this.currentPoint();
+    const q = this._transform.transformPoint(new Point(cp1x, cp1y));
+    const p1 = this._transform.transformPoint(new Point(x, y));
+    const c1 = new Point(p0.x + (2 / 3) * (q.x - p0.x), p0.y + (2 / 3) * (q.y - p0.y));
+    const c2 = new Point(p1.x + (2 / 3) * (q.x - p1.x), p1.y + (2 / 3) * (q.y - p1.y));
+    this.path.push([PATH_COMMAND.BEZIER_CURVE, c1, c2, p1]);
   }
 
   /**
@@ -1087,8 +1124,10 @@ export class Context {
    *
    * @memberof Context
    */
-  bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
+  bezierCurveTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number) {
     requireArgs(arguments.length, 6, "bezierCurveTo");
+    if (!allFinite(cp1x, cp1y, cp2x, cp2y, x, y)) return;
+    this.ensureSubpath(cp1x, cp1y);
     this._bezierCurveTo(
       new Point(cp1x, cp1y),
       new Point(cp2x, cp2y),
@@ -1136,43 +1175,65 @@ export class Context {
     rad: number,
     start: number,
     end: number,
-    anticlockwise?: boolean,
+    anticlockwise = false,
   ) {
     requireArgs(arguments.length, 5, "arc");
-    if (![x, y, rad, start, end].every(Number.isFinite) || rad < 0) return;
-    function calcPoint(angle) {
-      let px = x + Math.cos(angle) * rad;
-      let py = y + Math.sin(angle) * rad;
-      return new Point(px, py);
-    }
-
-    if (start > end) end += Math.PI * 2;
-
-    let step = Math.PI / 16;
-    if (anticlockwise) {
-      let temp = end;
-      end = start + Math.PI * 2;
-      start = temp;
-    }
-    // evenly spaced chords (accumulating `a += step` could leave a near-zero final chord)
-    const sweep = end - start;
-    const n = Math.max(1, Math.ceil(sweep / step - 1e-9));
-    const angles: number[] = [];
-    for (let i = 0; i <= n; i++) angles.push(start + (sweep * i) / n);
-    if (sweep > 0) {
-      // very short first and last chords, so stroke caps (which follow the end chords)
-      // match the arc's true tangent even when lineWidth is large
-      const d = Math.min(0.01, sweep / (4 * n));
-      angles.splice(1, 0, start + d);
-      angles.splice(angles.length - 1, 0, end - d);
-    }
-    this._moveTo(calcPoint(angles[0]));
-    for (let i = 1; i < angles.length; i++) this._lineTo(calcPoint(angles[i]));
+    if (!allFinite(x, y, rad, start, end)) return;
+    if (rad < 0) throw new DOMException(`arc: negative radius ${rad}`, "IndexSizeError");
+    this.ellipse(x, y, rad, rad, 0, start, end, anticlockwise);
   }
 
-  /** Canvas arcTo is currently a no-op; arguments are still required by the API. */
-  arcTo(_x1: number, _y1: number, _x2: number, _y2: number, _radius: number) {
+  /**
+   * Adds a straight line to the path, ending in an arc of the given radius that touches both the
+   * line from the current point to (x1, y1) and the line from (x1, y1) to (x2, y2).
+   *
+   * @see https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-arcto
+   */
+  arcTo(x1: number, y1: number, x2: number, y2: number, radius: number) {
     requireArgs(arguments.length, 5, "arcTo");
+    if (!allFinite(x1, y1, x2, y2, radius)) return;
+    if (radius < 0) throw new DOMException(`arcTo: negative radius ${radius}`, "IndexSizeError");
+    this.ensureSubpath(x1, y1);
+    // the geometry is computed in user space, so bring the current point back out of device space
+    const inverse = this._transform.cloneTransform();
+    inverse.invert();
+    const p0 = inverse.transformPoint(this.currentPoint());
+    const u1x = p0.x - x1;
+    const u1y = p0.y - y1;
+    const u2x = x2 - x1;
+    const u2y = y2 - y1;
+    const len1 = Math.hypot(u1x, u1y);
+    const len2 = Math.hypot(u2x, u2y);
+    // sine of the angle between the two tangent lines; zero when the points are collinear
+    const cross = len1 && len2 ? (u1x * u2y - u1y * u2x) / (len1 * len2) : 0;
+    if (radius === 0 || Math.abs(cross) < 1e-12) {
+      this._lineTo(new Point(x1, y1));
+      return;
+    }
+    const cos = (u1x * u2x + u1y * u2y) / (len1 * len2);
+    const half = Math.acos(Math.max(-1, Math.min(1, cos))) / 2;
+    const tangent = radius / Math.tan(half); // distance from (x1, y1) to each tangent point
+    const t1x = x1 + (u1x / len1) * tangent;
+    const t1y = y1 + (u1y / len1) * tangent;
+    const t2x = x1 + (u2x / len2) * tangent;
+    const t2y = y1 + (u2y / len2) * tangent;
+    // the centre lies along the bisector, at the radius from both tangent points
+    const bx = u1x / len1 + u2x / len2;
+    const by = u1y / len1 + u2y / len2;
+    const blen = Math.hypot(bx, by);
+    const dist = radius / Math.sin(half);
+    const cx = x1 + (bx / blen) * dist;
+    const cy = y1 + (by / blen) * dist;
+    this.ellipse(
+      cx,
+      cy,
+      radius,
+      radius,
+      0,
+      Math.atan2(t1y - cy, t1x - cx),
+      Math.atan2(t2y - cy, t2x - cx),
+      cross > 0,
+    );
   }
 
   /**
@@ -1194,11 +1255,14 @@ export class Context {
    */
   rect(x: number, y: number, width: number, height: number): void {
     requireArgs(arguments.length, 4, "rect");
+    if (!allFinite(x, y, width, height)) return;
     this.moveTo(x, y);
     this.lineTo(x + width, y);
     this.lineTo(x + width, y + height);
     this.lineTo(x, y + height);
-    this.lineTo(x, y);
+    this.closePath();
+    // the rectangle is a closed subpath of its own; a new one starts back at (x, y)
+    this.moveTo(x, y);
   }
 
   roundRect(
@@ -1232,6 +1296,22 @@ export class Context {
         corners = { tl: radii[0], tr: radii[1], br: radii[2], bl: radii[3] };
       }
     }
+    // radii that would overlap along a side are scaled down together until they fit
+    const scale = Math.min(
+      1,
+      Math.abs(width) / (corners.tl + corners.tr),
+      Math.abs(width) / (corners.bl + corners.br),
+      Math.abs(height) / (corners.tl + corners.bl),
+      Math.abs(height) / (corners.tr + corners.br),
+    );
+    if (scale < 1) {
+      corners = {
+        tl: corners.tl * scale,
+        tr: corners.tr * scale,
+        br: corners.br * scale,
+        bl: corners.bl * scale,
+      };
+    }
     this.moveTo(x + corners.tl, y);
     this.lineTo(x + width - corners.tr, y);
     this.quadraticCurveTo(x + width, y, x + width, y + corners.tr);
@@ -1250,16 +1330,63 @@ export class Context {
   }
 
   /**
-   * Ellipse
+   * Adds an elliptical arc to the path, joined to any existing subpath by a straight line.
    *
-   * @ignore
-   *
-   * @throws {Error} Method is not yet implemented
-   *
-   * @memberof Context
+   * @see https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-ellipse
    */
-  ellipse() {
-    throw new Error("ellipse not yet supported");
+  ellipse(
+    x: number,
+    y: number,
+    radiusX: number,
+    radiusY: number,
+    rotation: number,
+    start: number,
+    end: number,
+    anticlockwise = false,
+  ) {
+    requireArgs(arguments.length, 7, "ellipse");
+    if (!allFinite(x, y, radiusX, radiusY, rotation, start, end)) return;
+    if (radiusX < 0 || radiusY < 0) {
+      throw new DOMException(`ellipse: negative radius ${radiusX}, ${radiusY}`, "IndexSizeError");
+    }
+    const sweep = arcSweep(start, end, anticlockwise);
+    const cosR = Math.cos(rotation);
+    const sinR = Math.sin(rotation);
+    const pointAt = (angle: number) => {
+      const ex = radiusX * Math.cos(angle);
+      const ey = radiusY * Math.sin(angle);
+      return new Point(x + ex * cosR - ey * sinR, y + ex * sinR + ey * cosR);
+    };
+
+    // chords short enough to stay within ~1/8 pixel of the true curve, in device space
+    const m = this._transform.getMatrix();
+    const scale = Math.sqrt(Math.abs(m[0] * m[3] - m[1] * m[2])) || 1;
+    const r = Math.max(radiusX, radiusY) * scale;
+    const maxStep = r > 0.125 ? 2 * Math.acos(1 - 0.125 / r) : Math.PI / 2;
+    const step = Math.min(Math.PI / 16, maxStep);
+    const n = Math.max(1, Math.ceil(Math.abs(sweep) / step - 1e-9));
+    const angles: number[] = [];
+    for (let i = 0; i <= n; i++) angles.push(start + (sweep * i) / n);
+    if (sweep !== 0) {
+      // very short first and last chords, so stroke caps (which follow the end chords)
+      // match the arc's true tangent even when lineWidth is large
+      const d = Math.sign(sweep) * Math.min(0.01, Math.abs(sweep) / (4 * n));
+      angles.splice(1, 0, start + d);
+      angles.splice(angles.length - 1, 0, start + sweep - d);
+    }
+
+    // join the arc to the existing subpath with a line, or start a new subpath
+    const first = pointAt(angles[0]);
+    if (this.currentPoint()) this._lineTo(first);
+    else this._moveTo(first);
+    let prev = this.currentPoint();
+    for (let i = 1; i < angles.length; i++) {
+      const pt = this._transform.transformPoint(pointAt(angles[i]));
+      // a zero radius collapses every chord onto one point; skip the zero-length segments
+      if (pt.equals(prev)) continue;
+      this.path.push([PATH_COMMAND.LINE, pt]);
+      prev = pt;
+    }
   }
 
   /**
@@ -1271,9 +1398,10 @@ export class Context {
    *
    * @memberof Context
    */
-  clip(): void {
+  clip(fillRule: FillRule = "nonzero"): void {
+    const rule = parseFillRule(fillRule);
     // intersect with any existing clip; build a new array so states saved by save() are untouched
-    this._clip = [...(this._clip ?? []), pathToLines(this.path)];
+    this._clip = [...(this._clip ?? []), { lines: pathToFillLines(this.path), rule }];
   }
 
   /**
@@ -1300,20 +1428,9 @@ export class Context {
    * @memberof Context
    */
   closePath() {
-    if (this.path.length === 0) return; // nothing to close
-    if (!this._closed) {
-      if (!this.pathstart) {
-        console.warn("missing path start");
-        // console.log(this.path)
-        let cmd = this.path[0];
-        // console.log("command",cmd)
-        if (cmd[0] === "l") {
-          this.pathstart = cmd[1];
-        }
-      }
-      this.path.push([PATH_COMMAND.LINE, this.pathstart]);
-      this._closed = true;
-    }
+    const curr = this.currentPoint();
+    if (!curr || !this.pathstart) return; // nothing to close
+    if (!curr.equals(this.pathstart)) this.path.push([PATH_COMMAND.LINE, this.pathstart]);
   }
 
   /**
@@ -1513,10 +1630,13 @@ export class Context {
    *
    * @memberof Context
    */
-  fill() {
-    if (!this._closed) this.closePath();
-    const lines = pathToLines(this.path);
-    this.paint(() => (this.imageSmoothingEnabled ? this.fill_aa(lines) : this.fill_noaa(lines)));
+  fill(fillRule: FillRule = "nonzero") {
+    const rule = parseFillRule(fillRule);
+    // every subpath is filled as if closed, without changing the path itself
+    const lines = pathToFillLines(this.path);
+    this.paint(() =>
+      this.imageSmoothingEnabled ? this.fill_aa(lines, rule) : this.fill_noaa(lines, rule),
+    );
   }
 
   /**
@@ -1621,12 +1741,13 @@ export class Context {
     if (!this._clip) return true;
     //turn into a list of lines
     // calculate intersections with a horizontal line at j
-    return this._clip.every((region) => {
+    return this._clip.every(({ lines, rule }) => {
       // test the pixel centre (x + 0.5, y + 0.5) so clipping agrees with fill_aa/fill_noaa
-      const ints = calcSortedIntersections(region, y + 0.5);
-      // odd number of crossings left of the centre means inside
-      const left = ints.filter((inter) => inter < x + 0.5);
-      return left.length % 2 === 1;
+      const spans = calcSpans(lines, y + 0.5, rule);
+      for (let i = 0; i + 1 < spans.length; i += 2) {
+        if (spans[i] < x + 0.5 && x + 0.5 <= spans[i + 1]) return true;
+      }
+      return false;
     });
   }
 
@@ -1707,6 +1828,27 @@ function fract(v) {
  *
  * @returns {Array<Line>}
  */
+/** The lines of a path as filled: each subpath is implicitly closed back to its start. */
+function pathToFillLines(path: PathCmd[]): Line[] {
+  const lines: Line[] = [];
+  let start: Point | null = null;
+  let curr: Point | null = null;
+  const close = () => {
+    if (start && curr && !curr.equals(start)) lines.push(new Line(curr, start));
+  };
+  for (const cmd of path) {
+    if (cmd[0] === PATH_COMMAND.MOVE) {
+      close();
+      start = curr = cmd[1];
+      continue;
+    }
+    for (const line of pathToLines([[PATH_COMMAND.MOVE, curr], cmd])) lines.push(line);
+    curr = cmd[3] ?? cmd[1];
+  }
+  close();
+  return lines;
+}
+
 function pathToLines(path) {
   const lines = [];
   let curr = null;
@@ -1779,6 +1921,8 @@ function path_to_stroked_path(path: PathInstruction[], w: number) {
     curr_sub.push(pth);
   });
   if (curr_sub.length > 0) subs.push(curr_sub);
+  // a subpath that is only a moveTo has nothing to stroke
+  subs = subs.filter((sub) => sub.length > 1);
 
   // warn if there's missing MOVEs
   subs.forEach((sub) => {
@@ -1867,6 +2011,9 @@ function sub_path_to_stroked_sub_path(
 
       let pts1 = project(A, B, w);
       let pts2 = project(C, B, w);
+      // the inner join point is where the two offset lines cross; as the path doubles back
+      // that point runs off to infinity, so keep it within reach of the shorter segment's end
+      const maxInner = Math.hypot(w, Math.min(BA.magnitude(), BC.magnitude()));
       // console.log(i,'B',pts1)
       // console.log(i,'B',pts2)
       if (turn < 0) {
@@ -1875,7 +2022,7 @@ function sub_path_to_stroked_sub_path(
         outside.push([PATH_COMMAND.LINE, pts1[0]]);
         outside.push([PATH_COMMAND.LINE, pts2[1]]);
         //adjust inside
-        let h = w / Math.cos((Math.PI + turn) / 2);
+        let h = Math.min(maxInner, w / Math.cos((Math.PI + turn) / 2));
         let C_unit = A.subtract(B)
           .unit()
           .rotate(turn / 2)
@@ -1885,8 +2032,7 @@ function sub_path_to_stroked_sub_path(
       } else {
         //if turning left
         //adjust outside
-        let h = w / Math.cos(-(Math.PI - turn) / 2);
-        if (h > 10) h = 10;
+        let h = Math.min(maxInner, w / Math.cos(-(Math.PI - turn) / 2));
         let C_unit = C.subtract(B)
           .unit()
           .rotate(-turn / 2)

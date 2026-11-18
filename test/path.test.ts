@@ -480,3 +480,194 @@ describe("restroke test", () => {
     await save(image, "restroke");
   });
 });
+
+describe("path building", () => {
+  const RED = [255, 0, 0, 255];
+  const GREEN = [0, 255, 0, 255];
+
+  // a red 100x50 canvas, drawn on in green by `draw`
+  function canvas(draw: (ctx) => void) {
+    const image = pureimage.make(100, 50);
+    const ctx = image.getContext("2d");
+    ctx.fillStyle = "#f00";
+    ctx.fillRect(0, 0, 100, 50);
+    ctx.fillStyle = "#0f0";
+    ctx.strokeStyle = "#0f0";
+    draw(ctx);
+    return (x: number, y: number) => Array.from(image.getPixelRGBA_separate(x, y));
+  }
+
+  it("fills with the nonzero rule by default, and evenodd on request", () => {
+    // an outer rect and an inner rect wound the same way
+    const square = (ctx) => {
+      ctx.rect(0, 0, 100, 50);
+      ctx.rect(25, 12, 50, 25);
+    };
+    expect(canvas((ctx) => (square(ctx), ctx.fill()))(50, 25)).toEqual(GREEN);
+    expect(canvas((ctx) => (square(ctx), ctx.fill("evenodd")))(50, 25)).toEqual(RED);
+    expect(() => canvas((ctx) => ctx.fill("bogus"))).toThrow(TypeError);
+  });
+
+  it("clips with the given fill rule", () => {
+    const px = canvas((ctx) => {
+      ctx.rect(0, 0, 100, 50);
+      ctx.rect(25, 12, 50, 25);
+      ctx.clip("evenodd");
+      ctx.fillRect(0, 0, 100, 50);
+    });
+    expect(px(5, 5)).toEqual(GREEN);
+    expect(px(50, 25)).toEqual(RED);
+  });
+
+  it("fill closes subpaths without changing the path", () => {
+    const px = canvas((ctx) => {
+      ctx.moveTo(0, 0);
+      ctx.lineTo(100, 0);
+      ctx.lineTo(100, 50);
+      ctx.fill(); // implicitly closed back to (0, 0) for filling only
+      ctx.lineTo(0, 50); // continues the same, still-open subpath
+      ctx.fill();
+    });
+    expect(px(10, 40)).toEqual(GREEN);
+  });
+
+  it("lineTo and curves on an empty path start a subpath instead of throwing", () => {
+    const px = canvas((ctx) => {
+      ctx.lineWidth = 50;
+      ctx.beginPath();
+      ctx.lineTo(0, 25); // becomes moveTo(0, 25)
+      ctx.lineTo(100, 25);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.bezierCurveTo(0, 0, 50, 0, 100, 0);
+      ctx.quadraticCurveTo(0, 0, 100, 0);
+      ctx.stroke();
+    });
+    expect(px(50, 25)).toEqual(GREEN);
+  });
+
+  it("ignores path calls with non-finite arguments", () => {
+    const px = canvas((ctx) => {
+      ctx.moveTo(0, 0);
+      ctx.lineTo(100, 0);
+      ctx.lineTo(NaN, 50);
+      ctx.bezierCurveTo(Infinity, 0, 0, 0, 0, 0);
+      ctx.arcTo(0, 0, NaN, 0, 5);
+      ctx.lineTo(100, 50);
+      ctx.lineTo(0, 50);
+      ctx.fill();
+    });
+    expect(px(50, 25)).toEqual(GREEN);
+  });
+
+  it("quadratic curves reach their end point", () => {
+    const px = canvas((ctx) => {
+      ctx.lineWidth = 50;
+      ctx.moveTo(0, 25);
+      ctx.quadraticCurveTo(100, 25, 100, 25);
+      ctx.stroke();
+    });
+    expect(px(50, 25)).toEqual(GREEN);
+    expect(px(98, 25)).toEqual(GREEN);
+  });
+
+  it("arc joins the current subpath with a line", () => {
+    const px = canvas((ctx) => {
+      ctx.lineWidth = 10;
+      ctx.moveTo(0, 25);
+      ctx.arc(90, 25, 10, Math.PI, Math.PI * 1.5); // starts at (80, 25)
+      ctx.stroke();
+    });
+    // the joining line from (0, 25) to the arc's start
+    expect(px(40, 25)).toEqual(GREEN);
+    expect(px(40, 10)).toEqual(RED);
+  });
+
+  it("arc goes anticlockwise when asked", () => {
+    // clockwise from 0 to π is the lower half (off-canvas below y = 0); anticlockwise is the upper
+    const fill = (anticlockwise: boolean) =>
+      canvas((ctx) => {
+        ctx.arc(50, 0, 40, 0, Math.PI, anticlockwise);
+        ctx.fill();
+      })(50, 20);
+    expect(fill(false)).toEqual(GREEN);
+    expect(fill(true)).toEqual(RED);
+  });
+
+  it("a sweep of a full turn or more draws the whole circle", () => {
+    const px = canvas((ctx) => {
+      ctx.arc(50, 25, 20, 0, 2 * Math.PI + 1);
+      ctx.fill();
+    });
+    expect(px(50, 10)).toEqual(GREEN);
+    expect(px(50, 40)).toEqual(GREEN);
+  });
+
+  it("arc and arcTo reject negative radii", () => {
+    const ctx = pureimage.make(10, 10).getContext("2d");
+    expect(() => ctx.arc(0, 0, -1, 0, 1)).toThrow(expect.objectContaining({ name: "IndexSizeError" }));
+    expect(() => ctx.arcTo(0, 0, 1, 1, -1)).toThrow(expect.objectContaining({ name: "IndexSizeError" }));
+    expect(() => ctx.ellipse(0, 0, 1, -1, 0, 0, 1)).toThrow(expect.objectContaining({ name: "IndexSizeError" }));
+  });
+
+  it("arcTo rounds the corner between two lines", () => {
+    const px = canvas((ctx) => {
+      ctx.moveTo(0, 0);
+      ctx.arcTo(100, 0, 100, 50, 40);
+      ctx.lineTo(100, 50);
+      ctx.lineTo(0, 50);
+      ctx.fill();
+    });
+    expect(px(50, 25)).toEqual(GREEN);
+    expect(px(97, 2)).toEqual(RED); // cut off by the rounded corner
+    expect(px(55, 2)).toEqual(GREEN); // still on the straight part
+  });
+
+  it("arcTo with collinear points or a zero radius draws a straight line", () => {
+    const px = canvas((ctx) => {
+      ctx.lineWidth = 50;
+      ctx.moveTo(0, 25);
+      ctx.arcTo(50, 25, 100, 25, 10);
+      ctx.arcTo(100, 25, 100, 50, 0);
+      ctx.stroke();
+    });
+    expect(px(50, 25)).toEqual(GREEN);
+    expect(px(97, 25)).toEqual(GREEN);
+  });
+
+  it("draws rotated ellipses", () => {
+    const px = canvas((ctx) => {
+      ctx.ellipse(50, 25, 40, 10, Math.PI / 2, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+    // rotated a quarter turn: tall and thin
+    expect(px(50, 5)).toEqual(GREEN);
+    expect(px(15, 25)).toEqual(RED);
+  });
+
+  it("rect closes its subpath and starts a new one at its corner", () => {
+    const px = canvas((ctx) => {
+      ctx.rect(0, 0, 50, 50);
+      ctx.lineTo(100, 0); // from (0, 0), not from the rect's last corner
+      ctx.lineTo(100, 50);
+      ctx.fill();
+    });
+    expect(px(25, 25)).toEqual(GREEN);
+    expect(px(90, 10)).toEqual(GREEN);
+    expect(px(60, 45)).toEqual(RED);
+  });
+
+  it("strokes wide arcs drawn in either direction", () => {
+    for (const anticlockwise of [false, true]) {
+      const px = canvas((ctx) => {
+        ctx.lineWidth = 100;
+        ctx.beginPath();
+        if (anticlockwise) ctx.arc(50, 50, 50, 0, Math.PI, true);
+        else ctx.arc(50, 50, 50, Math.PI, 0);
+        ctx.stroke();
+      });
+      expect(px(50, 25)).toEqual(GREEN);
+      expect(px(5, 5)).toEqual(GREEN);
+    }
+  });
+});
