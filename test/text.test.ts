@@ -97,60 +97,42 @@ describe("text drawing", () => {
     context.fillText(str, x, y);
   }
 
-  it("can draw vertical aligned text", async () => {
+  /** The lowest row containing dark ink, scanning a vertical strip. */
+  function inkBottom(x0: number, x1: number): number {
+    for (let y = image.height - 1; y >= 0; y--) {
+      for (let x = x0; x < x1; x++) {
+        if (image.getPixelRGBA_separate(x, y)[0] < 128) return y;
+      }
+    }
+    return -1;
+  }
+
+  // Source Sans Pro has no USE_TYPO_METRICS flag, so the hhea ascent (984) and descent (273)
+  // apply; browsers scale that ratio to one em for the top/bottom em box. (PureImage currently
+  // treats the "48pt" font size as 48px.)
+  const EM_ASCENT = (48 * 984) / (984 + 273);
+  const EM_DESCENT = 48 - EM_ASCENT;
+
+  it.each([
+    // textBaseline, where the alphabetic baseline lands when drawing at y = 50
+    ["alphabetic", 50],
+    ["top", 50 + EM_ASCENT],
+    ["middle", 50 + (EM_ASCENT - EM_DESCENT) / 2],
+    ["bottom", 50 - EM_DESCENT],
+  ])("can draw vertical aligned text: %s", async (baseline, alphabeticY) => {
     let fnt = pureimage.registerFont(
       "test/unit/fixtures/fonts/SourceSansPro-Regular.ttf",
       "Source Sans Pro",
     );
     await fnt.loadPromise();
+    image = pureimage.make(100, 200);
+    context = image.getContext("2d");
     clear();
-    context.fillStyle = "red";
-    context.fillRect(0, 50, 200, 1);
-    context.fillStyle = "black";
-    context.fillRect(0, 50 - 47, 200, 1);
-    context.fillRect(0, 50 - 47 / 2, 200, 1);
-    context.fillRect(0, 50 - 13, 200, 1);
-
-    {
-      writeV("Hello", 50, 50, "top");
-      let y = 37 + 47;
-      context.fillStyle = "magenta";
-      expect(image.getPixelRGBA(90, y)).to.eq(BLACK);
-      expect(image.getPixelRGBA(90, y + 2)).to.eq(WHITE);
-      context.fillRect(90, y, 1, 1);
-      // clear()
-    }
-
-    {
-      writeV("Hey", 50, 50, "middle");
-      context.fillStyle = "magenta";
-      let y = 37 + 47 / 2 - 13 / 2;
-      expect(image.getPixelRGBA(90, y)).to.eq(BLACK);
-      expect(image.getPixelRGBA(90, y + 2)).to.eq(WHITE);
-      context.fillRect(91, y, 1, 1);
-    }
-
-    {
-      writeV("hey", 50, 50, "alphabetic");
-      context.fillStyle = "magenta";
-      let y = 37;
-      //alphabetic
-      expect(image.getPixelRGBA(90, y)).to.eq(BLACK);
-      expect(image.getPixelRGBA(90, y + 2)).to.eq(WHITE);
-      context.fillRect(91, y, 1, 1);
-      // clear()
-    }
-
-    // {
-    //     //bottom
-    //     writeV('hey', 50, 50, 'bottom')
-    //     context.fillStyle = 'magenta'
-    //     let y = 37 - 13
-    //     context.fillRect(91, y, 1, 1)
-    //     await save(image, "text-valign")
-    //     expect(image.getPixelRGBA(90, y)).to.eq(BLACK)
-    //     expect(image.getPixelRGBA(90, y + 3)).to.eq(WHITE)
-    // }
+    // "H" sits exactly on the alphabetic baseline
+    writeV("H", 10, 50, baseline);
+    expect(inkBottom(10, 60)).toBe(Math.ceil(alphabeticY as number) - 1);
+    // measureText reports the same alphabetic baseline position
+    expect(-context.measureText("H").alphabeticBaseline).toBeCloseTo((alphabeticY as number) - 50, 5);
   });
 });
 
@@ -207,5 +189,90 @@ describe("otf fonts", () => {
     ctx.fillStyle = "#000";
     ctx.fillText("B", 50, 50);
     await save(image, "text_bug_144");
+  });
+});
+
+describe("measureText metrics", () => {
+  // Source Sans Pro: 1000 units/em, hhea ascent 984, descent 273, no USE_TYPO_METRICS
+  async function setup(textBaseline = "alphabetic", textAlign = "left") {
+    await pureimage
+      .registerFont("test/unit/fixtures/fonts/SourceSansPro-Regular.ttf", "Source Sans Pro")
+      .loadPromise();
+    const ctx = pureimage.make(10, 10).getContext("2d");
+    ctx.font = "100px 'Source Sans Pro'";
+    ctx.textBaseline = textBaseline;
+    ctx.textAlign = textAlign;
+    return ctx;
+  }
+
+  it("reports every TextMetrics field", async () => {
+    const m = (await setup()).measureText("H");
+    for (const key of [
+      "width", "actualBoundingBoxLeft", "actualBoundingBoxRight", "actualBoundingBoxAscent",
+      "actualBoundingBoxDescent", "fontBoundingBoxAscent", "fontBoundingBoxDescent",
+      "emHeightAscent", "emHeightDescent", "hangingBaseline", "alphabeticBaseline",
+      "ideographicBaseline",
+    ]) {
+      expect(Number.isFinite(m[key]), key).toBe(true);
+    }
+  });
+
+  it("uses the font's ascent and descent, and an em box of exactly one em", async () => {
+    const m = (await setup()).measureText("H");
+    expect(m.fontBoundingBoxAscent).toBeCloseTo(98.4, 5);
+    expect(m.fontBoundingBoxDescent).toBeCloseTo(27.3, 5);
+    expect(m.emHeightAscent + m.emHeightDescent).toBeCloseTo(100, 5);
+    expect(m.emHeightAscent).toBeCloseTo((100 * 984) / 1257, 5);
+    expect(m.alphabeticBaseline).toBe(-0);
+  });
+
+  it("measures the glyph ink", async () => {
+    const m = (await setup()).measureText("H");
+    // "H" sits on the baseline, is about cap-height tall, and has side bearings
+    expect(m.actualBoundingBoxDescent).toBeCloseTo(0, 5);
+    expect(m.actualBoundingBoxAscent).toBeGreaterThan(60);
+    expect(m.actualBoundingBoxAscent).toBeLessThan(m.fontBoundingBoxAscent);
+    expect(-m.actualBoundingBoxLeft).toBeGreaterThan(0);
+    expect(m.actualBoundingBoxRight).toBeLessThan(m.width);
+  });
+
+  it("measures vertical values from the textBaseline", async () => {
+    const alpha = (await setup("alphabetic")).measureText("H");
+    const top = (await setup("top")).measureText("H");
+    expect(top.emHeightAscent).toBeCloseTo(0, 5);
+    expect(top.alphabeticBaseline).toBeCloseTo(-alpha.emHeightAscent, 5);
+    expect(top.actualBoundingBoxAscent).toBeCloseTo(alpha.actualBoundingBoxAscent - alpha.emHeightAscent, 5);
+  });
+
+  it("measures horizontal ink from the textAlign point", async () => {
+    const left = (await setup("alphabetic", "left")).measureText("H");
+    const right = (await setup("alphabetic", "right")).measureText("H");
+    expect(right.actualBoundingBoxLeft).toBeCloseTo(left.actualBoundingBoxLeft + left.width, 5);
+    expect(right.actualBoundingBoxRight).toBeCloseTo(left.actualBoundingBoxRight - left.width, 5);
+  });
+
+  it("treats the null character as zero width and tabs as spaces", async () => {
+    const ctx = await setup();
+    expect(ctx.measureText("\u0000").width).toBe(0);
+    expect(ctx.measureText("a\tb").width).toBe(ctx.measureText("a b").width);
+  });
+
+  it("an empty string has no width or ink", async () => {
+    const m = (await setup()).measureText("");
+    expect(m.width).toBe(0);
+    expect(m.actualBoundingBoxLeft).toBe(0);
+    expect(m.actualBoundingBoxRight).toBe(0);
+  });
+});
+
+describe("fonts with unsupported substitution lookups", () => {
+  // Lato uses a GSUB extension lookup that opentype.js 1.3.4 can't apply; measuring and
+  // drawing must still work rather than throw
+  it("measures and draws text", async () => {
+    await pureimage.registerFont("test/unit/fixtures/fonts/Lato-Medium.ttf", "Lato Medium").loadPromise();
+    const ctx = pureimage.make(100, 50).getContext("2d");
+    ctx.font = "20px 'Lato Medium'";
+    expect(ctx.measureText("fi office").width).toBeGreaterThan(0);
+    expect(() => ctx.fillText("fi office", 5, 30)).not.toThrow();
   });
 });
