@@ -13,6 +13,8 @@ export class CanvasGradient {
     this.stops.push({ t: t, color: color });
   }
   protected _lerpStops(t: number) {
+    // per spec, a gradient with no color stops paints transparent black
+    if (this.stops.length === 0) return 0;
     if (t < 0) t += 1.0;
     if (t > 1) t -= 1.0;
     // find the stops that T is inbetween
@@ -63,6 +65,8 @@ export class LinearGradient extends CanvasGradient {
     //calculate V
     let V = this.end.subtract(this.start); // subtract
     const d = V.magnitude(); // get magnitude
+    // per spec, a zero-length linear gradient paints nothing
+    if (d === 0) return 0;
     V = V.divide(d); // normalize
 
     //calculate V0
