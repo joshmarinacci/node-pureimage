@@ -17,6 +17,7 @@ import { build } from "esbuild";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -137,6 +138,68 @@ function restoreContextPrototype() {
   Object.defineProperties(contextProto, contextProtoSnapshot);
 }
 
+// ---------- image loading shims ----------
+// Worker tests load fixtures with fetch('/images/x.png') + createImageBitmap(blob).
+// fetch is not part of canvas, so it is shimmed here to read files from the WPT checkout.
+
+/** Resolve a test URL to a file inside the WPT checkout, or null if it escapes it. */
+function resolveWptUrl(url, testFile) {
+  // relative URLs resolve against the test file's own location on the WPT server
+  const base = new URL(path.relative(wptDir, testFile).split(path.sep).join("/"), "http://wpt.local/");
+  const resolved = path.resolve(wptDir, "." + decodeURIComponent(new URL(url, base).pathname));
+  return resolved.startsWith(path.resolve(wptDir) + path.sep) ? resolved : null;
+}
+
+function makeFetch(testFile) {
+  return async function fetch(input) {
+    const url = typeof input === "string" ? input : input?.url;
+    const file = resolveWptUrl(String(url), testFile);
+    if (!file || !fs.existsSync(file)) return new Response(null, { status: 404, statusText: "Not Found" });
+    const type = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg" }[path.extname(file).toLowerCase()];
+    return new Response(fs.readFileSync(file), { status: 200, headers: type ? { "content-type": type } : {} });
+  };
+}
+
+class ImageBitmap extends PImage.Bitmap {
+  close() {
+    this.width = 0;
+    this.height = 0;
+    this.data = new Uint8Array(0);
+  }
+
+  get [Symbol.toStringTag]() {
+    return "ImageBitmap";
+  }
+}
+
+/** Copy straight RGBA pixels (a Bitmap, OffscreenCanvas or ImageData) into a new ImageBitmap. */
+function bitmapFromPixels(src) {
+  const out = new ImageBitmap(src.width, src.height);
+  out.data.set(src.data.subarray(0, out.data.length));
+  return out;
+}
+
+async function decodeImage(bytes, type) {
+  const stream = Readable.from([Buffer.from(bytes)]);
+  if (type === "image/png") return PImage.decodePNGFromStream(stream);
+  if (type === "image/jpeg") return PImage.decodeJPEGFromStream(stream);
+  throw new DOMException(`createImageBitmap: unsupported image type ${type || "(none)"}`, "InvalidStateError");
+}
+
+async function createImageBitmap(source) {
+  if (source instanceof Blob) {
+    const bytes = new Uint8Array(await source.arrayBuffer());
+    // sniff the format rather than trusting the blob type, as browsers do
+    const type = bytes[0] === 0x89 && bytes[1] === 0x50 ? "image/png" : bytes[0] === 0xff && bytes[1] === 0xd8 ? "image/jpeg" : source.type;
+    return bitmapFromPixels(await decodeImage(bytes, type));
+  }
+  // a Bitmap/OffscreenCanvas, or ImageData-like pixels
+  if (source && Number.isInteger(source.width) && Number.isInteger(source.height) && source.data?.length >= source.width * source.height * 4) {
+    return bitmapFromPixels(source);
+  }
+  throw new TypeError("createImageBitmap: unsupported source");
+}
+
 function runFile(file) {
   return new Promise((resolve) => {
     const subtests = []; // {name, status, message}
@@ -196,6 +259,11 @@ function runFile(file) {
     const ctx = vm.createContext({
       OffscreenCanvas,
       OffscreenCanvasRenderingContext2D: PImage.Context,
+      fetch: makeFetch(file),
+      createImageBitmap,
+      ImageBitmap,
+      Blob,
+      Response,
       ImageData: PImage.ImageData,
       Path2D: PImage.Path2D,
       DOMMatrix: PImage.DOMMatrix,
