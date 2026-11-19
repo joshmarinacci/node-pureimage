@@ -1,6 +1,6 @@
 import { Line } from "./line.js";
 import { NAMED_COLORS, TRANSPARENT_BLACK } from "./named_colors.js";
-import { Bounds, calc_min_bounds, Point, PointIsh, toRad } from "./point.js";
+import { Bounds, calc_min_bounds, Point, PointIsh } from "./point.js";
 import * as TEXT from "./text.js";
 import { Font } from "./text.js";
 import * as G from "./gradients.js";
@@ -11,13 +11,13 @@ import {
   MinimumBounds,
   PATH_COMMAND,
   PathCmd,
-  RoundRectCorners,
   TextAlign,
   TextBaseline,
 } from "./types.js";
 import { parseColor, serializeColor } from "./color.js";
 import { CompositeOperation, compositePixel, isCompositeOperation, isUnbounded } from "./composite.js";
 import { Matrix, Transform } from "./transform.js";
+import { LineCap, LineJoin, strokePolygons, Subpath } from "./stroke.js";
 
 // Matches a CSS size token: digits+optional-decimal followed by a unit, plus an optional /line-height suffix.
 const FONT_SIZE_RE = /^(\d*\.?\d+)(px|pt|em|rem|ex|ch|vw|vh|%)(\/.*)?$/i;
@@ -54,10 +54,39 @@ function parseFillRule(value: unknown): FillRule {
  */
 function arcSweep(start: number, end: number, anticlockwise: boolean): number {
   const TAU = Math.PI * 2;
-  const mod = (a: number) => ((a % TAU) + TAU) % TAU;
-  if (anticlockwise) return start - end >= TAU ? -TAU : -mod(start - end);
-  return end - start >= TAU ? TAU : mod(end - start);
+  // angles an exact number of turns apart (other than zero) also make a full circle
+  if (anticlockwise) {
+    if (start - end >= TAU) return -TAU;
+    return start < end ? -(TAU - ((end - start) % TAU)) : end - start;
+  }
+  if (end - start >= TAU) return TAU;
+  return start > end ? TAU - ((start - end) % TAU) : end - start;
 }
+
+type CornerRadius = { x: number; y: number };
+type RoundRectRadius = number | { x?: number; y?: number };
+
+const isIterable = (v: unknown): v is Iterable<unknown> =>
+  typeof v === "object" && v !== null && typeof (v as Iterable<unknown>)[Symbol.iterator] === "function";
+
+/** WebIDL ToNumber, which (unlike Number()) rejects BigInts. */
+function toNumber(v: unknown): number {
+  if (typeof v === "bigint") throw new TypeError("can't convert a BigInt to a number");
+  return Number(v);
+}
+
+/** Convert a roundRect radius: a number, or a DOMPointInit whose missing x and y are 0. */
+function toCornerRadius(r: unknown): CornerRadius {
+  if (r === null || r === undefined || typeof r === "object" || typeof r === "function") {
+    const p = (r ?? {}) as { x?: unknown; y?: unknown };
+    return { x: toNumber(p.x ?? 0), y: toNumber(p.y ?? 0) };
+  }
+  const n = toNumber(r);
+  return { x: n, y: n };
+}
+
+/** Points closer than a millionth of a pixel, e.g. equal up to floating-point error from trig. */
+const samePoint = (a: PointIsh, b: PointIsh) => Math.abs(a.x - b.x) < 1e-6 && Math.abs(a.y - b.y) < 1e-6;
 
 function requireArgs(actual: number, minimum: number, method: string): void {
   if (actual < minimum) throw new TypeError(`${method} requires at least ${minimum} argument(s)`);
@@ -130,10 +159,6 @@ export class Context {
   public textBaseline: TextBaseline;
   /** Enable or disable image smoothing(anti-aliasing)*/
   public imageSmoothingEnabled: boolean;
-  /** stored and saved/restored with the state, but not yet used when drawing */
-  public lineCap: string;
-  public lineJoin: string;
-  public miterLimit: number;
   public imageSmoothingQuality: string;
   public direction: string;
   public filter: string;
@@ -156,7 +181,6 @@ export class Context {
   private _fillStyle_text: string;
   private _strokeStyle_text: string;
   private pathstart?: Point;
-  private debug?: boolean;
   private _transform: Transform;
   private states: any[];
 
@@ -193,9 +217,9 @@ export class Context {
     this.lineDashOffset = 0;
     this.textRendering = "auto";
     this.wordSpacing = "0px";
-    this.lineCap = "butt";
-    this.lineJoin = "miter";
-    this.miterLimit = 10;
+    this._lineCap = "butt";
+    this._lineJoin = "miter";
+    this._miterLimit = 10;
     this.shadowBlur = 0;
     this.shadowColor = "rgba(0, 0, 0, 0)";
     this.shadowOffsetX = 0;
@@ -240,8 +264,38 @@ export class Context {
   }
 
   /** @example ctx.lineWidth = 15; */
-  set lineWidth(val) {
-    this._lineWidth = val;
+  set lineWidth(val: number) {
+    const v = Number(val);
+    if (Number.isFinite(v) && v > 0) this._lineWidth = v;
+  }
+
+  private _lineCap: LineCap;
+  private _lineJoin: LineJoin;
+  private _miterLimit: number;
+
+  /** How the ends of open subpaths are drawn: butt (the default), round or square. */
+  get lineCap(): LineCap {
+    return this._lineCap;
+  }
+  set lineCap(val: LineCap) {
+    if (val === "butt" || val === "round" || val === "square") this._lineCap = val;
+  }
+
+  /** How corners between segments are drawn: miter (the default), round or bevel. */
+  get lineJoin(): LineJoin {
+    return this._lineJoin;
+  }
+  set lineJoin(val: LineJoin) {
+    if (val === "miter" || val === "round" || val === "bevel") this._lineJoin = val;
+  }
+
+  /** The longest a miter join may be, as a multiple of the line width, before it is bevelled. */
+  get miterLimit(): number {
+    return this._miterLimit;
+  }
+  set miterLimit(val: number) {
+    const v = Number(val);
+    if (Number.isFinite(v) && v > 0) this._miterLimit = v;
   }
 
   private _globalAlpha: number;
@@ -700,9 +754,10 @@ export class Context {
     this.beginPath();
     this.moveTo(x, y);
     if (w === 0 || h === 0) {
-      // degenerate rect: the stroker can't handle a closed path that doubles back on
-      // itself, so stroke the single segment instead (correct while caps are unsupported)
+      // a flat rect is a closed path that doubles back on itself: no caps, but it joins
+      // at both ends
       this.lineTo(x + w, y + h);
+      this.closePath();
     } else {
       this.lineTo(x + w, y);
       this.lineTo(x + w, y + h);
@@ -1265,68 +1320,77 @@ export class Context {
     this.moveTo(x, y);
   }
 
+  /**
+   * Adds a rectangle with rounded corners as a closed subpath. Each radius is a number or a
+   * DOMPointInit `{x, y}` for an elliptical corner; 1 to 4 radii are given CSS-style.
+   *
+   * @see https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-roundrect
+   */
   roundRect(
     x: number,
     y: number,
     width: number,
     height: number,
-    radii: number | number[],
+    radii: RoundRectRadius | RoundRectRadius[] = 0,
   ) {
-    let corners: RoundRectCorners = { bl: 0, br: 0, tr: 0, tl: 0 };
-    if (typeof radii === "undefined") {
-      corners = { bl: 0, br: 0, tr: 0, tl: 0 };
+    requireArgs(arguments.length, 4, "roundRect");
+    // convert every argument (which can throw) before acting on any of them, as WebIDL does
+    const list = (isIterable(radii) ? Array.from(radii) : [radii]).map(toCornerRadius);
+    if (!allFinite(x, y, width, height)) return;
+    if (list.length < 1 || list.length > 4) {
+      throw new RangeError(`roundRect: expected 1 to 4 radii, got ${list.length}`);
     }
-    if (typeof radii === "number") {
-      corners = { tl: radii, tr: radii, br: radii, bl: radii };
+    for (const r of list) {
+      if (!allFinite(r.x, r.y)) return;
+      if (r.x < 0 || r.y < 0) throw new RangeError(`roundRect: negative radius ${r.x}, ${r.y}`);
     }
-    if (Array.isArray(radii)) {
-      if (radii.length === 0) {
-        corners = { bl: 0, br: 0, tr: 0, tl: 0 };
-      }
-      if (radii.length === 1) {
-        corners = { tl: radii[0], tr: radii[0], br: radii[0], bl: radii[0] };
-      }
-      if (radii.length === 2) {
-        corners = { tl: radii[0], tr: radii[1], br: radii[0], bl: radii[1] };
-      }
-      if (radii.length === 3) {
-        corners = { tl: radii[0], tr: radii[1], br: radii[2], bl: radii[1] };
-      }
-      if (radii.length === 4) {
-        corners = { tl: radii[0], tr: radii[1], br: radii[2], bl: radii[3] };
-      }
-    }
+    let [ul, ur, lr, ll] =
+      list.length === 4
+        ? list
+        : list.length === 3
+          ? [list[0], list[1], list[2], list[1]]
+          : list.length === 2
+            ? [list[0], list[1], list[0], list[1]]
+            : [list[0], list[0], list[0], list[0]];
+
+    // corners are named as if the size were positive: "upper left" is always the corner at
+    // (x, y). A negative size mirrors the shape about (x, y), so it also winds the other way.
+    const sx = Math.sign(width) || 1;
+    const sy = Math.sign(height) || 1;
+    const w = Math.abs(width);
+    const h = Math.abs(height);
+
     // radii that would overlap along a side are scaled down together until they fit
     const scale = Math.min(
       1,
-      Math.abs(width) / (corners.tl + corners.tr),
-      Math.abs(width) / (corners.bl + corners.br),
-      Math.abs(height) / (corners.tl + corners.bl),
-      Math.abs(height) / (corners.tr + corners.br),
+      w / (ul.x + ur.x),
+      h / (ur.y + lr.y),
+      w / (lr.x + ll.x),
+      h / (ul.y + ll.y),
     );
-    if (scale < 1) {
-      corners = {
-        tl: corners.tl * scale,
-        tr: corners.tr * scale,
-        br: corners.br * scale,
-        bl: corners.bl * scale,
-      };
-    }
-    this.moveTo(x + corners.tl, y);
-    this.lineTo(x + width - corners.tr, y);
-    this.quadraticCurveTo(x + width, y, x + width, y + corners.tr);
-    this.lineTo(x + width, y + height - corners.br);
-    this.quadraticCurveTo(
-      x + width,
-      y + height,
-      x + width - corners.br,
-      y + height,
-    );
-    this.lineTo(x + corners.bl, y + height);
-    this.quadraticCurveTo(x, y + height, x, y + height - corners.bl);
-    this.lineTo(x, y + corners.tl);
-    this.quadraticCurveTo(x, y, x + corners.tl, y);
-    this.lineTo(x + corners.tl, y);
+    if (scale < 1) [ul, ur, lr, ll] = [ul, ur, lr, ll].map((r) => ({ x: r.x * scale, y: r.y * scale }));
+
+    // round the corner at (px, py), arriving along one side and leaving along the next; the
+    // signs (dx, dy) point from the corner towards the rectangle's inside
+    const corner = (r: CornerRadius, px: number, py: number, dx: number, dy: number, start: number) => {
+      if (!(r.x > 0 && r.y > 0)) return this.lineTo(px, py); // a square corner
+      // mirroring the rectangle mirrors the arc's angles and, if mirrored once, its direction
+      const mirror = (a: number) => Math.atan2(sy * Math.sin(a), sx * Math.cos(a));
+      const end = start + Math.PI / 2;
+      this.ellipse(px + dx * r.x, py + dy * r.y, r.x, r.y, 0, mirror(start), mirror(end), sx * sy < 0);
+    };
+    this.moveTo(x + sx * ul.x, y);
+    this.lineTo(x + width - sx * ur.x, y);
+    corner(ur, x + width, y, -sx, sy, -Math.PI / 2);
+    this.lineTo(x + width, y + height - sy * lr.y);
+    corner(lr, x + width, y + height, -sx, -sy, 0);
+    this.lineTo(x + sx * ll.x, y + height);
+    corner(ll, x, y + height, sx, -sy, Math.PI / 2);
+    this.lineTo(x, y + sy * ul.y);
+    corner(ul, x, y, sx, sy, Math.PI);
+    this.closePath();
+    // like rect(), the shape is a closed subpath of its own; a new one starts back at (x, y)
+    this.moveTo(x, y);
   }
 
   /**
@@ -1358,34 +1422,37 @@ export class Context {
       return new Point(x + ex * cosR - ey * sinR, y + ex * sinR + ey * cosR);
     };
 
-    // chords short enough to stay within ~1/8 pixel of the true curve, in device space
-    const m = this._transform.getMatrix();
-    const scale = Math.sqrt(Math.abs(m[0] * m[3] - m[1] * m[2])) || 1;
-    const r = Math.max(radiusX, radiusY) * scale;
-    const maxStep = r > 0.125 ? 2 * Math.acos(1 - 0.125 / r) : Math.PI / 2;
-    const step = Math.min(Math.PI / 16, maxStep);
-    const n = Math.max(1, Math.ceil(Math.abs(sweep) / step - 1e-9));
-    const angles: number[] = [];
-    for (let i = 0; i <= n; i++) angles.push(start + (sweep * i) / n);
-    if (sweep !== 0) {
-      // very short first and last chords, so stroke caps (which follow the end chords)
-      // match the arc's true tangent even when lineWidth is large
-      const d = Math.sign(sweep) * Math.min(0.01, Math.abs(sweep) / (4 * n));
-      angles.splice(1, 0, start + d);
-      angles.splice(angles.length - 1, 0, start + sweep - d);
-    }
+    // derivative of pointAt, for the Bézier control points
+    const tangentAt = (angle: number) => {
+      const ex = -radiusX * Math.sin(angle);
+      const ey = radiusY * Math.cos(angle);
+      return new Point(ex * cosR - ey * sinR, ex * sinR + ey * cosR);
+    };
 
     // join the arc to the existing subpath with a line, or start a new subpath
-    const first = pointAt(angles[0]);
-    if (this.currentPoint()) this._lineTo(first);
-    else this._moveTo(first);
-    let prev = this.currentPoint();
-    for (let i = 1; i < angles.length; i++) {
-      const pt = this._transform.transformPoint(pointAt(angles[i]));
-      // a zero radius collapses every chord onto one point; skip the zero-length segments
-      if (pt.equals(prev)) continue;
-      this.path.push([PATH_COMMAND.LINE, pt]);
-      prev = pt;
+    const first = pointAt(start);
+    const curr = this.currentPoint();
+    if (!curr) this._moveTo(first);
+    else if (!samePoint(curr, this._transform.transformPoint(first))) this._lineTo(first);
+
+    // one cubic Bézier per quarter turn (or less): its error is under 0.03% of the radius
+    const pieces = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2) - 1e-9));
+    const delta = sweep / pieces;
+    const k = (4 / 3) * Math.tan(delta / 4);
+    for (let i = 0; i < pieces; i++) {
+      const a0 = start + delta * i;
+      const a1 = a0 + delta;
+      const p0 = pointAt(a0);
+      const p3 = pointAt(a1);
+      const t0 = tangentAt(a0);
+      const t1 = tangentAt(a1);
+      const c1 = this._transform.transformPoint(new Point(p0.x + k * t0.x, p0.y + k * t0.y));
+      const c2 = this._transform.transformPoint(new Point(p3.x - k * t1.x, p3.y - k * t1.y));
+      const end = this._transform.transformPoint(p3);
+      // a zero radius or sweep collapses the curve onto one point; leave it out
+      const from = this.currentPoint();
+      if (samePoint(from, c1) && samePoint(from, c2) && samePoint(from, end)) continue;
+      this.path.push([PATH_COMMAND.BEZIER_CURVE, c1, c2, end]);
     }
   }
 
@@ -1430,7 +1497,8 @@ export class Context {
   closePath() {
     const curr = this.currentPoint();
     if (!curr || !this.pathstart) return; // nothing to close
-    if (!curr.equals(this.pathstart)) this.path.push([PATH_COMMAND.LINE, this.pathstart]);
+    // marks the subpath closed (so strokes join at its start) and returns to its first point
+    this.path.push([PATH_COMMAND.CLOSE, this.pathstart]);
   }
 
   /**
@@ -1447,36 +1515,34 @@ export class Context {
   }
 
   private strokePath(): void {
-    let flat_path = flatten_path(this.path);
-    let stroke_path = path_to_stroked_path(flat_path, this.lineWidth / 2);
-    const lines = pathToLines(stroke_path);
+    // the stroke is traced in the user space of the transform in effect now, which need not
+    // be the one the path was built with: scale(2, 1) makes vertical lines twice as thick
+    const m = this._transform.getMatrix();
+    const det = m[0] * m[3] - m[1] * m[2];
+    if (!det || !Number.isFinite(det)) return;
+    const inverse = this._transform.cloneTransform();
+    inverse.invert();
+    const subpaths = pathToSubpaths(this.path, (pt) => inverse.transformPoint(pt));
+    const polygons = strokePolygons(subpaths, {
+      width: this._lineWidth,
+      cap: this._lineCap,
+      join: this._lineJoin,
+      miterLimit: this._miterLimit,
+      tolerance: 0.125 / Math.sqrt(Math.abs(det)),
+    });
+    const lines: Line[] = [];
+    for (const poly of polygons) {
+      const pts = poly.map((pt) => this._transform.transformPoint(new Point(pt.x, pt.y)));
+      for (let i = 0; i < pts.length; i++) lines.push(new Line(pts[i], pts[(i + 1) % pts.length]));
+    }
     const old_fillStyle = this.fillStyle;
     this.fillStyle = this.strokeStyle;
-    // strokes are always filled with the nonzero rule: the stroked outline overlaps
-    // itself at joins (and degenerately when lineWidth is large), and those overlaps
-    // must stay painted rather than cancelling out as they would under even-odd
+    // the outline polygons overlap at every join and all wind the same way, so the nonzero
+    // rule fills their union
     this.imageSmoothingEnabled
       ? this.fill_aa(lines, "nonzero")
       : this.fill_noaa(lines, "nonzero");
     this.fillStyle = old_fillStyle;
-
-    if (this.debug) {
-      this.save();
-      let old_ss = this.strokeStyle;
-      let old_lw = this.lineWidth;
-      this.strokeStyle = "red";
-      this.lineWidth = 1;
-      console.log("path is", this.path);
-      pathToLines(this.path).forEach((line) => this.drawLine(line));
-      console.log("flat path is", flat_path);
-      pathToLines(flat_path).forEach((line) => this.drawLine(line));
-      console.log("stroke path is", stroke_path);
-      pathToLines(stroke_path).forEach((line) => this.drawLine(line));
-      console.log("final lines are", lines);
-      this.strokeStyle = old_ss;
-      this.lineWidth = old_lw;
-      this.restore();
-    }
   }
 
   /**
@@ -1683,7 +1749,8 @@ export class Context {
         coverage[ii] = 0;
         if (cov <= 0) continue;
         const col = this.calculateRGBA(ii, j);
-        if (cov >= 1) {
+        // floating-point error can leave a fully covered pixel a hair short of 1
+        if (cov >= 1 - 1e-9) {
           this.fillPixelWithColor(ii, j, col);
         } else {
           const rgb = and(col, 0xffffff00);
@@ -1857,274 +1924,150 @@ function pathToLines(path) {
     if (cmd[0] === PATH_COMMAND.MOVE) {
       curr = cmd[1];
     }
-    if (cmd[0] === PATH_COMMAND.LINE) {
+    if (cmd[0] === PATH_COMMAND.LINE || cmd[0] === PATH_COMMAND.CLOSE) {
       const pt = cmd[1];
-      lines.push(new Line(curr, pt));
+      if (!samePoint(curr, pt)) lines.push(new Line(curr, pt));
       curr = pt;
     }
-    if (cmd[0] === PATH_COMMAND.QUADRATIC_CURVE) {
-      const pts = [curr, cmd[1], cmd[2]];
-      for (let t = 0; t < 1; t += 0.1) {
-        let pt = calcQuadraticAtT(pts, t);
+    if (cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
+      for (const pt of flattenCubic(curr, cmd[1], cmd[2], cmd[3])) {
         lines.push(new Line(curr, pt));
         curr = pt;
       }
-    }
-    if (cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
-      const pts = [curr, cmd[1], cmd[2], cmd[3]];
-      bezierToLines(pts, 10).forEach((pt) => {
-        lines.push(new Line(curr, pt));
-        curr = pt;
-      });
     }
   });
   return lines;
 }
 
-type PathInstruction = [PATH_COMMAND, Point];
-
-function flatten_path(A: PathCmd[]) {
-  let B: PathInstruction[] = [];
-  let curr = null;
-  A.forEach((cmd: PathCmd): void => {
-    if (cmd[0] === PATH_COMMAND.MOVE) {
-      curr = cmd[1];
-      B.push([PATH_COMMAND.MOVE, new Point(curr.x, curr.y)]);
+/**
+ * Split a device-space path into the subpaths to stroke, in the space given by `toUser`.
+ * Curves are flattened to lines, consecutive duplicate points are dropped, and a subpath
+ * that is only a moveTo (no segments, not even zero-length ones) is left out.
+ */
+function pathToSubpaths(path: PathCmd[], toUser: (pt: Point) => Point): Subpath[] {
+  const subpaths: Subpath[] = [];
+  let sub: (Subpath & { tangents: (Point | null)[]; segments: number }) | null = null;
+  let curr: Point | null = null;
+  const finish = () => {
+    if (sub && sub.segments > 0) {
+      subpaths.push({ points: sub.points, tangents: sub.tangents, closed: sub.closed });
+    }
+    sub = null;
+  };
+  const start = (pt: Point) => {
+    finish();
+    sub = { points: [toUser(pt)], tangents: [null], closed: false, segments: 0 };
+  };
+  // `tangent` (device space) marks a point inside a curve, where the stroke bends rather
+  // than joins
+  const lineTo = (pt: PointIsh, tangent: PointIsh | null = null) => {
+    if (!sub) start(curr);
+    sub.segments++;
+    const u = toUser(new Point(pt.x, pt.y));
+    let t: Point | null = null;
+    if (tangent && (tangent.x || tangent.y)) {
+      const v = toUser(new Point(pt.x + tangent.x, pt.y + tangent.y));
+      t = new Point(v.x - u.x, v.y - u.y);
+    }
+    const last = sub.points.length - 1;
+    if (samePoint(sub.points[last], u)) {
+      if (!t) sub.tangents[last] = null; // a corner wins over a curve point
       return;
     }
-    if (cmd[0] === PATH_COMMAND.LINE) {
-      curr = cmd[1];
-      B.push([PATH_COMMAND.LINE, new Point(curr.x, curr.y)]);
-      return;
-    }
-    if (cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
-      const pts = [curr, cmd[1], cmd[2], cmd[3]];
-      let pts2 = bezierToLines(pts, 10);
-      for (let i = 1; i < pts2.length; i += 2) {
-        B.push([PATH_COMMAND.LINE, new Point(pts2[i].x, pts2[i].y)]);
-      }
-      curr = cmd[3];
-    }
-  });
-  return B;
-}
-
-function path_to_stroked_path(path: PathInstruction[], w: number) {
-  //split the path into sub-paths based on the MOVE command
-  let subs: PathInstruction[][] = [];
-  let curr_sub: PathInstruction[] = [];
-  path.forEach((pth) => {
-    if (pth[0] === PATH_COMMAND.MOVE) {
-      if (curr_sub.length > 0) subs.push(curr_sub);
-      curr_sub = [];
-    }
-    curr_sub.push(pth);
-  });
-  if (curr_sub.length > 0) subs.push(curr_sub);
-  // a subpath that is only a moveTo has nothing to stroke
-  subs = subs.filter((sub) => sub.length > 1);
-
-  // warn if there's missing MOVEs
-  subs.forEach((sub) => {
-    if (sub[0][0] !== PATH_COMMAND.MOVE)
-      console.warn("missing a starting move command!");
-  });
-
-  // stroke each sub-path
-  let fsubs = subs.map((sub) => sub_path_to_stroked_sub_path(sub, w));
-  // flatten back into a single string of commands
-  let final_path = [];
-  fsubs.forEach((sub) => sub.forEach((cmd) => final_path.push(cmd)));
-  return final_path;
-}
-
-function sub_path_to_stroked_sub_path(
-  path: PathInstruction[],
-  w: number,
-): PathInstruction[] {
-  let curr: Point = null;
-  let outside: PathInstruction[] = [];
-  let inside = [];
-  let path_start: Point = null;
-
-  function project(A: Point, B: Point, scale: number) {
-    if (A.equals(B)) console.log("same points!", A, B);
-    let delta_unit = A.subtract(B).unit();
-    let C_unit = delta_unit.rotate(toRad(90));
-    let D_unit = delta_unit.rotate(toRad(-90));
-    // console.log(C_unit, D_unit)
-    return [C_unit.scale(scale).add(B), D_unit.scale(scale).add(B)];
-  }
-
-  let prev_cmd: PathInstruction = null;
-
-  function normalize_angle(turn: number) {
-    if (turn < -Math.PI) return turn + Math.PI * 2;
-    if (turn > +Math.PI) return turn - Math.PI * 2;
-    return turn;
-  }
-
-  path.forEach(function (cmd, i) {
-    // console.log("converting",cmd)
+    sub.points.push(u);
+    sub.tangents.push(t);
+  };
+  for (const cmd of path) {
     if (cmd[0] === PATH_COMMAND.MOVE) {
-      curr = cmd[1];
-      prev_cmd = cmd;
-      path_start = curr.clone();
-      outside.push([PATH_COMMAND.MOVE, path_start.clone()]);
+      start(cmd[1]);
+    } else if (cmd[0] === PATH_COMMAND.LINE) {
+      lineTo(cmd[1]);
+    } else if (cmd[0] === PATH_COMMAND.BEZIER_CURVE) {
+      const curve = [curr, cmd[1], cmd[2], cmd[3]];
+      const { points: pts, params: ts } = flattenCubicWithParams(curr, cmd[1], cmd[2], cmd[3]);
+      // tiny first and last segments that follow the curve's true end tangents, so caps and
+      // joins at its ends are square to the curve even for very wide lines
+      const eps = 1e-4;
+      const at = (t: number) => lineTo(cubicAt(curve, t), cubicTangent(curve, t));
+      at(eps);
+      for (let i = 0; i < pts.length - 1; i++) at(ts[i]);
+      at(1 - eps);
+      lineTo(cmd[3]);
+    } else if (cmd[0] === PATH_COMMAND.CLOSE) {
+      if (sub) {
+        lineTo(cmd[1]);
+        sub.closed = true;
+      }
+      // closing starts a new subpath at the closed one's first point
+      start(cmd[1]);
     }
+    curr = cmd[3] ?? cmd[1];
+  }
+  finish();
+  return subpaths;
+}
 
-    if (cmd[0] === PATH_COMMAND.LINE) {
-      const A = curr;
-      const B = cmd[1];
-      if (A.equals(B))
-        return console.warn("can't project the same paths", i, cmd, A, B);
-      // console.log(i,"====",B)
-      let next = path[i + 1];
-      //if first
-      if (prev_cmd[0] === PATH_COMMAND.MOVE) {
-        // console.log("doing the first")
-        let pts1 = project(B, A, w);
-        outside.push([PATH_COMMAND.LINE, pts1[1]]);
-        inside.push([PATH_COMMAND.LINE, pts1[0]]);
-      }
-      prev_cmd = cmd;
-      // if last
-      if (!next) {
-        // console.log("doing last")
-        let pts1 = project(A, B, w);
-        outside.push([PATH_COMMAND.LINE, pts1[0]]);
-        inside.push([PATH_COMMAND.LINE, pts1[1]]);
-        return;
-      }
-      const C = next[1];
-      if (C.equals(B))
-        return console.warn("can't project the same paths", i, cmd, A, B);
-      // console.log(i,A,B,C)
-      // console.log("next",next)
-      let BA = A.subtract(B);
-      let BC = C.subtract(B);
-      // console.log(i,'B',B,'BA',BA,'BC',BC)
-      let BA_angle = Math.atan2(BA.y, BA.x);
-      let BC_angle = Math.atan2(BC.y, BC.x);
-      // console.log("angles",toDeg(turn))
-      let turn = normalize_angle(BC_angle - BA_angle);
+/** The point at parameter t on a cubic Bézier curve. */
+function cubicAt(p: PointIsh[], t: number): Point {
+  const u = 1 - t;
+  const a = u * u * u;
+  const b = 3 * u * u * t;
+  const c = 3 * u * t * t;
+  const d = t * t * t;
+  return new Point(
+    a * p[0].x + b * p[1].x + c * p[2].x + d * p[3].x,
+    a * p[0].y + b * p[1].y + c * p[2].y + d * p[3].y,
+  );
+}
 
-      let pts1 = project(A, B, w);
-      let pts2 = project(C, B, w);
-      // the inner join point is where the two offset lines cross; as the path doubles back
-      // that point runs off to infinity, so keep it within reach of the shorter segment's end
-      const maxInner = Math.hypot(w, Math.min(BA.magnitude(), BC.magnitude()));
-      // console.log(i,'B',pts1)
-      // console.log(i,'B',pts2)
-      if (turn < 0) {
-        //if turning right
-        //outside is normal
-        outside.push([PATH_COMMAND.LINE, pts1[0]]);
-        outside.push([PATH_COMMAND.LINE, pts2[1]]);
-        //adjust inside
-        let h = Math.min(maxInner, w / Math.cos((Math.PI + turn) / 2));
-        let C_unit = A.subtract(B)
-          .unit()
-          .rotate(turn / 2)
-          .scale(h)
-          .add(B);
-        inside.push([PATH_COMMAND.LINE, C_unit]);
-      } else {
-        //if turning left
-        //adjust outside
-        let h = Math.min(maxInner, w / Math.cos(-(Math.PI - turn) / 2));
-        let C_unit = C.subtract(B)
-          .unit()
-          .rotate(-turn / 2)
-          .scale(h)
-          .add(B);
-        outside.push([PATH_COMMAND.LINE, C_unit]);
-        //inside is normal
-        inside.push([PATH_COMMAND.LINE, pts1[1]]);
-        inside.push([PATH_COMMAND.LINE, pts2[0]]);
-      }
-      curr = B;
-    }
-  });
-
-  inside.reverse();
-  let final = [].concat(outside).concat(inside);
-  // console.log("path_to_stroked_path output")
-  // console.log('outside',outside)
-  // console.log('inside',inside)
-  final.push([PATH_COMMAND.LINE, path_start]);
-  // console.log("final")
-  // console.log(final)
-  return final;
+/** The derivative of a cubic Bézier curve at parameter t. */
+function cubicTangent(p: PointIsh[], t: number): Point {
+  const u = 1 - t;
+  const a = 3 * u * u;
+  const b = 6 * u * t;
+  const c = 3 * t * t;
+  return new Point(
+    a * (p[1].x - p[0].x) + b * (p[2].x - p[1].x) + c * (p[3].x - p[2].x),
+    a * (p[1].y - p[0].y) + b * (p[2].y - p[1].y) + c * (p[3].y - p[2].y),
+  );
 }
 
 /**
- * Calculate Quadratic
- *
- * @param {number} p
- * @param {number} t
- *
- * @ignore
- *
- * @returns {Point}
+ * Flatten a cubic Bézier curve into points (excluding p0, ending with p3) that stay within
+ * 0.1 pixel of it.
  */
-function calcQuadraticAtT(p: Point[], t: number) {
-  const x =
-    (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x;
-  const y =
-    (1 - t) * (1 - t) * p[0].y + 2 * (1 - t) * t * p[1].y + t * t * p[2].y;
-  return new Point(x, y);
+function flattenCubic(p0: PointIsh, p1: PointIsh, p2: PointIsh, p3: PointIsh): Point[] {
+  return flattenCubicWithParams(p0, p1, p2, p3).points;
 }
 
-function bezierToLines(curve, THRESHOLD: number) {
-  function recurse(curve) {
-    if (flatness(curve) < THRESHOLD) return [curve[0], curve[3]];
-    const split = splitCurveAtT(curve, 0.5);
-    return recurse(split[0]).concat(recurse(split[1]));
-  }
-
-  return recurse(curve);
-}
-
-function splitCurveAtT(p, t: number) {
-  let p1 = p[0];
-  let p2 = p[1];
-  let p3 = p[2];
-  let p4 = p[3];
-
-  let p12 = midpoint(p1, p2, t);
-  let p23 = midpoint(p2, p3, t);
-  let p34 = midpoint(p4, p3, t);
-
-  let p123 = midpoint(p12, p23, t);
-  let p234 = midpoint(p23, p34, t);
-  let p1234 = {
-    x: (p234.x - p123.x) * t + p123.x,
-    y: (p234.y - p123.y) * t + p123.y,
+/** flattenCubic, also giving the curve parameter t of each point. */
+function flattenCubicWithParams(p0: PointIsh, p1: PointIsh, p2: PointIsh, p3: PointIsh) {
+  // Roger Willcocks' bound: the curve is within sqrt(flatness / 16) of its chord
+  const FLATNESS = 16 * 0.1 * 0.1;
+  const MAX_DEPTH = 16; // at most 65536 segments, however large the curve
+  const out: Point[] = [];
+  const params: number[] = [];
+  const recurse = (a: PointIsh, b: PointIsh, c: PointIsh, d: PointIsh, depth: number, t0: number, t1: number) => {
+    const ux = Math.max((3 * b.x - 2 * a.x - d.x) ** 2, (3 * c.x - 2 * d.x - a.x) ** 2);
+    const uy = Math.max((3 * b.y - 2 * a.y - d.y) ** 2, (3 * c.y - 2 * d.y - a.y) ** 2);
+    if (ux + uy <= FLATNESS || depth >= MAX_DEPTH || !Number.isFinite(ux + uy)) {
+      out.push(new Point(d.x, d.y));
+      params.push(t1);
+      return;
+    }
+    const mid = (p: PointIsh, q: PointIsh) => ({ x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 });
+    const ab = mid(a, b);
+    const bc = mid(b, c);
+    const cd = mid(c, d);
+    const abc = mid(ab, bc);
+    const bcd = mid(bc, cd);
+    const m = mid(abc, bcd);
+    const tm = (t0 + t1) / 2;
+    recurse(a, ab, abc, m, depth + 1, t0, tm);
+    recurse(m, bcd, cd, d, depth + 1, tm, t1);
   };
-
-  return [
-    [p1, p12, p123, p1234],
-    [p1234, p234, p34, p4],
-  ];
-}
-
-function flatness(curve) {
-  const pointA = curve[0];
-  const controlPointA = curve[1];
-  const controlPointB = curve[2];
-  const pointB = curve[3];
-  let ux = Math.pow(3 * controlPointA.x - 2 * pointA.x - pointB.x, 2);
-  let uy = Math.pow(3 * controlPointA.y - 2 * pointA.y - pointB.y, 2);
-  let vx = Math.pow(3 * controlPointB.x - 2 * pointB.x - pointA.x, 2);
-  let vy = Math.pow(3 * controlPointB.y - 2 * pointB.y - pointA.y, 2);
-  if (ux < vx) ux = vx;
-  if (uy < vy) uy = vy;
-  return ux + uy;
-}
-
-function midpoint(p1, p2, t) {
-  return { x: (p2.x - p1.x) * t + p1.x, y: (p2.y - p1.y) * t + p1.y };
+  recurse(p0, p1, p2, p3, 0, 0, 1);
+  return { points: out, params };
 }
 
 /**
@@ -2191,8 +2134,11 @@ function calcSpans(lines, y: number, rule: FillRule): number[] {
   for (const { x, dir } of crossings) {
     const was = winding;
     winding += dir;
-    if (was === 0 && winding !== 0) spans.push(x);
-    else if (was !== 0 && winding === 0) spans.push(x);
+    if (was === 0 && winding !== 0) {
+      // a span starting where the last one ended (two shapes sharing an edge) continues it
+      if (spans.length && x - spans[spans.length - 1] < 1e-9) spans.pop();
+      else spans.push(x);
+    } else if (was !== 0 && winding === 0) spans.push(x);
   }
   return spans;
 }

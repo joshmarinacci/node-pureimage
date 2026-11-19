@@ -671,3 +671,120 @@ describe("path building", () => {
     }
   });
 });
+
+describe("roundRect", () => {
+  const RED = [255, 0, 0, 255];
+  const GREEN = [0, 255, 0, 255];
+
+  // fill a round rect in green over a red 100x50 canvas
+  function fill(...args: unknown[]) {
+    const image = pureimage.make(100, 50);
+    const ctx = image.getContext("2d");
+    ctx.fillStyle = "#f00";
+    ctx.fillRect(0, 0, 100, 50);
+    ctx.fillStyle = "#0f0";
+    (ctx.roundRect as (...a: unknown[]) => void)(...args);
+    ctx.fill();
+    return (x: number, y: number) => Array.from(image.getPixelRGBA_separate(x, y));
+  }
+
+  it("rounds corners with circular radii", () => {
+    const px = fill(0, 0, 100, 50, 20);
+    expect(px(50, 25)).toEqual(GREEN);
+    expect(px(1, 1)).toEqual(RED);
+    expect(px(98, 48)).toEqual(RED);
+    expect(px(21, 1)).toEqual(GREEN);
+  });
+
+  it("assigns 1 to 4 radii CSS-style, clockwise from the upper left", () => {
+    // [upper-left, upper-right, lower-right, lower-left]
+    const px = fill(0, 0, 100, 50, [20, 0, 20, 0]);
+    expect(px(1, 1)).toEqual(RED);
+    expect(px(98, 1)).toEqual(GREEN);
+    expect(px(98, 48)).toEqual(RED);
+    expect(px(1, 48)).toEqual(GREEN);
+    // [upper-left and lower-right, upper-right and lower-left]
+    const px2 = fill(0, 0, 100, 50, [0, 20]);
+    expect(px2(1, 1)).toEqual(GREEN);
+    expect(px2(98, 1)).toEqual(RED);
+    expect(px2(1, 48)).toEqual(RED);
+  });
+
+  it("accepts elliptical {x, y} radii", () => {
+    const px = fill(0, 0, 100, 50, [{ x: 40, y: 20 }]);
+    expect(px(20, 1)).toEqual(RED); // inside the 40-wide corner
+    expect(px(41, 1)).toEqual(GREEN);
+    expect(px(1, 10)).toEqual(RED); // inside the 20-tall corner
+    expect(px(1, 21)).toEqual(GREEN);
+  });
+
+  it("scales radii down together when they would overlap", () => {
+    const px = fill(0, 0, 100, 50, 1000);
+    // becomes a stadium: radius 25 at both ends
+    expect(px(50, 1)).toEqual(GREEN);
+    expect(px(2, 25)).toEqual(GREEN);
+    expect(px(1, 1)).toEqual(RED);
+  });
+
+  it("with a negative size, rounds the corner at (x, y) and winds the other way", () => {
+    const px = fill(100, 0, -50, 25, [10, 0, 0, 0]);
+    expect(px(75, 12)).toEqual(GREEN);
+    expect(px(98, 1)).toEqual(RED); // the corner at (x, y) = (100, 0)
+    expect(px(51, 1)).toEqual(GREEN);
+
+    // a mirrored copy over the same area cancels out under nonzero
+    const image = pureimage.make(100, 50);
+    const ctx = image.getContext("2d");
+    ctx.fillStyle = "#0f0";
+    ctx.fillRect(0, 0, 100, 50);
+    ctx.fillStyle = "#f00";
+    ctx.roundRect(0, 0, 100, 50, 0);
+    ctx.roundRect(100, 0, -100, 50, 0);
+    ctx.fill();
+    expect(Array.from(image.getPixelRGBA_separate(50, 25))).toEqual(GREEN);
+  });
+
+  it("validates its radii", () => {
+    const ctx = pureimage.make(10, 10).getContext("2d");
+    expect(() => ctx.roundRect(0, 0, 10, 10, [])).toThrow(RangeError);
+    expect(() => ctx.roundRect(0, 0, 10, 10, [1, 2, 3, 4, 5])).toThrow(RangeError);
+    expect(() => ctx.roundRect(0, 0, 10, 10, -1)).toThrow(RangeError);
+    expect(() => ctx.roundRect(0, 0, 10, 10, { x: 1, y: -1 })).toThrow(RangeError);
+    expect(() => ctx.roundRect(0, 0, 10, 10, 1n as unknown as number)).toThrow(TypeError);
+    expect(() => ctx.roundRect(0, 0, 10, 10, [{ x: 1n as unknown as number }])).toThrow(TypeError);
+    expect(() => ctx.roundRect(0, 0, 10)).toThrow(TypeError);
+  });
+
+  it("ignores non-finite sizes and radii, and defaults missing radii to 0", () => {
+    const ctx = pureimage.make(10, 10).getContext("2d");
+    ctx.roundRect(NaN, 0, 10, 10, 1);
+    ctx.roundRect(0, 0, 10, 10, [Infinity]);
+    ctx.roundRect(0, 0, 10, 10, { x: NaN });
+    expect(ctx.path.length).toBe(0);
+    const px = fill(0, 0, 100, 50);
+    expect(px(0, 0)).toEqual(GREEN);
+    expect(fill(0, 0, 100, 50, {})(0, 0)).toEqual(GREEN);
+  });
+});
+
+describe("stroking into an arc", () => {
+  it("keeps the line's full width up to where the arc starts", () => {
+    // arc() starts exactly where the line ends (up to trig rounding); that must not leave a
+    // zero-length segment, which made the stroker skip the join and taper the line
+    const image = pureimage.make(100, 100);
+    const ctx = image.getContext("2d");
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, 100, 100);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(10, 90);
+    ctx.lineTo(10, 50);
+    ctx.arc(50, 50, 40, Math.PI, 1.5 * Math.PI);
+    ctx.stroke();
+    const dark = (x: number, y: number) => image.getPixelRGBA_separate(x, y)[0] < 128;
+    for (const y of [55, 70, 85]) {
+      expect([8, 9, 10, 11].map((x) => dark(x, y)), `row ${y}`).toEqual([true, true, true, true]);
+    }
+  });
+});

@@ -208,6 +208,18 @@ async function createImageBitmap(source) {
   throw new TypeError("createImageBitmap: unsupported source");
 }
 
+// ---------- geometry shim ----------
+// roundRect tests pass DOMPoint radii. DOMPoint is a Geometry Interfaces API, not canvas,
+// and roundRect only reads its x and y, so a plain data class is enough.
+class DOMPoint {
+  constructor(x = 0, y = 0, z = 0, w = 1) {
+    this.x = +x;
+    this.y = +y;
+    this.z = +z;
+    this.w = +w;
+  }
+}
+
 // ---------- font loading shim ----------
 // Text tests load fonts with new FontFace(family, "url('/fonts/x.ttf')") and self.fonts.
 // Both are CSS Font Loading APIs, not canvas, so they are shimmed on top of registerFont().
@@ -335,7 +347,7 @@ function runFile(file) {
       ImageData: PImage.ImageData,
       Path2D: PImage.Path2D,
       DOMMatrix: PImage.DOMMatrix,
-      DOMPoint: PImage.DOMPoint,
+      DOMPoint,
       console,
       ...asserts,
       importScripts(p) {
