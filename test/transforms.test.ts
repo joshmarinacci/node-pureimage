@@ -64,7 +64,8 @@ describe("simple transforms", () => {
     expect(context.path[2][1].x).to.eq(10);
     expect(context.path[2][1].y).to.eq(20);
 
-    expect(context.path[3][0]).to.eq("l");
+    // closePath() is recorded as a close command that returns to the subpath's start
+    expect(context.path[3][0]).to.eq("z");
     expect(context.path[3][1].x).to.eq(10);
     expect(context.path[3][1].y).to.eq(10);
   });
