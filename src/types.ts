@@ -7,6 +7,8 @@ export enum PATH_COMMAND {
   LINE = "l",
   QUADRATIC_CURVE = "q",
   BEZIER_CURVE = "b",
+  /** closes the current subpath; its point is the subpath's first point */
+  CLOSE = "z",
 }
 export type RGBA = [number, number, number, number];
 export type RGB = [number, number, number];
@@ -23,11 +25,4 @@ export type MinimumBounds = {
   y: number;
   x2: number;
   y2: number;
-};
-
-export type RoundRectCorners = {
-  tl: number;
-  tr: number;
-  br: number;
-  bl: number;
 };
