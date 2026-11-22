@@ -598,6 +598,11 @@ export class Context {
     return this._transform.asDomMatrix();
   }
 
+  /** Resets the current transform to the identity matrix. */
+  resetTransform() {
+    this._transform.identity();
+  }
+
   /**
    * Restores the most recently saved canvas state by popping the top entry in the drawing state stack. If there is no saved state, this method does nothing.
    *
@@ -1515,11 +1520,36 @@ export class Context {
   }
 
   private strokePath(): void {
+    const lines = this.strokeOutline();
+    if (!lines) return;
+    const old_fillStyle = this.fillStyle;
+    this.fillStyle = this.strokeStyle;
+    // the outline polygons overlap at every join and all wind the same way, so the nonzero
+    // rule fills their union
+    this.imageSmoothingEnabled
+      ? this.fill_aa(lines, "nonzero")
+      : this.fill_noaa(lines, "nonzero");
+    this.fillStyle = old_fillStyle;
+  }
+
+  /** True if the current transform can be inverted (so user space maps onto the canvas). */
+  private transformInvertible(): boolean {
+    const m = this._transform.getMatrix();
+    // compared rather than subtracted: with huge scales the products overflow to Infinity,
+    // which still means invertible
+    return m.every(Number.isFinite) && m[0] * m[3] !== m[1] * m[2];
+  }
+
+  /**
+   * The device-space edges of the current path's stroke outline, to fill with the nonzero
+   * rule, or null if the current transform can't be inverted.
+   */
+  private strokeOutline(): Line[] | null {
     // the stroke is traced in the user space of the transform in effect now, which need not
     // be the one the path was built with: scale(2, 1) makes vertical lines twice as thick
     const m = this._transform.getMatrix();
     const det = m[0] * m[3] - m[1] * m[2];
-    if (!det || !Number.isFinite(det)) return;
+    if (!det || !Number.isFinite(det)) return null;
     const inverse = this._transform.cloneTransform();
     inverse.invert();
     const subpaths = pathToSubpaths(this.path, (pt) => inverse.transformPoint(pt));
@@ -1535,14 +1565,33 @@ export class Context {
       const pts = poly.map((pt) => this._transform.transformPoint(new Point(pt.x, pt.y)));
       for (let i = 0; i < pts.length; i++) lines.push(new Line(pts[i], pts[(i + 1) % pts.length]));
     }
-    const old_fillStyle = this.fillStyle;
-    this.fillStyle = this.strokeStyle;
-    // the outline polygons overlap at every join and all wind the same way, so the nonzero
-    // rule fills their union
-    this.imageSmoothingEnabled
-      ? this.fill_aa(lines, "nonzero")
-      : this.fill_noaa(lines, "nonzero");
-    this.fillStyle = old_fillStyle;
+    return lines;
+  }
+
+  /**
+   * Whether the point (x, y), in canvas coordinates (unaffected by the current transform), is
+   * inside the current path filled with `fillRule`. Points exactly on the path count as inside.
+   *
+   * @see https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-ispointinpath
+   */
+  isPointInPath(x: number, y: number, fillRule: FillRule = "nonzero"): boolean {
+    requireArgs(arguments.length, 2, "isPointInPath");
+    const rule = parseFillRule(fillRule);
+    if (!allFinite(x, y) || !this.transformInvertible()) return false;
+    return pointInLines(pathToFillLines(this.path), Number(x), Number(y), rule);
+  }
+
+  /**
+   * Whether the point (x, y), in canvas coordinates, is inside the area that stroking the
+   * current path with the current line styles would cover. Points on its edge count as inside.
+   *
+   * @see https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-ispointinstroke
+   */
+  isPointInStroke(x: number, y: number): boolean {
+    requireArgs(arguments.length, 2, "isPointInStroke");
+    if (!allFinite(x, y)) return false;
+    const lines = this.strokeOutline();
+    return !!lines && pointInLines(lines, Number(x), Number(y), "nonzero");
   }
 
   /**
@@ -1914,6 +1963,45 @@ function pathToFillLines(path: PathCmd[]): Line[] {
   }
   close();
   return lines;
+}
+
+/**
+ * Whether (x, y) is inside the polygon edges `lines` under `rule`, counting points on an edge
+ * as inside. Infinite coordinates (from a huge transform) are clamped to the largest finite
+ * number so the arithmetic stays finite.
+ */
+function pointInLines(lines: Line[], x: number, y: number, rule: FillRule): boolean {
+  const clamp = (v: number) => Math.max(-Number.MAX_VALUE, Math.min(Number.MAX_VALUE, v));
+  const ON_EDGE = 1e-6;
+  let winding = 0;
+  let crossings = 0;
+  for (const line of lines) {
+    const ax = clamp(line.start.x);
+    const ay = clamp(line.start.y);
+    const bx = clamp(line.end.x);
+    const by = clamp(line.end.y);
+    // on the edge: within its bounding box and (almost) on its line
+    if (
+      x >= Math.min(ax, bx) - ON_EDGE &&
+      x <= Math.max(ax, bx) + ON_EDGE &&
+      y >= Math.min(ay, by) - ON_EDGE &&
+      y <= Math.max(ay, by) + ON_EDGE
+    ) {
+      const dx = bx - ax;
+      const dy = by - ay;
+      const len = Math.hypot(dx, dy);
+      if (len === 0 || Math.abs(dx * (y - ay) - dy * (x - ax)) <= ON_EDGE * len) return true;
+    }
+    // a ray to the right crosses edges that span y (half-open, so shared vertices count once)
+    if (ay <= y !== by <= y) {
+      const cx = ax + ((y - ay) / (by - ay)) * (bx - ax);
+      if (cx > x) {
+        crossings++;
+        winding += by > ay ? 1 : -1;
+      }
+    }
+  }
+  return rule === "evenodd" ? crossings % 2 === 1 : winding !== 0;
 }
 
 function pathToLines(path) {
