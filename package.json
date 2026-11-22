@@ -28,14 +28,13 @@
     "@types/node": "^26.6.6",
     "@types/opentype.js": "^1.3.10",
     "esbuild": "^0.28.2",
-    "npm-dts": "^1.3.13",
     "typescript": "~5.9",
     "vitest": "^5.1.1"
   },
   "scripts": {
     "test": "npm run vitest && npm run type-check",
     "vitest": "vitest run --dir test --reporter=default --reporter=junit --outputFile.junit=test-output.xml",
-    "build": "node build.js",
+    "build": "tsc --emitDeclarationOnly --sourceMap false && node build.js",
     "type-check": "tsc",
     "wpt-init": "[ -d output/wpt ] || git clone --depth 1 --filter=blob:none --sparse https://github.com/web-platform-tests/wpt.git output/wpt && git -C output/wpt sparse-checkout set html/canvas resources images fonts",
     "wpt": "node test/wpt/run.mjs",
