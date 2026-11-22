@@ -16,7 +16,7 @@ export type PatternSource = {
 };
 
 /** The fields of a DOMMatrix2DInit, with the m11.. aliases of a, b, c, d, e, f. */
-type MatrixInit = Partial<Record<"a" | "b" | "c" | "d" | "e" | "f", number>> &
+export type MatrixInit = Partial<Record<"a" | "b" | "c" | "d" | "e" | "f", number>> &
   Partial<Record<"m11" | "m12" | "m21" | "m22" | "m41" | "m42", number>>;
 
 const REPETITIONS: ReadonlySet<string> = new Set(["repeat", "repeat-x", "repeat-y", "no-repeat"]);
@@ -48,7 +48,7 @@ function invert(m: Matrix): Matrix | null {
 }
 
 /** Read a DOMMatrix2DInit, throwing TypeError when an alias pair disagrees. */
-function matrixFromInit(init: MatrixInit): Matrix {
+export function matrixFromInit(init: MatrixInit, method = "setTransform"): Matrix {
   const pairs: [keyof MatrixInit, keyof MatrixInit, number][] = [
     ["a", "m11", 1],
     ["b", "m12", 0],
@@ -61,7 +61,7 @@ function matrixFromInit(init: MatrixInit): Matrix {
     const s = init[short];
     const l = init[long];
     if (s !== undefined && l !== undefined && !Object.is(Number(s), Number(l))) {
-      throw new TypeError(`setTransform: ${short} and ${long} must match`);
+      throw new TypeError(`${method}: ${short} and ${long} must match`);
     }
     return Number(s ?? l ?? fallback);
   }) as Matrix;
