@@ -18,6 +18,8 @@ import { parseColor, serializeColor } from "./color.js";
 import { CompositeOperation, compositePixel, isCompositeOperation, isUnbounded } from "./composite.js";
 import { Matrix, Transform } from "./transform.js";
 import { LineCap, LineJoin, strokePolygons, Subpath } from "./stroke.js";
+import { allFinite, PathBuilder, requireArgs, samePoint } from "./path.js";
+import { mapPath, Path2D } from "./path2d.js";
 
 // Matches a CSS size token: digits+optional-decimal followed by a unit, plus an optional /line-height suffix.
 const FONT_SIZE_RE = /^(\d*\.?\d+)(px|pt|em|rem|ex|ch|vw|vh|%)(\/.*)?$/i;
@@ -40,57 +42,12 @@ type FillStyleObject = G.CanvasGradient | CanvasPattern;
 const isStyleObject = (val: unknown): val is FillStyleObject =>
   val instanceof G.CanvasGradient || val instanceof CanvasPattern;
 
-// converts every argument first (as WebIDL does) so valueOf side effects happen for all of them
-const allFinite = (...values: unknown[]) => values.map(Number).every(Number.isFinite);
 
 function parseFillRule(value: unknown): FillRule {
   if (value === "nonzero" || value === "evenodd") return value;
   throw new TypeError(`'${String(value)}' is not a valid CanvasFillRule`);
 }
 
-/**
- * The swept angle of an arc from `start` to `end`: a full turn if the angles are at least a
- * full turn apart in the drawing direction, otherwise the shorter-than-a-turn sweep that way.
- */
-function arcSweep(start: number, end: number, anticlockwise: boolean): number {
-  const TAU = Math.PI * 2;
-  // angles an exact number of turns apart (other than zero) also make a full circle
-  if (anticlockwise) {
-    if (start - end >= TAU) return -TAU;
-    return start < end ? -(TAU - ((end - start) % TAU)) : end - start;
-  }
-  if (end - start >= TAU) return TAU;
-  return start > end ? TAU - ((start - end) % TAU) : end - start;
-}
-
-type CornerRadius = { x: number; y: number };
-type RoundRectRadius = number | { x?: number; y?: number };
-
-const isIterable = (v: unknown): v is Iterable<unknown> =>
-  typeof v === "object" && v !== null && typeof (v as Iterable<unknown>)[Symbol.iterator] === "function";
-
-/** WebIDL ToNumber, which (unlike Number()) rejects BigInts. */
-function toNumber(v: unknown): number {
-  if (typeof v === "bigint") throw new TypeError("can't convert a BigInt to a number");
-  return Number(v);
-}
-
-/** Convert a roundRect radius: a number, or a DOMPointInit whose missing x and y are 0. */
-function toCornerRadius(r: unknown): CornerRadius {
-  if (r === null || r === undefined || typeof r === "object" || typeof r === "function") {
-    const p = (r ?? {}) as { x?: unknown; y?: unknown };
-    return { x: toNumber(p.x ?? 0), y: toNumber(p.y ?? 0) };
-  }
-  const n = toNumber(r);
-  return { x: n, y: n };
-}
-
-/** Points closer than a millionth of a pixel, e.g. equal up to floating-point error from trig. */
-const samePoint = (a: PointIsh, b: PointIsh) => Math.abs(a.x - b.x) < 1e-6 && Math.abs(a.y - b.y) < 1e-6;
-
-function requireArgs(actual: number, minimum: number, method: string): void {
-  if (actual < minimum) throw new TypeError(`${method} requires at least ${minimum} argument(s)`);
-}
 
 function parseFontString(val: string): ParsedFont | null {
   const tokens = val.trim().split(/\s+/);
@@ -151,8 +108,7 @@ function parseFontString(val: string): ParsedFont | null {
  *
  * @class Context
  */
-export class Context {
-  public path?: PathCmd[];
+export class Context extends PathBuilder {
   /** Horizontal text alignment, one of start, end, left, center, right. start is the default */
   public textAlign: TextAlign;
   /** vertical text alignment, relative to the baseline. one of top, middle, alphabetic(default) and bottom. */
@@ -180,7 +136,6 @@ export class Context {
   private _clip?: ClipRegion[];
   private _fillStyle_text: string;
   private _strokeStyle_text: string;
-  private pathstart?: Point;
   private _transform: Transform;
   private states: any[];
 
@@ -189,6 +144,7 @@ export class Context {
     /** An instance of the {@link Bitmap} class. Used for direct pixel manipulation(for example setting pixel colours) */
     bitmap: Bitmap,
   ) {
+    super();
     this._bitmap = bitmap;
     this._resetState();
   }
@@ -592,6 +548,10 @@ export class Context {
       this._transform.identity();
       this._transform.multiply([...args] as Matrix);
     }
+  }
+
+  protected pathTransform(): Transform {
+    return this._transform;
   }
 
   getTransform() {
@@ -1055,413 +1015,6 @@ export class Context {
   }
 
   /**
-   * Moves the starting point of a new sub-path to the (x, y) coordinates.
-   *
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/moveTo
-   *
-   * @param {number} x The x axis of the point.
-   * @param {number} y The y axis of the point.
-   *
-   * @returns {void}
-   *
-   * @memberof Context
-   * */
-  moveTo(x: number, y: number) {
-    requireArgs(arguments.length, 2, "moveTo");
-    if (!allFinite(x, y)) return;
-    return this._moveTo(new Point(x, y));
-  }
-
-  /**
-   * Moves the starting point of a new sub-path to the (x, y) coordinates.
-   *
-   * @param {Point} pt A `point` object representing a set of co-ordinates to move the "pen" to.
-   *
-   * @example
-   * //All of the following are valid:
-   * this._moveTo({x: 20, y: 40})
-   * this._moveTo(new Point(20, 40))
-   *
-   * @returns {void}
-   *
-   * @memberof Context
-   * */
-  _moveTo(pt) {
-    pt = this._transform.transformPoint(pt);
-    /**
-     * Set the starting co-ordinates for the path starting point
-     * @type {Point}
-     */
-    this.pathstart = pt;
-    this.path.push([PATH_COMMAND.MOVE, pt]);
-  }
-
-  /**
-   * Connects the last point in the sub-path to the x, y coordinates with a straight line (but does not actually draw it).
-   *
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineTo
-   *
-   * @param {number} x The x axis of the coordinate for the end of the line.
-   * @param {number} y The y axis of the coordinate for the end of the line.
-   *
-   * @returns {void}
-   *
-   * @memberof Context
-   */
-  lineTo(x: number, y: number) {
-    requireArgs(arguments.length, 2, "lineTo");
-    if (!allFinite(x, y)) return;
-    // with no subpath yet, lineTo starts one at the given point
-    if (!this.currentPoint()) return this._moveTo(new Point(x, y));
-    return this._lineTo(new Point(x, y));
-  }
-
-  /**
-   * Connects the last point in the sub-path to the x, y coordinates with a straight line (but does not actually draw it).
-   *
-   * @param {Point} pt A point object to draw a line to from the current set of co-ordinates
-   *
-   * @returns {void}
-   *
-   * @memberof Context
-   */
-  _lineTo(pt) {
-    this.path.push([PATH_COMMAND.LINE, this._transform.transformPoint(pt)]);
-  }
-
-  /** The last point of the current path in device space, or null if the path is empty. */
-  private currentPoint(): Point | null {
-    const cmd = this.path[this.path.length - 1];
-    if (!cmd) return null;
-    return cmd[3] ?? (cmd[0] === PATH_COMMAND.QUADRATIC_CURVE ? cmd[2] : cmd[1]);
-  }
-
-  /** Start a subpath at (x, y), in user space, if the path is empty. */
-  private ensureSubpath(x: number, y: number): void {
-    if (!this.currentPoint()) this._moveTo(new Point(x, y));
-  }
-
-  /**
-   * Adds a quadratic Bézier curve to the path. It requires two points. The first point is a control point and the second one is the end point. The starting point is the last point in the current path, which can be changed using moveTo() before creating the quadratic Bézier curve.
-   *
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/quadraticCurveTo
-   *
-   * @param {number} cp1x The x axis of the coordinate for the control point.
-   * @param {number} cp1y The y axis of the coordinate for the control point.
-   * @param {number} x    The x axis of the coordinate for the end point.
-   * @param {number} y    The y axis of the coordinate for the end point.
-   *
-   * @returns {void}
-   *
-   * @memberof Context
-   */
-  quadraticCurveTo(cp1x: number, cp1y: number, x: number, y: number) {
-    requireArgs(arguments.length, 4, "quadraticCurveTo");
-    if (!allFinite(cp1x, cp1y, x, y)) return;
-    this.ensureSubpath(cp1x, cp1y);
-    // stored as the equivalent cubic so filling and stroking share one curve flattener
-    const p0 = this.currentPoint();
-    const q = this._transform.transformPoint(new Point(cp1x, cp1y));
-    const p1 = this._transform.transformPoint(new Point(x, y));
-    const c1 = new Point(p0.x + (2 / 3) * (q.x - p0.x), p0.y + (2 / 3) * (q.y - p0.y));
-    const c2 = new Point(p1.x + (2 / 3) * (q.x - p1.x), p1.y + (2 / 3) * (q.y - p1.y));
-    this.path.push([PATH_COMMAND.BEZIER_CURVE, c1, c2, p1]);
-  }
-
-  /**
-   * Adds a cubic Bézier curve to the path. It requires three points. The first two points are control points and the third one is the end point. The starting point is the last point in the current path, which can be changed using moveTo() before creating the Bézier curve.
-   *
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/bezierCurveTo
-   *
-   * @param {number} cp1x The x axis of the coordinate for the first control point.
-   * @param {number} cp1y The y axis of the coordinate for first control point.
-   * @param {number} cp2x The x axis of the coordinate for the second control point.
-   * @param {number} cp2y The y axis of the coordinate for the second control point.
-   * @param {number} x    The x axis of the coordinate for the end point.
-   * @param {number} y    The y axis of the coordinate for the end point.
-   *
-   * @returns {void}
-   *
-   * @memberof Context
-   */
-  bezierCurveTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number) {
-    requireArgs(arguments.length, 6, "bezierCurveTo");
-    if (!allFinite(cp1x, cp1y, cp2x, cp2y, x, y)) return;
-    this.ensureSubpath(cp1x, cp1y);
-    this._bezierCurveTo(
-      new Point(cp1x, cp1y),
-      new Point(cp2x, cp2y),
-      new Point(x, y),
-    );
-  }
-
-  /**
-   * Bezier Curve To
-   *
-   * @param {number} cp1 Curve point 1
-   * @param {number} cp2 Curve point 2
-   * @param {Point}  pt
-   *
-   * @returns {void}
-   *
-   * @memberof Context
-   * */
-  _bezierCurveTo(cp1, cp2, pt) {
-    cp1 = this._transform.transformPoint(cp1);
-    cp2 = this._transform.transformPoint(cp2);
-    pt = this._transform.transformPoint(pt);
-    this.path.push([PATH_COMMAND.BEZIER_CURVE, cp1, cp2, pt]);
-  }
-
-  /**
-   * Adds an arc to the path which is centered at (x, y) position with radius r starting at startAngle and ending at endAngle going in the given direction by anticlockwise (defaulting to clockwise).
-   *
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/arc
-   *
-   * @param {number}  x         The x coordinate of the arc's center
-   * @param {number}  y         The y coordinate of the arc's center
-   * @param {number}  rad       The arc's radius
-   * @param {number}  start     The angle at which the arc starts, measured clockwise from the positive x axis and expressed in radians
-   * @param {number}  end       The angle at which the arc ends, measured clockwise from the positive x axis and expressed in radians
-   * @param {boolean} anticlockwise A boolean which, if true, causes the arc to be drawn anticlockwise between the two angles.
-   *
-   * @returns {void}
-   *
-   * @memberof Context
-   */
-  arc(
-    x: number,
-    y: number,
-    rad: number,
-    start: number,
-    end: number,
-    anticlockwise = false,
-  ) {
-    requireArgs(arguments.length, 5, "arc");
-    if (!allFinite(x, y, rad, start, end)) return;
-    if (rad < 0) throw new DOMException(`arc: negative radius ${rad}`, "IndexSizeError");
-    this.ellipse(x, y, rad, rad, 0, start, end, anticlockwise);
-  }
-
-  /**
-   * Adds a straight line to the path, ending in an arc of the given radius that touches both the
-   * line from the current point to (x1, y1) and the line from (x1, y1) to (x2, y2).
-   *
-   * @see https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-arcto
-   */
-  arcTo(x1: number, y1: number, x2: number, y2: number, radius: number) {
-    requireArgs(arguments.length, 5, "arcTo");
-    if (!allFinite(x1, y1, x2, y2, radius)) return;
-    if (radius < 0) throw new DOMException(`arcTo: negative radius ${radius}`, "IndexSizeError");
-    this.ensureSubpath(x1, y1);
-    // the geometry is computed in user space, so bring the current point back out of device space
-    const inverse = this._transform.cloneTransform();
-    inverse.invert();
-    const p0 = inverse.transformPoint(this.currentPoint());
-    const u1x = p0.x - x1;
-    const u1y = p0.y - y1;
-    const u2x = x2 - x1;
-    const u2y = y2 - y1;
-    const len1 = Math.hypot(u1x, u1y);
-    const len2 = Math.hypot(u2x, u2y);
-    // sine of the angle between the two tangent lines; zero when the points are collinear
-    const cross = len1 && len2 ? (u1x * u2y - u1y * u2x) / (len1 * len2) : 0;
-    if (radius === 0 || Math.abs(cross) < 1e-12) {
-      this._lineTo(new Point(x1, y1));
-      return;
-    }
-    const cos = (u1x * u2x + u1y * u2y) / (len1 * len2);
-    const half = Math.acos(Math.max(-1, Math.min(1, cos))) / 2;
-    const tangent = radius / Math.tan(half); // distance from (x1, y1) to each tangent point
-    const t1x = x1 + (u1x / len1) * tangent;
-    const t1y = y1 + (u1y / len1) * tangent;
-    const t2x = x1 + (u2x / len2) * tangent;
-    const t2y = y1 + (u2y / len2) * tangent;
-    // the centre lies along the bisector, at the radius from both tangent points
-    const bx = u1x / len1 + u2x / len2;
-    const by = u1y / len1 + u2y / len2;
-    const blen = Math.hypot(bx, by);
-    const dist = radius / Math.sin(half);
-    const cx = x1 + (bx / blen) * dist;
-    const cy = y1 + (by / blen) * dist;
-    this.ellipse(
-      cx,
-      cy,
-      radius,
-      radius,
-      0,
-      Math.atan2(t1y - cy, t1x - cx),
-      Math.atan2(t2y - cy, t2x - cx),
-      cross > 0,
-    );
-  }
-
-  /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rect
-   * Draws a rectangle with the upper left corner at the specified (x, y)
-   *
-   * @returns {void}
-   *
-   * @memberof Context
-   *
-   *
-   * @param {number}  x         The x coordinate of the rectangle
-   * @param {number}  y         The y coordinate of the rectangle
-   * @param {number}  width     The width of the rectangle
-   * @param {number}  height    The height of the rectangle
-   *
-   *
-   * @memberof Context
-   */
-  rect(x: number, y: number, width: number, height: number): void {
-    requireArgs(arguments.length, 4, "rect");
-    if (!allFinite(x, y, width, height)) return;
-    this.moveTo(x, y);
-    this.lineTo(x + width, y);
-    this.lineTo(x + width, y + height);
-    this.lineTo(x, y + height);
-    this.closePath();
-    // the rectangle is a closed subpath of its own; a new one starts back at (x, y)
-    this.moveTo(x, y);
-  }
-
-  /**
-   * Adds a rectangle with rounded corners as a closed subpath. Each radius is a number or a
-   * DOMPointInit `{x, y}` for an elliptical corner; 1 to 4 radii are given CSS-style.
-   *
-   * @see https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-roundrect
-   */
-  roundRect(
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    radii: RoundRectRadius | RoundRectRadius[] = 0,
-  ) {
-    requireArgs(arguments.length, 4, "roundRect");
-    // convert every argument (which can throw) before acting on any of them, as WebIDL does
-    const list = (isIterable(radii) ? Array.from(radii) : [radii]).map(toCornerRadius);
-    if (!allFinite(x, y, width, height)) return;
-    if (list.length < 1 || list.length > 4) {
-      throw new RangeError(`roundRect: expected 1 to 4 radii, got ${list.length}`);
-    }
-    for (const r of list) {
-      if (!allFinite(r.x, r.y)) return;
-      if (r.x < 0 || r.y < 0) throw new RangeError(`roundRect: negative radius ${r.x}, ${r.y}`);
-    }
-    let [ul, ur, lr, ll] =
-      list.length === 4
-        ? list
-        : list.length === 3
-          ? [list[0], list[1], list[2], list[1]]
-          : list.length === 2
-            ? [list[0], list[1], list[0], list[1]]
-            : [list[0], list[0], list[0], list[0]];
-
-    // corners are named as if the size were positive: "upper left" is always the corner at
-    // (x, y). A negative size mirrors the shape about (x, y), so it also winds the other way.
-    const sx = Math.sign(width) || 1;
-    const sy = Math.sign(height) || 1;
-    const w = Math.abs(width);
-    const h = Math.abs(height);
-
-    // radii that would overlap along a side are scaled down together until they fit
-    const scale = Math.min(
-      1,
-      w / (ul.x + ur.x),
-      h / (ur.y + lr.y),
-      w / (lr.x + ll.x),
-      h / (ul.y + ll.y),
-    );
-    if (scale < 1) [ul, ur, lr, ll] = [ul, ur, lr, ll].map((r) => ({ x: r.x * scale, y: r.y * scale }));
-
-    // round the corner at (px, py), arriving along one side and leaving along the next; the
-    // signs (dx, dy) point from the corner towards the rectangle's inside
-    const corner = (r: CornerRadius, px: number, py: number, dx: number, dy: number, start: number) => {
-      if (!(r.x > 0 && r.y > 0)) return this.lineTo(px, py); // a square corner
-      // mirroring the rectangle mirrors the arc's angles and, if mirrored once, its direction
-      const mirror = (a: number) => Math.atan2(sy * Math.sin(a), sx * Math.cos(a));
-      const end = start + Math.PI / 2;
-      this.ellipse(px + dx * r.x, py + dy * r.y, r.x, r.y, 0, mirror(start), mirror(end), sx * sy < 0);
-    };
-    this.moveTo(x + sx * ul.x, y);
-    this.lineTo(x + width - sx * ur.x, y);
-    corner(ur, x + width, y, -sx, sy, -Math.PI / 2);
-    this.lineTo(x + width, y + height - sy * lr.y);
-    corner(lr, x + width, y + height, -sx, -sy, 0);
-    this.lineTo(x + sx * ll.x, y + height);
-    corner(ll, x, y + height, sx, -sy, Math.PI / 2);
-    this.lineTo(x, y + sy * ul.y);
-    corner(ul, x, y, sx, sy, Math.PI);
-    this.closePath();
-    // like rect(), the shape is a closed subpath of its own; a new one starts back at (x, y)
-    this.moveTo(x, y);
-  }
-
-  /**
-   * Adds an elliptical arc to the path, joined to any existing subpath by a straight line.
-   *
-   * @see https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-ellipse
-   */
-  ellipse(
-    x: number,
-    y: number,
-    radiusX: number,
-    radiusY: number,
-    rotation: number,
-    start: number,
-    end: number,
-    anticlockwise = false,
-  ) {
-    requireArgs(arguments.length, 7, "ellipse");
-    if (!allFinite(x, y, radiusX, radiusY, rotation, start, end)) return;
-    if (radiusX < 0 || radiusY < 0) {
-      throw new DOMException(`ellipse: negative radius ${radiusX}, ${radiusY}`, "IndexSizeError");
-    }
-    const sweep = arcSweep(start, end, anticlockwise);
-    const cosR = Math.cos(rotation);
-    const sinR = Math.sin(rotation);
-    const pointAt = (angle: number) => {
-      const ex = radiusX * Math.cos(angle);
-      const ey = radiusY * Math.sin(angle);
-      return new Point(x + ex * cosR - ey * sinR, y + ex * sinR + ey * cosR);
-    };
-
-    // derivative of pointAt, for the Bézier control points
-    const tangentAt = (angle: number) => {
-      const ex = -radiusX * Math.sin(angle);
-      const ey = radiusY * Math.cos(angle);
-      return new Point(ex * cosR - ey * sinR, ex * sinR + ey * cosR);
-    };
-
-    // join the arc to the existing subpath with a line, or start a new subpath
-    const first = pointAt(start);
-    const curr = this.currentPoint();
-    if (!curr) this._moveTo(first);
-    else if (!samePoint(curr, this._transform.transformPoint(first))) this._lineTo(first);
-
-    // one cubic Bézier per quarter turn (or less): its error is under 0.03% of the radius
-    const pieces = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2) - 1e-9));
-    const delta = sweep / pieces;
-    const k = (4 / 3) * Math.tan(delta / 4);
-    for (let i = 0; i < pieces; i++) {
-      const a0 = start + delta * i;
-      const a1 = a0 + delta;
-      const p0 = pointAt(a0);
-      const p3 = pointAt(a1);
-      const t0 = tangentAt(a0);
-      const t1 = tangentAt(a1);
-      const c1 = this._transform.transformPoint(new Point(p0.x + k * t0.x, p0.y + k * t0.y));
-      const c2 = this._transform.transformPoint(new Point(p3.x - k * t1.x, p3.y - k * t1.y));
-      const end = this._transform.transformPoint(p3);
-      // a zero radius or sweep collapses the curve onto one point; leave it out
-      const from = this.currentPoint();
-      if (samePoint(from, c1) && samePoint(from, c2) && samePoint(from, end)) continue;
-      this.path.push([PATH_COMMAND.BEZIER_CURVE, c1, c2, end]);
-    }
-  }
-
-  /**
    * Turns the path currently being built into the current clipping path.
    *
    * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clip
@@ -1470,10 +1023,32 @@ export class Context {
    *
    * @memberof Context
    */
-  clip(fillRule: FillRule = "nonzero"): void {
+  clip(fillRule?: FillRule): void;
+  clip(path: Path2D, fillRule?: FillRule): void;
+  clip(...args: unknown[]): void {
+    const [path, fillRule] = this.pathAndRule(args, "clip");
     const rule = parseFillRule(fillRule);
     // intersect with any existing clip; build a new array so states saved by save() are untouched
-    this._clip = [...(this._clip ?? []), { lines: pathToFillLines(this.path), rule }];
+    this._clip = [...(this._clip ?? []), { lines: pathToFillLines(path), rule }];
+  }
+
+  /**
+   * The device-space path a drawing method acts on: the given Path2D under the current
+   * transform, or the context's own path.
+   */
+  private devicePath(path?: Path2D): PathCmd[] {
+    if (!path) return this.path;
+    return mapPath(path.path, (pt) => this._transform.transformPoint(pt));
+  }
+
+  /**
+   * Resolve the `(fillRule?)` / `(path, fillRule?)` overloads of fill() and clip(). Anything
+   * but a Path2D first is a fill rule, so a missing or wrong path throws when the rule is parsed.
+   */
+  private pathAndRule(args: unknown[], method: string): [PathCmd[], unknown] {
+    if (args[0] instanceof Path2D) return [this.devicePath(args[0]), args[1] === undefined ? "nonzero" : args[1]];
+    if (args.length >= 2) throw new TypeError(`${method}: argument 1 is not a Path2D`);
+    return [this.path, args[0] === undefined ? "nonzero" : args[0]];
   }
 
   /**
@@ -1491,22 +1066,6 @@ export class Context {
   }
 
   /**
-   * Causes the point of the pen to move back to the start of the current sub-path. It tries to add a straight line (but does not actually draw it) from the current point to the start. If the shape has already been closed or has only one point, this function does nothing.
-   *
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/closePath
-   *
-   * @returns {void}
-   *
-   * @memberof Context
-   */
-  closePath() {
-    const curr = this.currentPoint();
-    if (!curr || !this.pathstart) return; // nothing to close
-    // marks the subpath closed (so strokes join at its start) and returns to its first point
-    this.path.push([PATH_COMMAND.CLOSE, this.pathstart]);
-  }
-
-  /**
    * Strokes the current or given path with the current stroke style
    *
    * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/stroke
@@ -1515,12 +1074,16 @@ export class Context {
    *
    * @memberof Context
    */
-  stroke() {
-    this.paint(() => this.strokePath());
+  stroke(path?: Path2D) {
+    if (arguments.length > 0 && !(path instanceof Path2D)) {
+      throw new TypeError("stroke: argument 1 is not a Path2D");
+    }
+    const device = this.devicePath(path);
+    this.paint(() => this.strokePath(device));
   }
 
-  private strokePath(): void {
-    const lines = this.strokeOutline();
+  private strokePath(path: PathCmd[]): void {
+    const lines = this.strokeOutline(path);
     if (!lines) return;
     const old_fillStyle = this.fillStyle;
     this.fillStyle = this.strokeStyle;
@@ -1541,10 +1104,10 @@ export class Context {
   }
 
   /**
-   * The device-space edges of the current path's stroke outline, to fill with the nonzero
-   * rule, or null if the current transform can't be inverted.
+   * The device-space edges of the stroke outline of `path` (in device space), to fill with the
+   * nonzero rule, or null if the current transform can't be inverted.
    */
-  private strokeOutline(): Line[] | null {
+  private strokeOutline(path: PathCmd[]): Line[] | null {
     // the stroke is traced in the user space of the transform in effect now, which need not
     // be the one the path was built with: scale(2, 1) makes vertical lines twice as thick
     const m = this._transform.getMatrix();
@@ -1552,7 +1115,7 @@ export class Context {
     if (!det || !Number.isFinite(det)) return null;
     const inverse = this._transform.cloneTransform();
     inverse.invert();
-    const subpaths = pathToSubpaths(this.path, (pt) => inverse.transformPoint(pt));
+    const subpaths = pathToSubpaths(path, (pt) => inverse.transformPoint(pt));
     const polygons = strokePolygons(subpaths, {
       width: this._lineWidth,
       cap: this._lineCap,
@@ -1574,11 +1137,20 @@ export class Context {
    *
    * @see https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-ispointinpath
    */
-  isPointInPath(x: number, y: number, fillRule: FillRule = "nonzero"): boolean {
-    requireArgs(arguments.length, 2, "isPointInPath");
-    const rule = parseFillRule(fillRule);
+  isPointInPath(x: number, y: number, fillRule?: FillRule): boolean;
+  isPointInPath(path: Path2D, x: number, y: number, fillRule?: FillRule): boolean;
+  isPointInPath(...args: unknown[]): boolean {
+    requireArgs(args.length, 2, "isPointInPath");
+    // a Path2D first, or four arguments, means the (path, x, y, fillRule) overload
+    const withPath = args[0] instanceof Path2D || args.length >= 4;
+    if (withPath && !(args[0] instanceof Path2D)) {
+      throw new TypeError("isPointInPath: argument 1 is not a Path2D");
+    }
+    const [x, y, fillRule] = withPath ? args.slice(1) : args;
+    const rule = parseFillRule(fillRule === undefined ? "nonzero" : fillRule);
     if (!allFinite(x, y) || !this.transformInvertible()) return false;
-    return pointInLines(pathToFillLines(this.path), Number(x), Number(y), rule);
+    const path = this.devicePath(withPath ? (args[0] as Path2D) : undefined);
+    return pointInLines(pathToFillLines(path), Number(x), Number(y), rule);
   }
 
   /**
@@ -1587,10 +1159,17 @@ export class Context {
    *
    * @see https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-ispointinstroke
    */
-  isPointInStroke(x: number, y: number): boolean {
-    requireArgs(arguments.length, 2, "isPointInStroke");
+  isPointInStroke(x: number, y: number): boolean;
+  isPointInStroke(path: Path2D, x: number, y: number): boolean;
+  isPointInStroke(...args: unknown[]): boolean {
+    requireArgs(args.length, 2, "isPointInStroke");
+    const withPath = args[0] instanceof Path2D || args.length >= 3;
+    if (withPath && !(args[0] instanceof Path2D)) {
+      throw new TypeError("isPointInStroke: argument 1 is not a Path2D");
+    }
+    const [x, y] = withPath ? args.slice(1) : args;
     if (!allFinite(x, y)) return false;
-    const lines = this.strokeOutline();
+    const lines = this.strokeOutline(this.devicePath(withPath ? (args[0] as Path2D) : undefined));
     return !!lines && pointInLines(lines, Number(x), Number(y), "nonzero");
   }
 
@@ -1745,10 +1324,13 @@ export class Context {
    *
    * @memberof Context
    */
-  fill(fillRule: FillRule = "nonzero") {
+  fill(fillRule?: FillRule): void;
+  fill(path: Path2D, fillRule?: FillRule): void;
+  fill(...args: unknown[]): void {
+    const [path, fillRule] = this.pathAndRule(args, "fill");
     const rule = parseFillRule(fillRule);
     // every subpath is filled as if closed, without changing the path itself
-    const lines = pathToFillLines(this.path);
+    const lines = pathToFillLines(path);
     this.paint(() =>
       this.imageSmoothingEnabled ? this.fill_aa(lines, rule) : this.fill_noaa(lines, rule),
     );
