@@ -1,6 +1,4 @@
 import { build } from "esbuild";
-import pkg from "npm-dts";
-const { Generator } = pkg;
 
 async function go() {
   const sharedConfig = {
@@ -8,11 +6,6 @@ async function go() {
     bundle: true,
     minify: true,
   };
-
-  await new Generator({
-    entry: "src/index.ts",
-    output: "dist/index.d.ts",
-  }).generate();
 
   await build({
     ...sharedConfig,
