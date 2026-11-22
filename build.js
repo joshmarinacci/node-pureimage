@@ -25,7 +25,7 @@ async function go() {
     platform: "neutral",
     format: "esm",
     outfile: "dist/index.esm.js",
-    external: ["pngjs", "opentype.js", "jpeg-js"],
+    external: ["pngjs", "opentype.js", "jpeg-js", "node:*"],
   });
 }
 
