@@ -327,6 +327,7 @@ function runFile(file) {
           t.done();
           return r;
         },
+        step_timeout: (fn, ms, ...a) => setTimeout(() => guard(sub, fn, t, a), ms),
         unreached_func: (d) => () => record(sub, "FAIL", `unreached: ${d}`),
         done: () => record(sub, "PASS", null),
         add_cleanup: () => {},

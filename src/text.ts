@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as opentype from "opentype.js";
 import type { Context } from "./context.js";
+import { FontFamily, isGenericFamily } from "./font.js";
 import { TextAlign, TextBaseline } from "./types.js";
 
 /** Map containing all the fonts available for use */
@@ -10,8 +11,11 @@ const _fonts: Record<string, RegisteredFont> = {};
 // const DEFAULT_FONT_FAMILY = 'source';
 
 export type Font = {
-  /** The font family to set */
+  /** The font family to set; the first of `families` when there is a list */
   family: string;
+  /** The font-family list, in order of preference */
+  families?: FontFamily[];
+  stretch?: string;
   /** An integer representing the font size to use */
   size?: number;
   binary?: string;
@@ -117,17 +121,73 @@ export function registerFont(
 export const debug_list_of_fonts = _fonts;
 
 /**
- * Find Font
- *
- * Search the `fonts` array for a given font family name
+ * Find the registered font for a context font: the first family in its list that is registered,
+ * or else the first registered font.
  */
-function findFont(
-  /** The name of the font family to search for */
-  family: string,
-): RegisteredFont | undefined {
-  if (_fonts[family]) return _fonts[family];
-  family = Object.keys(_fonts)[0];
-  return _fonts[family];
+function findFont(font: Font): RegisteredFont | undefined {
+  const families = font.families ?? [{ name: font.family, quoted: false }];
+  for (const family of families) {
+    if (_fonts[family.name] && !isGenericFamily(family)) return _fonts[family.name];
+  }
+  // a generic family such as serif can still name a registered font
+  for (const family of families) {
+    if (_fonts[family.name]) return _fonts[family.name];
+  }
+  return _fonts[Object.keys(_fonts)[0]];
+}
+
+/** start and end resolved to left or right by the context's direction. */
+function physicalAlign(align: TextAlign, ctx: Context): "left" | "right" | "center" {
+  if (align === "left" || align === "right" || align === "center") return align;
+  const rtl = ctx.direction === "rtl";
+  return (align === "start") !== rtl ? "left" : "right";
+}
+
+const isWordSeparator = (ch: string) => ch === " " || ch === "\u00a0";
+
+/** The glyphs of a text in a font, with their pen positions in px from the start of the text. */
+type Layout = { glyphs: { glyph: opentype.Glyph; x: number }[]; width: number };
+
+/**
+ * Lays out text with the context's letterSpacing and wordSpacing. Without spacing, glyphs come
+ * from opentype.js's shaping (so ligatures apply); with spacing, there is one glyph per character.
+ */
+function layoutText(font: opentype.Font, text: string, size: number, ctx: Context): Layout {
+  const scale = size / font.unitsPerEm;
+  const spacing = ctx._spacingPx();
+  const glyphs: Layout["glyphs"] = [];
+  // advances are summed in font units and scaled once, so widths don't pick up rounding error
+  let units = 0;
+  let extra = 0;
+  if (spacing.letter === 0 && spacing.word === 0) {
+    // pass the render options explicitly: with no options, opentype.js 1.3.4 applies GSUB
+    // features in a way that throws for fonts using lookups it doesn't support (e.g. Lato)
+    // (@types/opentype.js omits the options parameter)
+    const otFont = font as unknown as {
+      defaultRenderOptions: opentype.RenderOptions;
+      stringToGlyphs(s: string, options?: opentype.RenderOptions): opentype.Glyph[];
+    };
+    for (const glyph of otFont.stringToGlyphs(text, otFont.defaultRenderOptions)) {
+      glyphs.push({ glyph, x: units * scale });
+      units += glyph.advanceWidth;
+    }
+    return { glyphs, width: units * scale };
+  }
+  for (const ch of text) {
+    const glyph = font.charToGlyph(ch);
+    glyphs.push({ glyph, x: units * scale + extra });
+    units += glyph.advanceWidth;
+    extra += spacing.letter + (isWordSeparator(ch) ? spacing.word : 0);
+  }
+  return { glyphs, width: units * scale + extra };
+}
+
+/** Text width when no font is available: half an em per character, plus spacing. */
+function fallbackWidth(text: string, size: number, ctx: Context): number {
+  const spacing = ctx._spacingPx();
+  let width = 0;
+  for (const ch of text) width += size / 2 + spacing.letter + (isWordSeparator(ch) ? spacing.word : 0);
+  return width;
 }
 
 /** Process Text Path */
@@ -144,8 +204,11 @@ export function processTextPath(
   fill: boolean,
   hAlign: TextAlign,
   vAlign: TextBaseline,
+  /** If given, the text is squeezed horizontally to fit this width; nothing is drawn if it isn't positive */
+  maxWidth?: number,
 ) {
-  const font = findFont(ctx._font.family);
+  if (maxWidth !== undefined && !(maxWidth > 0)) return;
+  const font = findFont(ctx._font);
   if (!font) {
     warnOnce(`no fonts registered; cannot draw text in "${ctx._font.family}"`);
     return;
@@ -155,29 +218,39 @@ export function processTextPath(
     return;
   }
   text = prepareText(text);
-  const metrics = measureText(ctx, text);
-  // move from the alignment point to the start of the text on the alphabetic baseline
-  if (hAlign === "end" || hAlign === "right") x = x - metrics.width;
-  if (hAlign === "center") x = x - metrics.width / 2;
-  y = y + baselineCoordinate(fontMetrics(font, ctx._font.size), vAlign);
   const size = ctx._font.size;
-  const path = font.font.getPath(text, x, y, size);
+  const layout = layoutText(font.font, text, size, ctx);
+  const scaleX = maxWidth !== undefined && layout.width > maxWidth ? maxWidth / layout.width : 1;
+  const drawnWidth = layout.width * scaleX;
+  // move from the alignment point to the start of the text on the alphabetic baseline
+  const align = physicalAlign(hAlign, ctx);
+  if (align === "right") x = x - drawnWidth;
+  if (align === "center") x = x - drawnWidth / 2;
+  y = y + baselineCoordinate(fontMetrics(font, size), vAlign);
+  // glyph outlines are laid out from x = 0, then squeezed to fit maxWidth
+  const commands: opentype.PathCommand[] = [];
+  if (ctx._spacingPx().letter === 0 && ctx._spacingPx().word === 0) {
+    commands.push(...font.font.getPath(text, 0, y, size).commands);
+  } else {
+    for (const g of layout.glyphs) commands.push(...g.glyph.getPath(g.x, y, size).commands);
+  }
+  const px = (cx: number) => x + cx * scaleX;
   // build every contour into one path and fill it once: a glyph's inner contours wind the
   // opposite way to its outer ones, so the nonzero rule cuts out holes such as the middle of an o
   ctx.beginPath();
-  path.commands.forEach(function (cmd) {
+  commands.forEach(function (cmd) {
     switch (cmd.type) {
       case "M":
-        ctx.moveTo(cmd.x, cmd.y);
+        ctx.moveTo(px(cmd.x), cmd.y);
         break;
       case "Q":
-        ctx.quadraticCurveTo(cmd.x1, cmd.y1, cmd.x, cmd.y);
+        ctx.quadraticCurveTo(px(cmd.x1), cmd.y1, px(cmd.x), cmd.y);
         break;
       case "L":
-        ctx.lineTo(cmd.x, cmd.y);
+        ctx.lineTo(px(cmd.x), cmd.y);
         break;
       case "C":
-        ctx.bezierCurveTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
+        ctx.bezierCurveTo(px(cmd.x1), cmd.y1, px(cmd.x2), cmd.y2, px(cmd.x), cmd.y);
         break;
       case "Z":
         ctx.closePath();
@@ -335,37 +408,41 @@ export function measureText(
   /** The text to measure */
   text: string,
 ): TextMetrics {
-  const font = findFont(ctx._font.family);
-  if (!font || !font.font) {
-    warnOnce(`can't measure text: font "${ctx._font.family}" is not registered and loaded`);
-    return emptyMetrics(10, 8, 2);
-  }
+  const font = findFont(ctx._font);
   text = prepareText(text);
   const size = ctx._font.size;
-  const scale = size / font.font.unitsPerEm;
-  // pass the render options explicitly: with no options, opentype.js 1.3.4 applies GSUB
-  // features in a way that throws for fonts using lookups it doesn't support (e.g. Lato)
-  // (@types/opentype.js omits the options parameter)
-  const otFont = font.font as unknown as {
-    defaultRenderOptions: opentype.RenderOptions;
-    stringToGlyphs(s: string, options?: opentype.RenderOptions): opentype.Glyph[];
-  };
-  const glyphs = otFont.stringToGlyphs(text, otFont.defaultRenderOptions);
-  let advance = 0;
-  glyphs.forEach(function (g) {
-    advance += g.advanceWidth;
-  });
-  const width = advance * scale;
+  if (!font || !font.font) {
+    warnOnce(`can't measure text: font "${ctx._font.family}" is not registered and loaded`);
+    return fallbackMetrics(fallbackWidth(text, size, ctx), size, physicalAlign(ctx.textAlign, ctx));
+  }
+  const layout = layoutText(font.font, text, size, ctx);
+  const width = layout.width;
 
   const m = fontMetrics(font, size);
   const ref = baselineCoordinate(m, ctx.textBaseline);
-  const align = ctx.textAlign;
-  const alignX = align === "right" || align === "end" ? width : align === "center" ? width / 2 : 0;
+  const align = physicalAlign(ctx.textAlign, ctx);
+  const alignX = align === "right" ? width : align === "center" ? width / 2 : 0;
 
-  // ink bounds; whitespace without a glyph in this font is blank, as with a fallback font
+  // ink bounds; path coordinates grow downwards, and an empty path has an all-zero box
+  let x1 = 0;
+  let y1 = 0;
+  let x2 = 0;
+  let y2 = 0;
+  let first = true;
+  // whitespace without a glyph in this font is blank, as with a fallback font
   const inkText = text.replace(/\s/g, " ");
-  // path coordinates grow downwards; an empty path has an all-zero box
-  const { x1, y1, x2, y2 } = font.font.getPath(inkText, 0, 0, size).getBoundingBox();
+  for (const g of layoutText(font.font, inkText, size, ctx).glyphs) {
+    const box = g.glyph.getPath(g.x, 0, size).getBoundingBox();
+    if (box.x1 === 0 && box.x2 === 0 && box.y1 === 0 && box.y2 === 0) continue;
+    if (first) ({ x1, y1, x2, y2 } = box);
+    else {
+      x1 = Math.min(x1, box.x1);
+      y1 = Math.min(y1, box.y1);
+      x2 = Math.max(x2, box.x2);
+      y2 = Math.max(y2, box.y2);
+    }
+    first = false;
+  }
 
   return {
     width,
@@ -383,11 +460,15 @@ export function measureText(
   };
 }
 
-function emptyMetrics(width: number, ascent: number, descent: number): TextMetrics {
+/** Approximate metrics when no font is available. */
+function fallbackMetrics(width: number, size: number, align: "left" | "right" | "center"): TextMetrics {
+  const ascent = size * 0.8;
+  const descent = size * 0.2;
+  const alignX = align === "right" ? width : align === "center" ? width / 2 : 0;
   return {
     width,
-    actualBoundingBoxLeft: 0,
-    actualBoundingBoxRight: width,
+    actualBoundingBoxLeft: alignX,
+    actualBoundingBoxRight: width - alignX,
     actualBoundingBoxAscent: ascent,
     actualBoundingBoxDescent: descent,
     fontBoundingBoxAscent: ascent,

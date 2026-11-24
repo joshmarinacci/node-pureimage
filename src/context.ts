@@ -22,18 +22,27 @@ import { Matrix, Transform } from "./transform.js";
 import { LineCap, LineJoin, strokePolygons, Subpath } from "./stroke.js";
 import { allFinite, PathBuilder, requireArgs, samePoint } from "./path.js";
 import { mapPath, Path2D } from "./path2d.js";
+import { FONT_STRETCHES, lengthToPx, parseFont, parseSpacing, serializeFont, serializeSpacing, SpacingLength } from "./font.js";
 
-// Matches a CSS size token: digits+optional-decimal followed by a unit, plus an optional /line-height suffix.
-const FONT_SIZE_RE = /^(\d*\.?\d+)(px|pt|em|rem|ex|ch|vw|vh|%)(\/.*)?$/i;
-const FONT_WEIGHT_KEYWORDS: Record<string, number> = { bold: 700, bolder: 800, lighter: 300 };
+const TEXT_ALIGNS: readonly TextAlign[] = ["start", "end", "left", "right", "center"];
+const TEXT_BASELINES: readonly TextBaseline[] = ["top", "hanging", "middle", "alphabetic", "ideographic", "bottom"];
+const DIRECTIONS = ["ltr", "rtl", "inherit"] as const;
+const FONT_KERNINGS = ["auto", "normal", "none"] as const;
+const FONT_VARIANT_CAPS = [
+  "normal",
+  "small-caps",
+  "all-small-caps",
+  "petite-caps",
+  "all-petite-caps",
+  "unicase",
+  "titling-caps",
+] as const;
+const TEXT_RENDERINGS = ["auto", "optimizeSpeed", "optimizeLegibility", "geometricPrecision"] as const;
 
-type ParsedFont = {
-  size: number;
-  family: string;
-  style?: string;
-  variant?: string;
-  weight?: number;
-};
+/** The value if it is one of the allowed keywords (case-sensitively), else undefined. */
+function keyword<T extends string>(allowed: readonly T[], value: unknown): T | undefined {
+  return allowed.find((k) => k === value);
+}
 
 type FillRule = "evenodd" | "nonzero";
 type ClipRegion = { lines: Line[]; rule: FillRule };
@@ -51,58 +60,6 @@ function parseFillRule(value: unknown): FillRule {
 }
 
 
-function parseFontString(val: string): ParsedFont | null {
-  const tokens = val.trim().split(/\s+/);
-  let style: string | undefined;
-  let variant: string | undefined;
-  let weight: number | undefined;
-  let size: number | undefined;
-  let familyStart = 0;
-
-  for (let i = 0; i < tokens.length; i++) {
-    const lower = tokens[i].toLowerCase();
-
-    const sizeMatch = lower.match(FONT_SIZE_RE);
-    if (sizeMatch) {
-      size = parseFloat(sizeMatch[1]);
-      familyStart = i + 1;
-      break;
-    }
-
-    if ((lower === "italic" || lower === "oblique") && style === undefined) {
-      style = lower;
-      continue;
-    }
-    if (lower === "small-caps" && variant === undefined) {
-      variant = lower;
-      continue;
-    }
-    if (lower in FONT_WEIGHT_KEYWORDS && weight === undefined) {
-      weight = FONT_WEIGHT_KEYWORDS[lower];
-      continue;
-    }
-    if (/^\d+$/.test(lower) && weight === undefined) {
-      const n = parseInt(lower, 10);
-      if (n >= 100 && n <= 900) {
-        weight = n;
-        continue;
-      }
-    }
-    // unknown pre-size tokens (e.g. "normal") are skipped
-  }
-
-  if (size === undefined || familyStart > tokens.length) return null;
-
-  const family = tokens
-    .slice(familyStart)
-    .join(" ")
-    .replace(/['"]/g, "")
-    .trim();
-  if (!family) return null;
-
-  return { size, family, style, variant, weight };
-}
-
 /**
  * Used for drawing rectangles, text, images and other objects onto the canvas element. It provides the 2D rendering context for a drawing surface.
  *
@@ -111,22 +68,22 @@ function parseFontString(val: string): ParsedFont | null {
  * @class Context
  */
 export class Context extends PathBuilder {
-  /** Horizontal text alignment, one of start, end, left, center, right. start is the default */
-  public textAlign: TextAlign;
-  /** vertical text alignment, relative to the baseline. one of top, middle, alphabetic(default) and bottom. */
-  public textBaseline: TextBaseline;
+  private _textAlign: TextAlign;
+  private _textBaseline: TextBaseline;
+  private _direction: (typeof DIRECTIONS)[number];
+  private _fontKerning: (typeof FONT_KERNINGS)[number];
+  private _fontStretch: (typeof FONT_STRETCHES)[number];
+  private _fontVariantCaps: (typeof FONT_VARIANT_CAPS)[number];
+  private _textRendering: (typeof TEXT_RENDERINGS)[number];
+  private _letterSpacing: SpacingLength;
+  private _wordSpacing: SpacingLength;
+  /** The language of the text, a BCP 47 tag or "inherit". It is stored but doesn't affect drawing. */
+  public lang: string;
   /** Enable or disable image smoothing(anti-aliasing)*/
   public imageSmoothingEnabled: boolean;
   public imageSmoothingQuality: string;
-  public direction: string;
   public filter: string;
-  public fontKerning: string;
-  public fontStretch: string;
-  public fontVariantCaps: string;
-  public letterSpacing: string;
   public lineDashOffset: number;
-  public textRendering: string;
-  public wordSpacing: string;
   public shadowBlur: number;
   public shadowColor: string;
   public shadowOffsetX: number;
@@ -159,22 +116,24 @@ export class Context extends PathBuilder {
     this._globalAlpha = 1;
     this._transform = new Transform();
     this._font = {
-      family: "invalid",
-      size: 12,
+      family: "sans-serif",
+      families: [{ name: "sans-serif", quoted: false }],
+      size: 10,
     };
-    this.textAlign = "start";
-    this.textBaseline = "alphabetic";
+    this._textAlign = "start";
+    this._textBaseline = "alphabetic";
     this.imageSmoothingEnabled = true;
     this.imageSmoothingQuality = "low";
-    this.direction = "inherit";
+    this._direction = "inherit";
     this.filter = "none";
-    this.fontKerning = "auto";
-    this.fontStretch = "normal";
-    this.fontVariantCaps = "normal";
-    this.letterSpacing = "0px";
+    this._fontKerning = "auto";
+    this._fontStretch = "normal";
+    this._fontVariantCaps = "normal";
+    this._letterSpacing = { value: 0, unit: "px" };
     this.lineDashOffset = 0;
-    this.textRendering = "auto";
-    this.wordSpacing = "0px";
+    this._textRendering = "auto";
+    this._wordSpacing = { value: 0, unit: "px" };
+    this.lang = "inherit";
     this._lineCap = "butt";
     this._lineJoin = "miter";
     this._miterLimit = 10;
@@ -344,25 +303,104 @@ export class Context extends PathBuilder {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font
    */
   get font(): string {
-    const parts: string[] = [];
-    if (this._font.style) parts.push(this._font.style);
-    if (this._font.variant) parts.push(this._font.variant);
-    if (this._font.weight !== undefined) parts.push(String(this._font.weight));
-    parts.push(`${this._font.size}px`);
-    parts.push(this._font.family);
-    return parts.join(" ");
+    const f = this._font;
+    return serializeFont({ ...f, size: f.size ?? 10, families: f.families ?? [{ name: f.family, quoted: false }] });
   }
 
-  /** @example ctx.font = 'bold italic 12px Arial'; */
+  /**
+   * Sets the font from a CSS font shorthand value. Sizes are converted to px, with relative
+   * sizes such as em resolved against the default 10px. Invalid values are ignored.
+   *
+   * @example ctx.font = 'bold italic 12px Arial';
+   */
   set font(val: string) {
-    const parsed = parseFontString(val);
-    if (parsed) {
-      this._font.size = parsed.size;
-      this._font.family = parsed.family;
-      this._font.style = parsed.style;
-      this._font.variant = parsed.variant;
-      this._font.weight = parsed.weight;
-    }
+    const parsed = parseFont(val);
+    if (!parsed) return;
+    this._font.size = parsed.size;
+    this._font.families = parsed.families;
+    this._font.family = parsed.families[0].name;
+    this._font.style = parsed.style;
+    this._font.variant = parsed.variant;
+    this._font.weight = parsed.weight;
+    this._font.stretch = parsed.stretch;
+  }
+
+  /** Horizontal text alignment: start (the default), end, left, right or center. */
+  get textAlign(): TextAlign {
+    return this._textAlign;
+  }
+  set textAlign(value: TextAlign) {
+    this._textAlign = keyword(TEXT_ALIGNS, value) ?? this._textAlign;
+  }
+
+  /** The baseline text is aligned to: top, hanging, middle, alphabetic (the default), ideographic or bottom. */
+  get textBaseline(): TextBaseline {
+    return this._textBaseline;
+  }
+  set textBaseline(value: TextBaseline) {
+    this._textBaseline = keyword(TEXT_BASELINES, value) ?? this._textBaseline;
+  }
+
+  /** Text direction: ltr, rtl, or inherit (the default, which is ltr). It decides which side start and end are. */
+  get direction(): string {
+    return this._direction;
+  }
+  set direction(value: string) {
+    this._direction = keyword(DIRECTIONS, value) ?? this._direction;
+  }
+
+  /** auto, normal or none. Stored, but kerning isn't applied. */
+  get fontKerning(): string {
+    return this._fontKerning;
+  }
+  set fontKerning(value: string) {
+    this._fontKerning = keyword(FONT_KERNINGS, value) ?? this._fontKerning;
+  }
+
+  /** A font-stretch keyword, such as condensed. Stored, but doesn't affect drawing. */
+  get fontStretch(): string {
+    return this._fontStretch;
+  }
+  set fontStretch(value: string) {
+    this._fontStretch = keyword(FONT_STRETCHES, value) ?? this._fontStretch;
+  }
+
+  /** A font-variant-caps keyword, such as small-caps. Stored, but doesn't affect drawing. */
+  get fontVariantCaps(): string {
+    return this._fontVariantCaps;
+  }
+  set fontVariantCaps(value: string) {
+    this._fontVariantCaps = keyword(FONT_VARIANT_CAPS, value) ?? this._fontVariantCaps;
+  }
+
+  /** auto, optimizeSpeed, optimizeLegibility or geometricPrecision. Stored, but doesn't affect drawing. */
+  get textRendering(): string {
+    return this._textRendering;
+  }
+  set textRendering(value: string) {
+    this._textRendering = keyword(TEXT_RENDERINGS, value) ?? this._textRendering;
+  }
+
+  /** Extra space after each character, as a CSS length such as "2px" or "0.1em". Invalid values are ignored. */
+  get letterSpacing(): string {
+    return serializeSpacing(this._letterSpacing);
+  }
+  set letterSpacing(value: string) {
+    this._letterSpacing = parseSpacing(value) ?? this._letterSpacing;
+  }
+
+  /** Extra space after each space character, as a CSS length such as "4px". Invalid values are ignored. */
+  get wordSpacing(): string {
+    return serializeSpacing(this._wordSpacing);
+  }
+  set wordSpacing(value: string) {
+    this._wordSpacing = parseSpacing(value) ?? this._wordSpacing;
+  }
+
+  /** @internal letterSpacing and wordSpacing in px, at the current font size */
+  _spacingPx(): { letter: number; word: number } {
+    const px = (s: SpacingLength) => lengthToPx(s.value, s.unit, this._font.size) ?? 0;
+    return { letter: px(this._letterSpacing), word: px(this._wordSpacing) };
   }
 
   /**
@@ -476,8 +514,16 @@ export class Context extends PathBuilder {
       _lineWidth: this._lineWidth,
       _globalAlpha: this._globalAlpha,
       _font: { ...this._font },
-      textAlign: this.textAlign,
-      textBaseline: this.textBaseline,
+      _textAlign: this._textAlign,
+      _textBaseline: this._textBaseline,
+      _direction: this._direction,
+      _fontKerning: this._fontKerning,
+      _fontStretch: this._fontStretch,
+      _fontVariantCaps: this._fontVariantCaps,
+      _textRendering: this._textRendering,
+      _letterSpacing: this._letterSpacing,
+      _wordSpacing: this._wordSpacing,
+      lang: this.lang,
       imageSmoothingEnabled: this.imageSmoothingEnabled,
       lineCap: this.lineCap,
       lineJoin: this.lineJoin,
@@ -1581,16 +1627,18 @@ export class Context extends PathBuilder {
    * @param {string} text A string specifying the text string to render into the context. The text is rendered using the settings specified by {@link font}.
    * @param {number} x    The x -coordinate of the point at which to begin drawing the text, in pixels.
    * @param {number} y    The y-coordinate of the point at which to begin drawing the text, in pixels.
+   * @param {number} maxWidth If given, the text is squeezed horizontally to fit this width.
    *
    * @returns {void}
    *
    * @memberof Context
    */
-  fillText(text: string, x: number, y: number): void {
+  fillText(text: string, x: number, y: number, maxWidth?: number): void {
     requireArgs(arguments.length, 3, "fillText");
+    const max = maxWidth === undefined ? undefined : Number(maxWidth);
     // glyphs are filled one at a time, so composite them together as one shape
     this.paint(() =>
-      TEXT.processTextPath(this, text, x, y, true, this.textAlign, this.textBaseline),
+      TEXT.processTextPath(this, text, x, y, true, this.textAlign, this.textBaseline, max),
     );
   }
 
@@ -1600,16 +1648,18 @@ export class Context extends PathBuilder {
    * @param {string} text The text to draw using the current {@link font} values.
    * @param {number} x    The x axis of the coordinate for the text starting point.
    * @param {number} y    The y axis of the coordinate for the text starting point.
+   * @param {number} maxWidth If given, the text is squeezed horizontally to fit this width.
    *
    * @returns {void}
    *
    * @memberof Context
    */
-  strokeText(text: string, x: number, y: number): void {
+  strokeText(text: string, x: number, y: number, maxWidth?: number): void {
     requireArgs(arguments.length, 3, "strokeText");
+    const max = maxWidth === undefined ? undefined : Number(maxWidth);
     // glyphs are filled one at a time, so composite them together as one shape
     this.paint(() =>
-      TEXT.processTextPath(this, text, x, y, false, this.textAlign, this.textBaseline),
+      TEXT.processTextPath(this, text, x, y, false, this.textAlign, this.textBaseline, max),
     );
   }
 }
