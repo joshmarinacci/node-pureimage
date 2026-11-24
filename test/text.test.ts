@@ -276,3 +276,44 @@ describe("fonts with unsupported substitution lookups", () => {
     expect(() => ctx.fillText("fi office", 5, 30)).not.toThrow();
   });
 });
+
+describe("glyphs with holes", () => {
+  /** Draws one glyph and returns the runs of dark and light pixels across row y. */
+  function rowRuns(family: string, glyph: string, y: number): string {
+    const image = pureimage.make(120, 120);
+    const ctx = image.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, 120, 120);
+    ctx.fillStyle = "#000";
+    ctx.font = `100px ${family}`;
+    ctx.fillText(glyph, 10, 100);
+    let runs = "";
+    for (let x = 0; x < 120; x++) {
+      const c = image.getPixelRGBA_separate(x, y)[0] < 128 ? "#" : ".";
+      if (!runs.endsWith(c)) runs += c;
+    }
+    return runs;
+  }
+
+  const GLYPH_ROWS: [string, number][] = [
+    ["o", 75],
+    ["0", 75],
+    ["B", 45],
+  ];
+
+  // inner contours must cut holes rather than being filled as shapes of their own
+  it("cuts out the inside of o, 0 and B in a CFF (OTF) font", () => {
+    pureimage.registerFont("test/bugs/144/Inter-Regular.otf", "Inter").loadSync();
+    // the baseline is at y = 100; y = 45 crosses the top bowl of B
+    for (const [glyph, y] of GLYPH_ROWS) expect(rowRuns("Inter", glyph, y), glyph).toBe(".#.#.");
+  });
+
+  it("cuts out the inside of o, 0 and B in a TrueType font", () => {
+    pureimage
+      .registerFont("test/unit/fixtures/fonts/SourceSansPro-Regular.ttf", "Source Sans Pro")
+      .loadSync();
+    for (const [glyph, y] of GLYPH_ROWS) {
+      expect(rowRuns("'Source Sans Pro'", glyph, y), glyph).toBe(".#.#.");
+    }
+  });
+});
