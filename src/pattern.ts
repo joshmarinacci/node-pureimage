@@ -23,7 +23,7 @@ const REPETITIONS: ReadonlySet<string> = new Set(["repeat", "repeat-x", "repeat-
 
 const IDENTITY: Matrix = [1, 0, 0, 1, 0, 0];
 
-function multiply(m: Matrix, n: Matrix): Matrix {
+export function multiply(m: Matrix, n: Matrix): Matrix {
   return [
     m[0] * n[0] + m[2] * n[1],
     m[1] * n[0] + m[3] * n[1],
@@ -34,7 +34,7 @@ function multiply(m: Matrix, n: Matrix): Matrix {
   ];
 }
 
-function invert(m: Matrix): Matrix | null {
+export function invert(m: Matrix): Matrix | null {
   const det = m[0] * m[3] - m[1] * m[2];
   if (det === 0 || !Number.isFinite(det)) return null;
   return [

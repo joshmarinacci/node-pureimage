@@ -21,7 +21,8 @@ describe("drawing gradients", () => {
     grad.addColorStop(1, "blue");
     c.fillStyle = grad;
     c.fillRect(0, 0, w, h);
-    expect(image.getPixelRGBA(0, 0)).to.eq(0xffffffff);
+    // sampled at the pixel centre (0.5, 0.5), a little way into the gradient
+    expect(image.getPixelRGBA(0, 0)).to.eq(0xfefeffff);
     // expect(image.getPixelRGBA(w-1, h-1)).to.eq(0x0000FFFF)
     await save(image, "linear_gradient_fillrect");
   });
@@ -36,7 +37,8 @@ describe("drawing gradients", () => {
     c.rect(0, 0, 20, 20);
     c.fill();
     // expect(image.getPixelRGBA(0, 0)).to.eq(NAMED_COLORS.white)
-    expect(image.getPixelRGBA(19, 19)).to.eq(0x0c0cffff);
+    // sampled at the pixel centre (19.5, 19.5): 97.5% of the way to blue
+    expect(image.getPixelRGBA(19, 19)).to.eq(0x0606ffff);
     // console.log(image)
     // for(let i=0; i<20; i++) {
     //     console.log(i, image.getPixelRGBA_separate(i,19))
