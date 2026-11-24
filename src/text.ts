@@ -162,6 +162,8 @@ export function processTextPath(
   y = y + baselineCoordinate(fontMetrics(font, ctx._font.size), vAlign);
   const size = ctx._font.size;
   const path = font.font.getPath(text, x, y, size);
+  // build every contour into one path and fill it once: a glyph's inner contours wind the
+  // opposite way to its outer ones, so the nonzero rule cuts out holes such as the middle of an o
   ctx.beginPath();
   path.commands.forEach(function (cmd) {
     switch (cmd.type) {
@@ -177,14 +179,13 @@ export function processTextPath(
       case "C":
         ctx.bezierCurveTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
         break;
-      case "Z": {
+      case "Z":
         ctx.closePath();
-        fill ? ctx.fill() : ctx.stroke();
-        ctx.beginPath();
         break;
-      }
     }
   });
+  if (fill) ctx.fill();
+  else ctx.stroke();
 }
 /**
  * Text measurements, as returned by {@link Context.measureText}.
