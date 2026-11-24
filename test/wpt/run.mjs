@@ -339,6 +339,7 @@ function runFile(file) {
       OffscreenCanvas,
       OffscreenCanvasRenderingContext2D: PImage.Context,
       CanvasPattern: PImage.CanvasPattern,
+      CanvasGradient: PImage.CanvasGradient,
       fetch: makeFetch(file),
       createImageBitmap,
       ImageBitmap,

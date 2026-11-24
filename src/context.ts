@@ -407,14 +407,32 @@ export class Context extends PathBuilder {
     this._strokeStyle_text = serializeColor(color);
   }
 
-  createLinearGradient(x0: number, y0: number, x1: number, y1: number) {
+  /**
+   * Creates a gradient along the line from (x0, y0) to (x1, y1).
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createLinearGradient
+   */
+  createLinearGradient(x0: number, y0: number, x1: number, y1: number): G.CanvasGradient {
     requireArgs(arguments.length, 4, "createLinearGradient");
-    return new G.LinearGradient(x0, y0, x1, y1);
+    return new G.LinearGradient(+x0, +y0, +x1, +y1);
   }
 
-  createRadialGradient(x0: number, y0: number, _r0: number, _x1: number, _y1: number, _r1: number) {
+  /**
+   * Creates a gradient between the circle at (x0, y0) with radius r0 and the circle at (x1, y1)
+   * with radius r1.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createRadialGradient
+   */
+  createRadialGradient(
+    x0: number,
+    y0: number,
+    r0: number,
+    x1: number,
+    y1: number,
+    r1: number,
+  ): G.CanvasGradient {
     requireArgs(arguments.length, 6, "createRadialGradient");
-    return new G.RadialGradient(x0, y0);
+    return new G.RadialGradient(+x0, +y0, +r0, +x1, +y1, +r1);
   }
 
   /**
@@ -431,8 +449,14 @@ export class Context extends PathBuilder {
     return CanvasPattern.create(image, repetition);
   }
 
-  createConicGradient(angle: number, x0: number, y0: number) {
-    return new G.ConicalGradient(angle, x0, y0);
+  /**
+   * Creates a gradient that sweeps clockwise around (x, y), starting at `startAngle` radians.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createConicGradient
+   */
+  createConicGradient(startAngle: number, x: number, y: number): G.CanvasGradient {
+    requireArgs(arguments.length, 3, "createConicGradient");
+    return new G.ConicalGradient(+startAngle, +x, +y);
   }
 
   /**
@@ -813,7 +837,7 @@ export class Context extends PathBuilder {
   private styleColorAt(style: number | FillStyleObject, x: number, y: number): number {
     if (typeof style === "number") return style;
     if (style instanceof CanvasPattern) return style.colorAt(x, y, this._transform.getMatrix());
-    return (style as G.ColorGradient).colorAt(x, y);
+    return style.colorAt(x, y, this._transform.getMatrix());
   }
 
   /**
