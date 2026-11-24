@@ -6,7 +6,9 @@ import { Font } from "./text.js";
 import * as G from "./gradients.js";
 import { CanvasPattern } from "./pattern.js";
 import { and, getBytesBigEndian, or } from "./uint32.js";
-import type { Bitmap } from "./bitmap.js";
+// bitmap.ts imports this module too; Bitmap is only used at call time, so the cycle is safe
+import { Bitmap } from "./bitmap.js";
+import { enforceRange, ImageData, ImageDataSettings } from "./imagedata.js";
 import {
   MinimumBounds,
   PATH_COMMAND,
@@ -857,42 +859,140 @@ export class Context extends PathBuilder {
   }
 
   /**
-   * Get Image Data
+   * Creates transparent black ImageData. Takes either a width and height, which may be
+   * negative (their magnitude is used), or an existing ImageData to copy the size of.
    *
-   * @param {number} x X position
-   * @param {number} y Y position
-   * @param {number} w Width
-   * @param {number} h Height
-   *
-   * @ignore
-   *
-   * @returns {Bitmap}
-   *
-   * @memberof Context
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createImageData
    */
-  getImageData(x: number, y: number, w: number, h: number): Bitmap {
-    if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0 || w * h * 4 > 0x7fffffff) {
-      throw new TypeError("image data dimensions are invalid or too large");
+  createImageData(sw: number, sh: number, settings?: ImageDataSettings): ImageData;
+  createImageData(imagedata: ImageData): ImageData;
+  createImageData(a: number | ImageData, b?: number, settings?: ImageDataSettings): ImageData {
+    requireArgs(arguments.length, 1, "createImageData");
+    if (arguments.length === 1) {
+      if (!(a instanceof ImageData)) throw new TypeError("createImageData: argument 1 is not an ImageData");
+      return new ImageData(a.width, a.height);
     }
-    return this._bitmap._copySubBitmap(x, y, w, h);
+    const sw = enforceRange(a, "createImageData");
+    const sh = enforceRange(b, "createImageData");
+    if (sw === 0 || sh === 0) {
+      throw new DOMException("createImageData: width or height is zero", "IndexSizeError");
+    }
+    return new ImageData(Math.abs(sw), Math.abs(sh), settings);
   }
 
   /**
-   * *Put Image Data
+   * Copies a rectangle of the canvas into new ImageData, as straight RGBA. A negative width or
+   * height extends the rectangle left or up from (sx, sy). Parts outside the canvas are
+   * transparent black. The current transform, clip and alpha don't apply.
    *
-   * @param {Bitmap} imageData Image ID
-   * @param {number} x  X position
-   * @param {number} y  Y position
-   *
-   * @ignore
-   *
-   * @returns {void}
-   *
-   * @memberof Context
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/getImageData
    */
-  putImageData(imageData, x, y) {
-    requireArgs(arguments.length, 3, "putImageData");
-    this._bitmap._pasteSubBitmap(imageData, x, y);
+  getImageData(sx: number, sy: number, sw: number, sh: number, settings?: ImageDataSettings): ImageData {
+    requireArgs(arguments.length, 4, "getImageData");
+    let x = enforceRange(sx, "getImageData");
+    let y = enforceRange(sy, "getImageData");
+    let w = enforceRange(sw, "getImageData");
+    let h = enforceRange(sh, "getImageData");
+    if (w === 0 || h === 0) throw new DOMException("getImageData: width or height is zero", "IndexSizeError");
+    if (w < 0) {
+      x += w;
+      w = -w;
+    }
+    if (h < 0) {
+      y += h;
+      h = -h;
+    }
+    const out = new ImageData(w, h, settings);
+    const src = this._bitmap;
+    // copy only the rows and columns that overlap the canvas
+    const x0 = Math.max(x, 0);
+    const x1 = Math.min(x + w, src.width);
+    const y0 = Math.max(y, 0);
+    const y1 = Math.min(y + h, src.height);
+    if (x0 < x1) {
+      for (let j = y0; j < y1; j++) {
+        const from = (j * src.width + x0) * 4;
+        out.data.set(src.data.subarray(from, from + (x1 - x0) * 4), ((j - y) * w + (x0 - x)) * 4);
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Writes ImageData's pixels onto the canvas at (dx, dy), replacing what was there. Only the
+   * "dirty" rectangle of the image data is written, if one is given. The current transform,
+   * clip, alpha and compositing don't apply.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/putImageData
+   *
+   * @param imagedata an ImageData, or a Bitmap
+   */
+  putImageData(imagedata: ImageData | Bitmap, dx: number, dy: number): void;
+  putImageData(
+    imagedata: ImageData | Bitmap,
+    dx: number,
+    dy: number,
+    dirtyX: number,
+    dirtyY: number,
+    dirtyWidth: number,
+    dirtyHeight: number,
+  ): void;
+  putImageData(
+    imagedata: ImageData | Bitmap,
+    dx: number,
+    dy: number,
+    dirtyX?: number,
+    dirtyY?: number,
+    dirtyWidth?: number,
+    dirtyHeight?: number,
+  ): void {
+    const n = arguments.length;
+    if (n !== 3 && n !== 7) throw new TypeError(`putImageData: expected 3 or 7 arguments, got ${n}`);
+    if (!(imagedata instanceof ImageData) && !(imagedata instanceof Bitmap)) {
+      throw new TypeError("putImageData: argument 1 is not an ImageData");
+    }
+    const ox = enforceRange(dx, "putImageData");
+    const oy = enforceRange(dy, "putImageData");
+    const { width, height, data } = imagedata;
+    let x = 0;
+    let y = 0;
+    let w = width;
+    let h = height;
+    if (n === 7) {
+      x = enforceRange(dirtyX, "putImageData");
+      y = enforceRange(dirtyY, "putImageData");
+      w = enforceRange(dirtyWidth, "putImageData");
+      h = enforceRange(dirtyHeight, "putImageData");
+      if (w < 0) {
+        x += w;
+        w = -w;
+      }
+      if (h < 0) {
+        y += h;
+        h = -h;
+      }
+      if (x < 0) {
+        w += x;
+        x = 0;
+      }
+      if (y < 0) {
+        h += y;
+        y = 0;
+      }
+      w = Math.min(w, width - x);
+      h = Math.min(h, height - y);
+    }
+    // clip the dirty rectangle to the canvas too
+    const dst = this._bitmap;
+    const x0 = Math.max(x, -ox);
+    const x1 = Math.min(x + w, dst.width - ox);
+    const y0 = Math.max(y, -oy);
+    const y1 = Math.min(y + h, dst.height - oy);
+    if (x0 >= x1 || y0 >= y1) return;
+    for (let j = y0; j < y1; j++) {
+      const from = (j * width + x0) * 4;
+      dst.data.set(data.subarray(from, from + (x1 - x0) * 4), ((oy + j) * dst.width + ox + x0) * 4);
+    }
   }
 
   /**
