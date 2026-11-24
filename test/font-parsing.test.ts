@@ -42,15 +42,15 @@ describe("font string parsing", () => {
       expect(ctx._font.family).toBe("Helvetica Neue");
     });
 
-    it("parses em unit", () => {
+    it("resolves em against the default 10px font", () => {
       ctx.font = "1.5em Georgia";
-      expect(ctx._font.size).toBe(1.5);
+      expect(ctx._font.size).toBe(15);
       expect(ctx._font.family).toBe("Georgia");
     });
 
-    it("parses rem unit", () => {
+    it("resolves rem against the default 10px font", () => {
       ctx.font = "2rem Verdana";
-      expect(ctx._font.size).toBe(2);
+      expect(ctx._font.size).toBe(20);
       expect(ctx._font.family).toBe("Verdana");
     });
 
@@ -68,14 +68,14 @@ describe("font string parsing", () => {
       expect(ctx._font.family).toBe("Arial");
     });
 
-    it("parses lighter keyword as 300", () => {
+    it("parses lighter as lighter than the default 400: 100", () => {
       ctx.font = "lighter 12px Arial";
-      expect(ctx._font.weight).toBe(300);
+      expect(ctx._font.weight).toBe(100);
     });
 
-    it("parses bolder keyword as 800", () => {
+    it("parses bolder as bolder than the default 400: 700", () => {
       ctx.font = "bolder 12px Arial";
-      expect(ctx._font.weight).toBe(800);
+      expect(ctx._font.weight).toBe(700);
     });
 
     it("parses numeric weight 400", () => {
@@ -190,9 +190,11 @@ describe("font string parsing", () => {
       expect(ctx.font).toBe("12px Arial");
     });
 
-    it("includes weight as number in output", () => {
+    it("writes weight 700 as bold, and other weights as numbers", () => {
       ctx.font = "bold 12px Arial";
-      expect(ctx.font).toBe("700 12px Arial");
+      expect(ctx.font).toBe("bold 12px Arial");
+      ctx.font = "600 12px Arial";
+      expect(ctx.font).toBe("600 12px Arial");
     });
 
     it("includes style in output", () => {
@@ -201,8 +203,8 @@ describe("font string parsing", () => {
     });
 
     it("includes all parts in correct order", () => {
-      ctx.font = "italic bold 14px Georgia";
-      expect(ctx.font).toBe("italic 700 14px Georgia");
+      ctx.font = "bold italic 14px Georgia";
+      expect(ctx.font).toBe("italic bold 14px Georgia");
     });
 
     it("omits unset properties", () => {
