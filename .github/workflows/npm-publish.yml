@@ -1,39 +1,62 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+# Tests, builds and publishes the package to npm when a GitHub release is published.
+#
+# Publishing uses npm trusted publishing (OIDC), so no npm token is stored in the repo. The
+# package's settings on npmjs.com must list this repository and this workflow file
+# (npm-publish.yml) as a trusted publisher. npm adds provenance to the published package.
+# See https://docs.npmjs.com/trusted-publishers
 
-name: Node.js Package
-
-#on: [push]
+name: Publish to npm
 
 on:
   release:
-    types: [created]
+    # published, not created: publishing a draft release doesn't fire created
+    types: [published]
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22.x
       - run: npm ci
       - run: npm test
 
   publish-npm:
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # lets npm verify this workflow through OIDC
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22.x
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm whoami
+      # trusted publishing needs npm 11.5.1 or later; Node 22 ships with npm 10
+      - run: npm install -g npm@^11.5.1
+      - name: Check the release tag matches package.json
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$version" ]; then
+            echo "::error::release tag $TAG doesn't match package.json version $version"
+            exit 1
+          fi
+      - run: npm ci
       - run: npm run build
-      - uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.npm_token}}
+      # tsc also emits the per-module dist/*.js files, including dist/browser.js, which
+      # package.json's "browser" field points to; npm run build alone doesn't make them
+      - run: npm run type-check
+      - name: Check the package includes every entry point
+        run: |
+          for f in dist/index.cjs dist/index.esm.js dist/index.d.ts dist/browser.js; do
+            [ -f "$f" ] || { echo "::error::missing $f"; exit 1; }
+          done
+      - run: npm publish
