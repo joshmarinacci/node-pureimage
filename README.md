@@ -1,18 +1,20 @@
 # PureImage
 
-PureImage is a pure 100% JavaScript implementation of the HTML Canvas 2D drawing API for NodeJS.
-It has no native dependencies. You can use it to resize images, draw text, render badges,
-convert to grayscale, or anything else you could do with the standard Canvas 2D API. It also has
-additional APIs to save an image as PNG and JPEG.
+PureImage is a pure 100% JavaScript implementation of the HTML Canvas 2D drawing API. It has no
+native dependencies and can run under NodeJS, in the browser, and other JS environments. You can use
+it to resize images, draw text, render badges,convert to grayscale, or anything else you could do
+with the standard Canvas 2D API. It also has additional APIs to save an image as PNG and JPEG.
 
-# Typescript Rewrite
+![svg tiger rendered with PureImage](./images/pureimage-tiger.png)
 
-As of version 0.4.\* PureImage has been rewritten in 100% Typescript. The module is compiled
-to both Common JS and ES Modules. If it was working for you before it should still work, but
-if you notice anything off please file a bug report.
+# 0.5 Major Compatibility Upgrade
 
-Also _note_ that `font.load()` now returns a promise instead of using a callback. If you
-need synchronous support you can still fuse `font.loadSync()`.
+The new `0.5` release improves our Canvas spec compatibility from 22% to 80%! It now passes 919 of
+the [1040 Web Platform canvas tests](https://github.com/web-platform-tests/wpt). This required
+changing a few APIs to better match the spec. Most code should run unmodified, but there are a few
+breaking changes. Please see the [0.5.0 release notes](https://github.com/joshmarinacci/node-pureimage/releases/) for full details.
+
+
 
 # Installation
 
@@ -40,12 +42,12 @@ ctx.fillRect(0, 0, 100, 100);
 
 //write to 'out.png'
 PImage.encodePNGToStream(img1, fs.createWriteStream("out.png"))
-  .then(() => {
-    console.log("wrote out the png file to out.png");
-  })
-  .catch((e) => {
-    console.log("there was an error writing");
-  });
+    .then(() => {
+        console.log("wrote out the png file to out.png");
+    })
+    .catch((e) => {
+        console.log("there was an error writing");
+    });
 ```
 
 result
@@ -55,7 +57,8 @@ result
 ## supported Canvas Features
 
 _note_: PureImage values portability and simplicity of implementation over speed. If you need
-maximum performance you should use a different library backed by native code, such as [Node-Canvas](https://www.npmjs.com/package/canvas)
+maximum performance you should use a different library backed by native code, such
+as [Node-Canvas](https://www.npmjs.com/package/canvas)
 
 - set pixels
 - stroke and fill paths (rectangles, lines, quadratic curves, bezier curves, arcs/circles)
@@ -66,7 +69,8 @@ maximum performance you should use a different library backed by native code, su
 - transforms
 - standard globalAlpha and rgba() alpha compositing
 - clip shapes
-- `save()`/`restore()` of drawing state, `ctx.reset()`, and resizing a bitmap via `width`/`height` (clears it and resets the context)
+- `save()`/`restore()` of drawing state, `ctx.reset()`, and resizing a bitmap via `width`/`height`
+  (clears it and resets the context)
 
 # On the roadmap, but still missing
 
@@ -92,8 +96,10 @@ npm run wpt -- --check                 # exit 1 if a test in test/wpt/baseline.j
 npm run wpt -- --update-baseline
 ```
 
-Use `--wpt <dir>` or `WPT_DIR` to point at another checkout (`npm run clean` deletes `output/wpt`). Many tests fail today because PureImage lacks the
-feature (`fetch`/`FontFace`/`createPattern`/`createImageData`...). `baseline.json` lists the tests that pass.
+Use `--wpt <dir>` or `WPT_DIR` to point at another checkout (`npm run clean` deletes `output/wpt`).
+Many tests fail today because PureImage lacks the
+feature (`fetch`/`FontFace`/`createPattern`/`createImageData`...). `baseline.json` lists the tests
+that pass.
 
 # Why?
 
@@ -156,16 +162,16 @@ of 48 points.
 
 ```js
 test("font test", (t) => {
-  var fnt = PImage.registerFont(
-    "test/fonts/SourceSansPro-Regular.ttf",
-    "Source Sans Pro",
-  );
-  fnt.loadSync();
-  var img = PImage.make(200, 200);
-  var ctx = img.getContext("2d");
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "48pt 'Source Sans Pro'";
-  ctx.fillText("ABC", 80, 80);
+    var fnt = PImage.registerFont(
+        "test/fonts/SourceSansPro-Regular.ttf",
+        "Source Sans Pro",
+    );
+    fnt.loadSync();
+    var img = PImage.make(200, 200);
+    var ctx = img.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "48pt 'Source Sans Pro'";
+    ctx.fillText("ABC", 80, 80);
 });
 ```
 
@@ -173,70 +179,72 @@ Write out to a PNG file
 
 ```js
 PImage.encodePNGToStream(img1, fs.createWriteStream("out.png"))
-  .then(() => {
-    console.log("wrote out the png file to out.png");
-  })
-  .catch((e) => {
-    console.log("there was an error writing");
-  });
+    .then(() => {
+        console.log("wrote out the png file to out.png");
+    })
+    .catch((e) => {
+        console.log("there was an error writing");
+    });
 ```
 
 Read a jpeg, resize it, then save it out
 
 ```js
 PImage.decodeJPEGFromStream(fs.createReadStream("test/images/bird.jpg")).then(
-  (img) => {
-    console.log("size is", img.width, img.height);
-    var img2 = PImage.make(50, 50);
-    var c = img2.getContext("2d");
-    c.drawImage(
-      img,
-      0,
-      0,
-      img.width,
-      img.height, // source dimensions
-      0,
-      0,
-      50,
-      50, // destination dimensions
-    );
-    var pth = path.join(BUILD_DIR, "resized_bird.jpg");
-    PImage.encodeJPEGToStream(img2, fs.createWriteStream(pth), 50).then(() => {
-      console.log("done writing");
-    });
-  },
+    (img) => {
+        console.log("size is", img.width, img.height);
+        var img2 = PImage.make(50, 50);
+        var c = img2.getContext("2d");
+        c.drawImage(
+            img,
+            0,
+            0,
+            img.width,
+            img.height, // source dimensions
+            0,
+            0,
+            50,
+            50, // destination dimensions
+        );
+        var pth = path.join(BUILD_DIR, "resized_bird.jpg");
+        PImage.encodeJPEGToStream(img2, fs.createWriteStream(pth), 50).then(() => {
+            console.log("done writing");
+        });
+    },
 );
 ```
 
-This examples streams an image from a URL to a memory buffer, draws the current date in big black letters, and writes the final image to disk
+This examples streams an image from a URL to a memory buffer, draws the current date in big black
+letters, and writes the final image to disk
 
 ```javascript
 import * as PImage from "pureimage";
 import fs from "fs";
 import * as client from "https";
+
 let url =
-  "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png";
+    "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png";
 let filepath = "output_stream_sync.png";
 //register font
 const font = PImage.registerFont(
-  "../test/unit/fixtures/fonts/SourceSansPro-Regular.ttf",
-  "MyFont",
+    "../test/unit/fixtures/fonts/SourceSansPro-Regular.ttf",
+    "MyFont",
 );
 //load font
 font.loadSync();
 //get image
 client.get(url, (image_stream) => {
-  //decode image
-  PImage.decodePNGFromStream(image_stream).then((img) => {
-    //get context
-    const ctx = img.getContext("2d");
-    ctx.fillStyle = "#000000";
-    ctx.font = "60pt MyFont";
-    ctx.fillText(new Date().toDateString(), 50, 80);
-    PImage.encodePNGToStream(img, fs.createWriteStream(filepath)).then(() => {
-      console.log("done writing to ", filepath);
+    //decode image
+    PImage.decodePNGFromStream(image_stream).then((img) => {
+        //get context
+        const ctx = img.getContext("2d");
+        ctx.fillStyle = "#000000";
+        ctx.font = "60pt MyFont";
+        ctx.fillText(new Date().toDateString(), 50, 80);
+        PImage.encodePNGToStream(img, fs.createWriteStream(filepath)).then(() => {
+            console.log("done writing to ", filepath);
+        });
     });
-  });
 });
 ```
 
@@ -252,25 +260,25 @@ import fs from "fs";
 import * as client from "https";
 
 let url =
-  "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png";
+    "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png";
 let filepath = "output.png";
 let fontpath = "test/unit/fixtures/fonts/SourceSansPro-Regular.ttf";
 PImage.registerFont(fontpath, "MyFont")
-  .loadPromise()
-  //Promise hack because https module doesn't support promises natively)
-  .then(() => new Promise((res) => client.get(url, res)))
-  .then((stream) => PImage.decodePNGFromStream(stream))
-  .then((img) => {
-    //get context
-    const ctx = img.getContext("2d");
-    ctx.fillStyle = "#000000";
-    ctx.font = "60pt MyFont";
-    ctx.fillText(new Date().toDateString(), 50, 80);
-    return PImage.encodePNGToStream(img, fs.createWriteStream(filepath));
-  })
-  .then(() => {
-    console.log("done writing", filepath);
-  });
+    .loadPromise()
+    //Promise hack because https module doesn't support promises natively)
+    .then(() => new Promise((res) => client.get(url, res)))
+    .then((stream) => PImage.decodePNGFromStream(stream))
+    .then((img) => {
+        //get context
+        const ctx = img.getContext("2d");
+        ctx.fillStyle = "#000000";
+        ctx.font = "60pt MyFont";
+        ctx.fillText(new Date().toDateString(), 50, 80);
+        return PImage.encodePNGToStream(img, fs.createWriteStream(filepath));
+    })
+    .then(() => {
+        console.log("done writing", filepath);
+    });
 ```
 
 The same as above but with async await
@@ -278,52 +286,56 @@ The same as above but with async await
 ```javascript
 import fs from "fs";
 import * as https from "https";
+
 const https_get_P = (url) => new Promise((res) => https.get(url, res));
 
 async function doit() {
-  let url =
-    "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png";
-  let filepath = "output_stream_async.png";
-  //register font
-  const font = PImage.registerFont(
-    "../test/unit/fixtures/fonts/SourceSansPro-Regular.ttf",
-    "MyFont",
-  );
-  //load font
-  await font.load();
-  //get image
-  let image_stream = await https_get_P(url);
-  //decode image
-  let img = await PImage.decodePNGFromStream(image_stream);
-  //get context
-  const ctx = img.getContext("2d");
-  ctx.fillStyle = "#000000";
-  ctx.font = "60pt MyFont";
-  ctx.fillText(new Date().toDateString(), 50, 80);
-  await PImage.encodePNGToStream(img, fs.createWriteStream(filepath));
-  console.log("done writing to ", filepath);
+    let url =
+        "https://vr.josh.earth/webxr-experiments/physics/jinglesmash.thumbnail.png";
+    let filepath = "output_stream_async.png";
+    //register font
+    const font = PImage.registerFont(
+        "../test/unit/fixtures/fonts/SourceSansPro-Regular.ttf",
+        "MyFont",
+    );
+    //load font
+    await font.load();
+    //get image
+    let image_stream = await https_get_P(url);
+    //decode image
+    let img = await PImage.decodePNGFromStream(image_stream);
+    //get context
+    const ctx = img.getContext("2d");
+    ctx.fillStyle = "#000000";
+    ctx.font = "60pt MyFont";
+    ctx.fillText(new Date().toDateString(), 50, 80);
+    await PImage.encodePNGToStream(img, fs.createWriteStream(filepath));
+    console.log("done writing to ", filepath);
 }
+
 doit()
-  .then(() => console.log("done"))
-  .catch((e) => console.error(e));
+    .then(() => console.log("done"))
+    .catch((e) => console.error(e));
 ```
 
 Save a canvas to a NodeJS buffer as PNG using a `PassThrough` stream:
 
 ```javascript
 import * as PImage from "pureimage";
-import { PassThrough } from "stream";
+import {PassThrough} from "stream";
+
 const passThroughStream = new PassThrough();
 const pngData = [];
 passThroughStream.on("data", (chunk) => pngData.push(chunk));
-passThroughStream.on("end", () => {});
+passThroughStream.on("end", () => {
+});
 pureimage.encodePNGToStream(canvas, passThroughStream).then(() => {
-  let buf = Buffer.concat(pngData);
-  expect(buf[0]).to.eq(0x89);
-  expect(buf[1]).to.eq(0x50);
-  expect(buf[2]).to.eq(0x4e);
-  expect(buf[3]).to.eq(0x47);
-  done();
+    let buf = Buffer.concat(pngData);
+    expect(buf[0]).to.eq(0x89);
+    expect(buf[1]).to.eq(0x50);
+    expect(buf[2]).to.eq(0x4e);
+    expect(buf[3]).to.eq(0x47);
+    done();
 });
 ```
 
@@ -331,11 +343,13 @@ Convert a canvas to base64:
 
 ```javascript
 import * as PImage from "pureimage";
-import { PassThrough } from "stream";
+import {PassThrough} from "stream";
+
 const passThroughStream = new PassThrough();
 const pngData = [];
 passThroughStream.on("data", (chunk) => pngData.push(chunk));
-passThroughStream.on("end", () => {});
+passThroughStream.on("end", () => {
+});
 await pureimage.encodePNGToStream(canvas, passThroughStream);
 let buf = Buffer.concat(pngData);
 let b64 = buf.toString("base64");
@@ -355,7 +369,8 @@ For example, rendering arabic text may require `pip install arabic-reshaper` on 
 ### Using a really large image buffer
 
 PureImage has no inherit size limitations, but NodeJS does have a default max memory
-setting. You can learn how to increase the default [here](https://stackoverflow.com/questions/34356012/how-to-increase-nodejs-default-memory)
+setting. You can learn how to increase the
+default [here](https://stackoverflow.com/questions/34356012/how-to-increase-nodejs-default-memory)
 
 # New 0.4.x release
 
@@ -369,26 +384,31 @@ This release also fixes tons of bugs and adds some small features:
 
 - updated PngJS, OpenType.jS and JPegJS to their latest version.
 - Node 14 is now the minimum supported version
-- linear and radial gradient fills are supported. See [test/gradientfill.test.ts](test/gradientfill.test.ts))
+- linear and radial gradient fills are supported.
+  See [test/gradientfill.test.ts](test/gradientfill.test.ts))
 
 # New 0.3.x release
 
 After a long lull, I've ported the code to modern ES6 modules, so you can just do an
 `import pureimage from 'pureimage'` like any other proper modern module. If you are using
 `require('pureimage')` it should just work thanks to the `dist/pureimage-umd.cjs` file built
-with [Rollup](https://rollupjs.org). It also has a stub to let `pureimage` run in the browser and delegate to the
+with [Rollup](https://rollupjs.org). It also has a stub to let `pureimage` run in the browser and
+delegate to the
 real HTML canvas. This helps with isomorphic apps.
 
 Other updates include
 
 - Switch to [MochaJS](https://mochajs.org) for the unit tests.
 - add more unit tests.
-- [support](https://github.com/joshmarinacci/node-pureimage/issues/117) drawing images when using transforms
+- [support](https://github.com/joshmarinacci/node-pureimage/issues/117) drawing images when using
+  transforms
 - [implement](https://github.com/joshmarinacci/node-pureimage/issues/100) `rect()`
 - implement ImageData with `getImageData()` and `putImageData()`
 - fix gradient fill
-- [add all](https://github.com/joshmarinacci/node-pureimage/commit/ba975575ca986ea11c427082d88833fb153e779d) CSS named colors
-- [support](https://github.com/joshmarinacci/node-pureimage/pull/108) #rgb, #rgba, and #rrggbbaa color strings
+- [add all](https://github.com/joshmarinacci/node-pureimage/commit/ba975575ca986ea11c427082d88833fb153e779d)
+  CSS named colors
+- [support](https://github.com/joshmarinacci/node-pureimage/pull/108) #rgb, #rgba, and #rrggbbaa
+  color strings
 - applied more bug fixes from PRs, thanks to our contributors.
 
 # New 0.1.x release
@@ -397,7 +417,8 @@ I've completely refactored the code so that it should be easier to
 maintain and implement new features. For the most part there are no API changes (since the API is
 defined by the HTML Canvas spec), but if you
 were using the font or image loading extensions
-you will need to use the new function names and switch to promises. For more information, please see [the API docs](http://joshmarinacci.github.io/node-pureimage)
+you will need to use the new function names and switch to promises. For more information, please
+see [the API docs](http://joshmarinacci.github.io/node-pureimage)
 
 I'm also using Node buffers instead of arrays internally, so you can work with large images
 faster than before. Rich text is no longer supported, which is fine because it never really worked
@@ -410,7 +431,8 @@ please check that it still works. Thank you all! - josh
 
 Thanks to Nodebox / EMRG for [opentype.js](https://github.com/nodebox/opentype.js/)
 
-Thanks to Rosetta Code for [Bresenham's in JS](http://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#JavaScript)
+Thanks to Rosetta Code
+for [Bresenham's in JS](http://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#JavaScript)
 
 Thanks to Kuba Niegowski for [PngJS](https://github.com/niegowski/node-pngjs)
 
