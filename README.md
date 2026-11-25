@@ -68,18 +68,20 @@ as [Node-Canvas](https://www.npmjs.com/package/canvas)
 - anti-aliased strokes and fills
 - transforms
 - standard globalAlpha and rgba() alpha compositing
+- every `globalCompositeOperation` operator and blend mode
+- linear, radial and conic gradients, and image patterns (`createPattern`)
+- `Path2D`, including SVG path data
+- `ImageData`, `getImageData` and `putImageData`
 - clip shapes
 - `save()`/`restore()` of drawing state, `ctx.reset()`, and resizing a bitmap via `width`/`height`
   (clears it and resets the context)
 
 # On the roadmap, but still missing
 
-- gradients fills
-- image fills
-- blend modes besides SRC OVER
-- smooth clip shapes
-- bold/italic fonts
+- smooth (anti-aliased) clip shapes
+- bold/italic fonts: the font is chosen by family name only, not by weight or style
 - smooth image interpolation
+- shadows, filters and layers
 
 # Web Platform Tests (canvas conformance)
 
@@ -97,9 +99,8 @@ npm run wpt -- --update-baseline
 ```
 
 Use `--wpt <dir>` or `WPT_DIR` to point at another checkout (`npm run clean` deletes `output/wpt`).
-Many tests fail today because PureImage lacks the
-feature (`fetch`/`FontFace`/`createPattern`/`createImageData`...). `baseline.json` lists the tests
-that pass.
+Most of the remaining failures are in features PureImage doesn't implement yet, mainly shadows,
+layers and filters. `baseline.json` lists the tests that pass.
 
 # Why?
 
